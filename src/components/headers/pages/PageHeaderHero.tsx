@@ -1,5 +1,8 @@
-import React from 'react';
+'use client';
+
+import React, { useRef } from 'react';
 import { RichText } from '@payloadcms/richtext-lexical/react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import MediaAsset from '@/components/common/MediaAsset';
 import { defaultConverter } from '@/utils/richTextConverters/index';
@@ -24,6 +27,18 @@ export default function PageHeaderHero({
   text,
   assets = [],
 }: PageHeaderHeroProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Use Framer Motion's scroll-based animations for parallax effect
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start start', 'end start'],
+  });
+
+  // Parallax effect: background moves slower than scroll (creating depth)
+  const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.05]);
+
   // Get the first valid asset for the hero background
   const heroAsset = assets.find(asset => {
     if (asset.type === 'image') {
@@ -40,19 +55,27 @@ export default function PageHeaderHero({
 
   return (
     <div className="relative">
-      <DevIndicator componentName="PageHeaderHero" position="top-center" />
+      <DevIndicator componentName="PageHeaderHero" position="top-left" />
 
       {/* Hero Section */}
       <div
+        ref={ref}
         className={clsx(
           `relative overflow-hidden pt-8 h-[50vh] sm:h-[80vh] min-h-[500px]`
         )}
       >
-        {/* Background Asset */}
+        {/* Background Asset with Parallax */}
         {heroAsset && (
-          <div className="absolute inset-0 opacity-90">
+          <motion.div
+            className="absolute inset-0 opacity-90"
+            style={{
+              y,
+              scale,
+              willChange: 'transform',
+            }}
+          >
             <MediaAsset asset={heroAsset} variant="hero" />
-          </div>
+          </motion.div>
         )}
 
         {/* Overlay */}
