@@ -130,58 +130,14 @@ mux-player.no-controls {
   --media-object-position: center;
 }
 
-/*[data-content-type='page'] h1 {
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 0.95em;
-  font-size: clamp(3rem, 6vw, 7em);
-}*/
-
-/*[data-content-type='article'] h1 {
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 0.95em;
-  font-size: clamp(3rem, 6vw, 8em);
-}*/
-
-/*[data-content-type='article'] .rich-text p {
-  max-width: 120ch;
-  margin: 0 auto;
-}*/
-
-/*h2.font-display {
-  font-size: 1.5rem;
-}*/
-
-/*h2.font-display.text-lg {
-  font-size: 2.5rem;
-}*/
-
-/*h2.font-display.text-xl {
-  font-size: clamp(2.5rem, 6vw, 4.25rem);
-}*/
-
-/*h2.font-sans,
-.sans-headlines h2 {
-  font-size: 1.75rem;
-  font-family: var(--font-sans);
-}*/
-
 .list-header h2 {
   margin-top: 1.6em;
   margin-bottom: 0.8em;
 }
 
-/*[data-content-type='page'] h2.font-display {
-  font-size: clamp(2rem, 6vw, 6em);
-}*/
-
 h2.font-display {
   text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 1em;
+  line-height: 1.15em;
 }
 
 .h2-style {
@@ -194,13 +150,6 @@ h2.font-display {
 .font-display {
   font-family: var(--font-display);
 }
-
-/*[data-content-type='page'] h3.font-display {
-  text-transform: uppercase;
-  letter-spacing: 0.005em;
-  line-height: 1em;
-  font-size: 2em;
-}*/
 
 .font-ballPill {
   font-family: var(--font-ballPill);

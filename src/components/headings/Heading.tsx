@@ -62,12 +62,12 @@ const variantConfig = {
   'faq-title': {
     defaultAs: 'h2' as const,
     className:
-      'font-display text-xl uppercase leading-[1em] tracking-[-0.01em]',
+      'font-display text-xl uppercase leading-[1.1em] tracking-[-0.01em]',
   },
   subsection: {
     defaultAs: 'h3' as const,
     className:
-      'font-display uppercase text-lg leading-[1em] tracking-[0.005em]',
+      'font-display uppercase text-lg leading-[1.1em] tracking-[0.005em]',
   },
   'card-title': {
     defaultAs: 'h3' as const,
