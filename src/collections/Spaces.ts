@@ -1,24 +1,24 @@
 import type { CollectionConfig } from 'payload';
-import AssetText from '@/blocks/global/AssetText';
-import AssetTextContainer from '@/blocks/global/AssetTextContainer';
-import LogotypeWall from '@/blocks/pages/LogotypeWall';
-import PartnerBlock from '@/blocks/global/PartnerBlock';
-import List from '@/blocks/global/List';
-import Text from '@/blocks/articles/Text';
-import MinimalCarousel from '@/blocks/global/MinimalCarousel';
-import CTA from '@/blocks/global/CTA';
-import HighlightGrid from '@/blocks/global/HighlightGrid';
-import HighlightGridGenerator from '@/blocks/global/HighlightGridGenerator';
-import Calendar from '@/blocks/global/Calendar';
-import Image from '@/blocks/articles/Image';
-import InfoOverlay from '@/blocks/global/InfoOverlay';
-import HorizontalMarqueeBlock from '@/blocks/global/HorizontalMarqueeBlock';
-import Model3D from '@/blocks/global/Model3D';
-import Carousel from '@/blocks/pages/Carousel';
-import CardGrid from '@/blocks/pages/CardGrid';
-import Router from '@/blocks/pages/Router';
-import Spotlight from '@/blocks/pages/Spotlight';
-import FAQ from '@/blocks/pages/FAQ';
+import AssetText from '@/blocks/composite/AssetText';
+import AssetTextContainer from '@/blocks/composite/AssetTextContainer';
+import LogotypeWall from '@/blocks/brand/LogotypeWall';
+import PartnerBlock from '@/blocks/brand/PartnerBlock';
+import List from '@/blocks/layout/List';
+import TextBlock from '@/blocks/content/TextBlock';
+import MinimalCarousel from '@/blocks/layout/MinimalCarousel';
+import CTA from '@/blocks/interactive/CTA';
+import HighlightGrid from '@/blocks/layout/HighlightGrid';
+import HighlightGridGenerator from '@/blocks/layout/HighlightGridGenerator';
+import Calendar from '@/blocks/interactive/Calendar';
+import Image from '@/blocks/media/Image';
+import InfoOverlay from '@/blocks/interactive/InfoOverlay';
+import HorizontalMarqueeBlock from '@/blocks/interactive/HorizontalMarqueeBlock';
+import Model3D from '@/blocks/media/Model3D';
+import Carousel from '@/blocks/layout/Carousel';
+import CardGrid from '@/blocks/layout/CardGrid';
+import Router from '@/blocks/layout/Router';
+import Spotlight from '@/blocks/interactive/Spotlight';
+import FAQ from '@/blocks/interactive/FAQ';
 import SEOFields from '@/fields/SEOFields';
 import { authenticated } from '@/access/authenticated';
 import { authenticatedOrPublished } from '@/access/authenticatedOrPublished';
@@ -159,7 +159,7 @@ const Spaces: CollectionConfig = {
                 CTA,
                 List,
                 MinimalCarousel,
-                Text,
+                TextBlock,
                 Calendar,
                 InfoOverlay,
                 HorizontalMarqueeBlock,

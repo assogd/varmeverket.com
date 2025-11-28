@@ -1,5 +1,5 @@
 import type { Block } from 'payload';
-import CommonCard from '@/blocks/CommonCard';
+import CommonCard from '@/blocks/shared/CommonCard';
 
 const CourseCatalog: Block = {
   slug: 'courseCatalog',

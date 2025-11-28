@@ -1,6 +1,6 @@
 import type { Block } from 'payload';
 import { InlineHeader } from '@/fields/InlineHeader';
-import PartnerBlock from '@/blocks/global/PartnerBlock';
+import PartnerBlock from '@/blocks/brand/PartnerBlock';
 
 const LogotypeWall: Block = {
   slug: 'logotype-wall',

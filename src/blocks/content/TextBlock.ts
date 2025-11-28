@@ -11,6 +11,11 @@ const TextBlock: Block = {
       name: 'content',
       type: 'richText',
       required: true,
+      validate: (value: unknown) => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { validateNoH1Headings } = require('@/utils/validation');
+        return validateNoH1Headings(value);
+      },
     },
     {
       name: 'variant',

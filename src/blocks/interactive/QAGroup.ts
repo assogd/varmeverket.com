@@ -1,5 +1,5 @@
 import type { Block } from 'payload';
-import QA from '@/blocks/global/QA';
+import QA from '@/blocks/interactive/QA';
 
 const QAGroup: Block = {
   slug: 'qaGroup',

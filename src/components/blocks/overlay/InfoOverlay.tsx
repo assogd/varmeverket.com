@@ -102,6 +102,7 @@ const InfoOverlay: React.FC<InfoOverlayProps> = ({
                 const cleanBlock = JSON.parse(JSON.stringify(block));
                 switch (block.blockType) {
                   case 'text':
+                  case 'textBlock':
                     return <OverlayTextBlock key={index} {...cleanBlock} />;
                   case 'list':
                     return <OverlayListBlock key={index} {...cleanBlock} />;

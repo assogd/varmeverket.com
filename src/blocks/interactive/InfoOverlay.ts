@@ -1,7 +1,7 @@
 import type { Block } from 'payload';
 import LinkGroup from '@/fields/LinkGroup';
-import Text from '@/blocks/articles/Text';
-import List from '@/blocks/global/List';
+import TextBlock from '@/blocks/content/TextBlock';
+import List from '@/blocks/layout/List';
 
 const InfoOverlay: Block = {
   slug: 'infoOverlay',
@@ -35,7 +35,7 @@ const InfoOverlay: Block = {
         description:
           'Content blocks for the overlay - can include text, images, lists, etc.',
       },
-      blocks: [Text, List],
+      blocks: [TextBlock, List],
     },
     LinkGroup,
   ],

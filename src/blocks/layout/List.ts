@@ -1,5 +1,5 @@
 import type { Block } from 'payload';
-import ListItem from '@/blocks/ListItem';
+import ListItem from '@/blocks/shared/ListItem';
 import { InlineHeader } from '@/fields/InlineHeader';
 
 const List: Block = {

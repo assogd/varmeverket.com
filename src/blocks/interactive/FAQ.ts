@@ -1,7 +1,7 @@
 import type { Block } from 'payload';
 import { InlineHeader } from '@/fields/InlineHeader';
-import QA from '@/blocks/global/QA';
-import QAGroup from '@/blocks/global/QAGroup';
+import QA from '@/blocks/interactive/QA';
+import QAGroup from '@/blocks/interactive/QAGroup';
 
 const FAQ: Block = {
   slug: 'faq',

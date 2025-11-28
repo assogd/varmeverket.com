@@ -1,5 +1,5 @@
 import type { Block } from 'payload';
-import UserCard from '@/blocks/global/UserCard';
+import UserCard from '@/blocks/composite/UserCard';
 
 const HorizontalMarqueeBlock: Block = {
   slug: 'horizontalMarquee',

@@ -1,6 +1,6 @@
 import type { Block } from 'payload';
 import { lexicalEditor, BlocksFeature } from '@payloadcms/richtext-lexical';
-import Signature from './Signature';
+import Signature from '@/blocks/content/Signature';
 
 const QA: Block = {
   slug: 'qa',
