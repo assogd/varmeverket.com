@@ -2,6 +2,8 @@ import type { Block } from 'payload';
 
 const HighlightGridGenerator: Block = {
   slug: 'highlightGridGenerator',
+  imageURL: '/block-thumbnails/highlight-grid-generator.png',
+  imageAltText: 'Highlight Grid Generator Block',
   labels: {
     singular: 'Highlight Grid Generator',
     plural: 'Highlight Grid Generators',

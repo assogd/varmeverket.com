@@ -12,7 +12,7 @@ import SignatureBlock from '@/components/blocks/global/SignatureBlock';
 import { LogotypeWall } from '@/components/blocks/pages/logotypeWall';
 import { PartnerCard } from '@/components/blocks/PartnerCard';
 import Model3DBlock from '@/components/blocks/Model3DBlock';
-import SimpleCarouselBlock from '@/components/blocks/SimpleCarouselBlock';
+import MinimalCarousel from '@/components/blocks/MinimalCarousel';
 import CardGridBlock from '@/components/blocks/pages/cardGrid/CardGridBlock';
 
 export const blockConverters = {
@@ -70,7 +70,7 @@ export const blockConverters = {
   ),
   signature: ({ node }: any) => <SignatureBlock text={node.fields.text} />,
   minimalCarousel: ({ node }: any) => (
-    <SimpleCarouselBlock
+    <MinimalCarousel
       aspectRatio={node.fields.aspectRatio}
       assets={node.fields.assets}
     />

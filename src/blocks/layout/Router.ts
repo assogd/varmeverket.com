@@ -4,6 +4,8 @@ import { InlineHeader } from '@/fields/InlineHeader';
 
 const Router: Block = {
   slug: 'router',
+  imageURL: '/block-thumbnails/router.png',
+  imageAltText: 'Router Block',
   fields: [
     ...InlineHeader,
     {

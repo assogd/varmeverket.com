@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import MediaAsset from '@/components/common/MediaAsset';
 
-interface SimpleCarouselBlockProps {
+interface MinimalCarouselProps {
   aspectRatio: 'landscape' | 'portrait' | 'square' | 'fourThree';
   assets: Array<{
     asset: {
@@ -34,7 +34,7 @@ const maxWidthClasses = {
   fourThree: 'max-w-3xl', // Medium-wide for 4:3
 };
 
-const SimpleCarouselBlock: React.FC<SimpleCarouselBlockProps> = ({
+const MinimalCarousel: React.FC<MinimalCarouselProps> = ({
   aspectRatio,
   assets,
 }) => {
@@ -151,7 +151,7 @@ const SimpleCarouselBlock: React.FC<SimpleCarouselBlockProps> = ({
 
   return (
     <div className="my-8 px-4 select-none relative">
-      <DevIndicator componentName="SimpleCarouselBlock" />
+      <DevIndicator componentName="MinimalCarousel" />
 
       <div className={`${maxWidthClasses[aspectRatio]} mx-auto`}>
         {/* Carousel Container */}
@@ -205,8 +205,8 @@ const SimpleCarouselBlock: React.FC<SimpleCarouselBlockProps> = ({
                   onClick={() => goToSlide(index)}
                   className={`w-2 h-2 rounded-full transition-colors ${
                     index === currentIndex
-                      ? 'bg-current'
-                      : 'border border-current hover:bg-current'
+                      ? 'bg-white'
+                      : 'border border-white hover:bg-white'
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
@@ -219,4 +219,5 @@ const SimpleCarouselBlock: React.FC<SimpleCarouselBlockProps> = ({
   );
 };
 
-export default SimpleCarouselBlock;
+export default MinimalCarousel;
+

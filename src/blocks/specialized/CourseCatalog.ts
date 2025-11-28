@@ -3,6 +3,8 @@ import CommonCard from '@/blocks/shared/CommonCard';
 
 const CourseCatalog: Block = {
   slug: 'courseCatalog',
+  imageURL: '/block-thumbnails/course-catalog.png',
+  imageAltText: 'Course Catalog Block',
   fields: [
     {
       name: 'headline',

@@ -2,6 +2,8 @@ import type { Block } from 'payload';
 
 const MinimalCarousel: Block = {
   slug: 'minimalCarousel',
+  imageURL: '/block-thumbnails/minimal-carousel.png',
+  imageAltText: 'Minimal Carousel Block',
   fields: [
     {
       name: 'assets',

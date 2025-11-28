@@ -3,6 +3,8 @@ import LinkGroup from '@/fields/LinkGroup';
 
 const CTA: Block = {
   slug: 'cta',
+  imageURL: '/block-thumbnails/cta.png',
+  imageAltText: 'Call to Action Block',
   labels: {
     singular: 'Call to Action',
     plural: 'Call to Action Blocks',

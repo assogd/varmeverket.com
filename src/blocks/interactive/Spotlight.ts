@@ -3,6 +3,8 @@ import LinkGroup from '@/fields/LinkGroup';
 
 const Spotlight: Block = {
   slug: 'spotlight',
+  imageURL: '/block-thumbnails/spotlight.png',
+  imageAltText: 'Spotlight Block',
   labels: {
     singular: 'Spotlight',
     plural: 'Spotlights',

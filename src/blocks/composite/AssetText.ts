@@ -3,6 +3,8 @@ import LinkGroup from '@/fields/LinkGroup';
 
 const AssetText: Block = {
   slug: 'assetText',
+  imageURL: '/block-thumbnails/asset-text.png',
+  imageAltText: 'Asset Text Block',
   fields: [
     {
       name: 'asset',

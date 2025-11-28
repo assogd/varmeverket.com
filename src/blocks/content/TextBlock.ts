@@ -2,6 +2,8 @@ import type { Block } from 'payload';
 
 const TextBlock: Block = {
   slug: 'textBlock',
+  imageURL: '/block-thumbnails/text-block.png',
+  imageAltText: 'Text Block',
   labels: {
     singular: 'Text Block',
     plural: 'Text Blocks',

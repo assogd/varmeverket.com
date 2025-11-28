@@ -13,7 +13,7 @@ import ListBlock from '@/components/blocks/ListBlock';
 import CourseCatalogBlock from '@/components/blocks/pages/CourseCatalogBlock';
 import TextBlock from '@/components/blocks/TextBlock';
 import { FAQBlock } from '@/components/blocks/FAQ';
-import SimpleCarouselBlock from '@/components/blocks/SimpleCarouselBlock';
+import MinimalCarousel from '@/components/blocks/MinimalCarousel';
 import AssetTextBlock from '@/components/blocks/AssetTextBlock';
 import AssetTextContainerBlock from '@/components/blocks/AssetTextContainerBlock';
 import CTABlock from '@/components/blocks/CTABlock';
@@ -90,7 +90,7 @@ function renderBlock(
     case 'faq':
       return <FAQBlock key={i} {...cleanBlock} />;
     case 'minimalCarousel':
-      return <SimpleCarouselBlock key={i} {...cleanBlock} />;
+      return <MinimalCarousel key={i} {...cleanBlock} />;
     case 'cta':
       return <CTABlock key={i} {...cleanBlock} />;
     case 'highlightGrid':

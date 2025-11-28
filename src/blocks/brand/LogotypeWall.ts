@@ -4,6 +4,8 @@ import PartnerBlock from '@/blocks/brand/PartnerBlock';
 
 const LogotypeWall: Block = {
   slug: 'logotype-wall',
+  imageURL: '/block-thumbnails/logotype-wall.png',
+  imageAltText: 'Logotype Wall Block',
   fields: [
     ...InlineHeader,
     {
