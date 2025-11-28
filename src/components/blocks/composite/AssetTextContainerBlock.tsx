@@ -1,6 +1,6 @@
 import React from 'react';
 import { BlockHeader } from '@/components/blocks/BlockHeader';
-import AssetTextBlock from '@/components/blocks/AssetTextBlock';
+import AssetTextBlock from '@/components/blocks/composite/AssetTextBlock';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { type LinkGroup } from '@/utils/linkRouter';
 

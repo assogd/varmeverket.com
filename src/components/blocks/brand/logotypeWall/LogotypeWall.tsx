@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { PartnerCard } from '@/components/blocks/PartnerCard';
+import { PartnerCard } from '@/components/blocks/brand/PartnerCard';
 import { HorizontalScrollContainer } from '@/components/ui/HorizontalScrollContainer';
 import clsx from 'clsx';
 import { DevIndicator } from '@/components/dev/DevIndicator';

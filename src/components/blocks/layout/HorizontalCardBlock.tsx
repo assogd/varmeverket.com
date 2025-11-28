@@ -9,7 +9,7 @@ import { HorizontalSnapCarousel } from '@/components/carousels';
 import {
   InfoOverlay,
   OverlayCard as OverlayCardComponent,
-} from '@/components/blocks/overlay';
+} from '@/components/blocks/interactive/overlay';
 import { routeLink, LinkGroup } from '@/utils/linkRouter';
 
 interface Card {

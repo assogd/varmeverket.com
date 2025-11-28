@@ -6,14 +6,14 @@ import {
   ImageBlock,
   ArticleCTABlock,
 } from '@/components/blocks/articles';
-import TextBlock from '@/components/blocks/TextBlock';
-import VideoBlock from '@/components/blocks/VideoBlock';
-import SignatureBlock from '@/components/blocks/global/SignatureBlock';
-import { LogotypeWall } from '@/components/blocks/pages/logotypeWall';
-import { PartnerCard } from '@/components/blocks/PartnerCard';
-import Model3DBlock from '@/components/blocks/Model3DBlock';
-import MinimalCarousel from '@/components/blocks/MinimalCarousel';
-import CardGridBlock from '@/components/blocks/pages/cardGrid/CardGridBlock';
+import TextBlock from '@/components/blocks/content/TextBlock';
+import VideoBlock from '@/components/blocks/media/VideoBlock';
+import SignatureBlock from '@/components/blocks/content/SignatureBlock';
+import { LogotypeWall } from '@/components/blocks/brand/logotypeWall';
+import { PartnerCard } from '@/components/blocks/brand/PartnerCard';
+import Model3DBlock from '@/components/blocks/media/Model3DBlock';
+import MinimalCarousel from '@/components/blocks/layout/MinimalCarousel';
+import CardGridBlock from '@/components/blocks/layout/cardGrid/CardGridBlock';
 
 export const blockConverters = {
   textBlock: ({ node }: any) => (

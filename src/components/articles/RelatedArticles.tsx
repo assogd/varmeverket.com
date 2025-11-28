@@ -5,8 +5,8 @@ import { HorizontalScrollContainer } from '@/components/ui/HorizontalScrollConta
 import {
   ArticleCardWithImage,
   ArticleCardWithoutImage,
-} from '@/components/blocks/HighlightGridGenerator';
-import type { ContentItem } from '@/components/blocks/HighlightGridGenerator/types';
+} from '@/components/blocks/layout/HighlightGridGenerator';
+import type { ContentItem } from '@/components/blocks/layout/HighlightGridGenerator/types';
 
 interface RelatedArticlesProps {
   relatedArticles: ContentItem[];

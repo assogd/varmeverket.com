@@ -21,7 +21,7 @@ export const DevIndicator: React.FC<DevIndicatorProps> = ({
 
   return (
     <div
-      className={`hidden absolute select-none ${positionClasses[position]} z-20 border border-text text-xs px-0.5 pt-0.5 rounded-md font-sans transition-opacity`}
+      className={`absolute select-none ${positionClasses[position]} z-20 border border-text text-xs px-0.5 pt-0.5 rounded-md font-sans transition-opacity`}
       title={`Component: ${componentName}`}
     >
       {componentName}

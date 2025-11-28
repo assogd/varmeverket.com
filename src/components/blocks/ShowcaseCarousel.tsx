@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { RichText } from '@payloadcms/richtext-lexical/react';
-import VideoBlock from '@/components/blocks/VideoBlock';
+import VideoBlock from '@/components/blocks/media/VideoBlock';
 import { ReusableCarousel, CarouselItem } from '@/components/carousels';
 import { fixImageUrl, fixVideoUrl } from '@/utils/imageUrl';
 

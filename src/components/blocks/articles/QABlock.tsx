@@ -6,7 +6,7 @@ import {
 } from '@payloadcms/richtext-lexical/react';
 import { SerializedParagraphNode } from '@payloadcms/richtext-lexical';
 import { DevIndicator } from '@/components/dev/DevIndicator';
-import SignatureBlock from '@/components/blocks/global/SignatureBlock';
+import SignatureBlock from '@/components/blocks/content/SignatureBlock';
 
 interface QABlockProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

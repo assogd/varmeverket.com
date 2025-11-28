@@ -6,8 +6,8 @@ import { AppAction, Overlay } from '@/components/ui';
 import { routeLink } from '@/utils/linkRouter';
 import { createMarqueeText } from '@/utils/marquee';
 import Marquee from 'react-fast-marquee';
-import OverlayTextBlock from '@/components/blocks/overlay/OverlayTextBlock';
-import OverlayListBlock from '@/components/blocks/overlay/OverlayListBlock';
+import OverlayTextBlock from '@/components/blocks/interactive/overlay/OverlayTextBlock';
+import OverlayListBlock from '@/components/blocks/interactive/overlay/OverlayListBlock';
 import clsx from 'clsx';
 
 interface InfoOverlayProps {

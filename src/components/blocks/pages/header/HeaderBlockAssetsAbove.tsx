@@ -5,7 +5,7 @@ import React, { useRef } from 'react';
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { DevIndicator } from '@/components/dev/DevIndicator';
-import VideoBlock from '@/components/blocks/VideoBlock';
+import VideoBlock from '@/components/blocks/media/VideoBlock';
 import { FadeInUp, FadeInDown } from '@/components/ui/FadeIn';
 // import clsx from 'clsx';
 import { fixImageUrl } from '@/utils/imageUrl';

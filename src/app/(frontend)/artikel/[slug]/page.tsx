@@ -4,7 +4,7 @@ import ArticleContent from '@/components/blocks/articles/ArticleContent';
 import RelatedArticles from '@/components/articles/RelatedArticles';
 import React, { cache } from 'react';
 import { notFound } from 'next/navigation';
-import type { ContentItem } from '@/components/blocks/HighlightGridGenerator/types';
+import type { ContentItem } from '@/components/blocks/layout/HighlightGridGenerator/types';
 
 // Define proper types for article data
 interface ArticleData {

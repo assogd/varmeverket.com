@@ -4,7 +4,7 @@ import React from 'react';
 import { AnimatePresence } from 'framer-motion';
 import ShowcaseOverlay from './ShowcaseOverlay';
 import ArticleOverlay from './ArticleOverlay';
-import type { ContentItem } from '@/components/blocks/HighlightGridGenerator/types';
+import type { ContentItem } from '@/components/blocks/layout/HighlightGridGenerator/types';
 
 interface ContentOverlayProps {
   selectedContent: ContentItem | null;

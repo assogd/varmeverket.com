@@ -7,7 +7,7 @@ import { BlockHeader } from '@/components/blocks/BlockHeader';
 import {
   CalendarEventCard,
   CalendarEventOverlay,
-} from '@/components/blocks/calendar';
+} from '@/components/blocks/interactive/calendar';
 import type { CalendarBlockProps, CalendarEvent } from './calendar/types';
 
 const CalendarBlock: React.FC<CalendarBlockProps> = ({
