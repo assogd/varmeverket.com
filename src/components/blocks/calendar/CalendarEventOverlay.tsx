@@ -5,7 +5,7 @@ import { RichText } from '@payloadcms/richtext-lexical/react';
 import { formatEventDate, formatEventTime } from '@/utils/dateFormatting';
 import { downloadICS } from '@/utils/icsUtils';
 import { AppAction, Overlay } from '@/components/ui';
-import type { CalendarEventOverlayProps } from '@/types/calendar';
+import type { CalendarEventOverlayProps } from './types';
 
 const CalendarEventOverlay: React.FC<CalendarEventOverlayProps> = ({
   event,

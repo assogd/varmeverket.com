@@ -3,7 +3,7 @@ import React, { useEffect, useCallback, useRef } from 'react';
 import {
   Notification as NotificationType,
   NotificationAction,
-} from '@/types/notification';
+} from './types';
 import { AppAction } from '@/components/ui';
 import clsx from 'clsx';
 

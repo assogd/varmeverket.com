@@ -59,3 +59,4 @@ export interface CalendarEventOverlayProps {
   isOpen: boolean;
   onClose: () => void;
 }
+

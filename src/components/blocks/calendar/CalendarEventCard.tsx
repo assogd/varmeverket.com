@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { formatEventDate, formatEventTime } from '@/utils/dateFormatting';
-import type { CalendarEventCardProps } from '@/types/calendar';
+import type { CalendarEventCardProps } from './types';
 
 const CalendarEventCard: React.FC<CalendarEventCardProps> = ({
   event,

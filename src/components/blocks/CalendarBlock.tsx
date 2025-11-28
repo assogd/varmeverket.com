@@ -8,7 +8,7 @@ import {
   CalendarEventCard,
   CalendarEventOverlay,
 } from '@/components/blocks/calendar';
-import type { CalendarBlockProps, CalendarEvent } from '@/types/calendar';
+import type { CalendarBlockProps, CalendarEvent } from './calendar/types';
 
 const CalendarBlock: React.FC<CalendarBlockProps> = ({
   headline,

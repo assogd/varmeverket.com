@@ -25,3 +25,4 @@ export interface NotificationContextType {
   removeNotification: (id: string) => void;
   clearAllNotifications: () => void;
 }
+

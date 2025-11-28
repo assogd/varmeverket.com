@@ -5,7 +5,7 @@ import React, {
   useReducer,
   useCallback,
 } from 'react';
-import { Notification, NotificationContextType } from '@/types/notification';
+import { Notification, NotificationContextType } from '@/components/notifications/types';
 
 type NotificationAction =
   | { type: 'ADD_NOTIFICATION'; payload: Notification }

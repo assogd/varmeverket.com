@@ -3,7 +3,7 @@ import {
   NotificationType,
   NotificationDismissal,
   NotificationAction,
-} from '@/types/notification';
+} from '@/components/notifications/types';
 
 interface UseNotificationOptions {
   type?: NotificationType;
