@@ -1,5 +1,14 @@
 import type { Block } from 'payload';
 
+/**
+ * @deprecated This block is deprecated and will be removed after migration.
+ * Use TextBlock instead, which includes all features of Text plus variant support.
+ *
+ * Legacy: This block is kept temporarily for backward compatibility.
+ * All new blocks should use TextBlock from '@/blocks/content/TextBlock'.
+ *
+ * Migration status: 1 instance in database (Fotostudio space) - to be migrated manually.
+ */
 const Text: Block = {
   slug: 'text',
   labels: {

@@ -117,6 +117,7 @@ async function SpacePage({ params }: SpacePageProps) {
               case 'list':
                 return <ListBlock key={i} {...cleanBlock} />;
               case 'text':
+              case 'textBlock':
                 return <TextBlock key={i} {...cleanBlock} />;
               case 'minimalCarousel':
                 return <SimpleCarouselBlock key={i} {...cleanBlock} />;

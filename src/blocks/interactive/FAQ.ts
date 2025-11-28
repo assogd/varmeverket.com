@@ -5,6 +5,8 @@ import QAGroup from '@/blocks/interactive/QAGroup';
 
 const FAQ: Block = {
   slug: 'faq',
+  imageURL: '/block-thumbnails/faq.png',
+  imageAltText: 'FAQ Block',
   labels: {
     singular: 'FAQ Block',
     plural: 'FAQ Blocks',

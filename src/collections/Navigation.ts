@@ -1,5 +1,5 @@
 import type { CollectionConfig, Field } from 'payload';
-import NavigationItem from '@/blocks/NavigationItem';
+import NavigationItem from '@/blocks/shared/NavigationItem';
 import LinkGroup from '@/fields/LinkGroup';
 import { commonHooks, publicAccess } from '@/utils/hooks';
 
