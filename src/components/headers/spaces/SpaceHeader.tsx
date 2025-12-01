@@ -61,7 +61,7 @@ export default function SpaceHeader({ spaceData, header }: SpaceHeaderProps) {
 
         {/* Overlay */}
         <div className="absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-bg to-transparent" />
-        <div className="relative h-full flex flex-col justify-center items-center text-center px-4 pb-4">
+        <div className="relative h-full flex flex-col justify-center items-center text-center px-4 pb-4 mix-blend-screen">
           {/* Space Title */}
           {spaceData.title && (
             <Heading variant="building-title">
