@@ -27,7 +27,7 @@ const ListItem: React.FC<ListItemProps> = ({
   const variantClasses = {
     outline: 'border border-text text-center list-none',
     background: 'bg-surface text-center',
-    bullet: 'font-mono list-disc list-outside ml-8 pl-3 pb-1 last:pb-0',
+    bullet: 'list-disc list-outside ml-8 pl-3 pb-1 last:pb-0',
   };
 
   const hoverClasses = 'hover:rounded-none transition-all duration-300';

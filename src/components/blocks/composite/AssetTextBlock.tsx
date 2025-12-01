@@ -52,9 +52,9 @@ const AssetTextBlock: React.FC<AssetTextBlockProps> = ({
   // Converts h1 to h2, styles h2 same as h3
   const converter = buildConverter({
     paragraph: pageType === 'space' ? 'space' : 'default',
-    blockquote: pageType === 'space' ? 'default' : 'default',
-    heading: 'assetText', // Convert h1 to h2, style h2 same as h3
-    list: pageType === 'space' ? 'default' : 'default',
+    blockquote: 'default',
+    heading: 'assetText',
+    list: 'default',
   });
 
   return (
