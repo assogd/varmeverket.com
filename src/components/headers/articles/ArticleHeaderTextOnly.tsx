@@ -68,7 +68,7 @@ export default function ArticleHeaderTextOnly({
         <TagList tags={articleData.tags} size="md" className="mb-4" />
 
         <FadeInUp as="div" timing="fast">
-          <div className="px-4 grid gap-4 font-mono">
+          <div className="px-4 grid gap-8 font-mono">
             {/* Add article title as h1 if no h1 is found in RichText */}
             {text && articleData.title && !hasH1(text) && (
               <Heading variant="article-title" as="h1">
@@ -78,7 +78,7 @@ export default function ArticleHeaderTextOnly({
             {text && (
               <RichText
                 data={text}
-                className="grid gap-3"
+                className="grid gap-3 justify-center"
                 converters={defaultConverter}
               />
             )}
