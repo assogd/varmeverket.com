@@ -18,7 +18,7 @@ export default function PageLayout({
     <div
       data-content-type={contentType}
       className={clsx(
-        'min-h-screen grid gap-24',
+        'min-h-screen grid gap-16 sm:gap-24',
         paddingBottom ? 'pb-36' : '',
         className
       )}

@@ -68,19 +68,18 @@ export default function HighlightGridGeneratorBlock({
   }
 
   return (
-    <div className="my-8 relative">
+    <div className="my-8 relative border-black border-b mb-2 pb-2 mx-2 last:border-b-0 last:mb-0">
       <DevIndicator componentName="HighlightGridGeneratorBlock" />
+      <hr className="my-2" />
+      <div className="absolute left-1/2 top-2 bottom-2 border-l border-text transform -translate-x-1/2"></div>
 
-      <div className="relative">
-        <hr className="mx-2 my-2" />
-        <div className="absolute left-1/2 top-2 bottom-2 border-l border-text transform -translate-x-1/2"></div>
+      {/* Headline */}
+      <h2 className="text-center font-mono uppercase py-0.5 mb-24 mt-28 relative bg-bg">
+        {headline}
+      </h2>
 
-        {/* Headline */}
-        <h2 className="text-center font-mono uppercase py-0.5 mb-24 mt-28 relative bg-bg">
-          {headline}
-        </h2>
-
-        {/* Content Grid */}
+      {/* Content Grid */}
+      <div className="-mx-2">
         <HorizontalScrollContainer
           className="bg-bg mb-28 relative gap-2 pt-2 pb-2"
           enableOverflowDetection={false}
@@ -143,9 +142,7 @@ export default function HighlightGridGeneratorBlock({
             return null;
           })}
         </HorizontalScrollContainer>
-        <hr className="mx-2 my-2" />
       </div>
-
       {/* Content Overlay */}
       <ContentOverlay
         selectedContent={selectedHighlight}

@@ -36,7 +36,7 @@ export const FAQBlock: React.FC<FAQBlockProps> = ({
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="relative px-4 pt-8 pb-24">
+    <div className="relative px-4 pt-8 pb-12">
       <DevIndicator componentName="FAQBlock" />
 
       {/* Header */}
