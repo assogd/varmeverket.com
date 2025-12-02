@@ -1,6 +1,7 @@
 import PayloadAPI from '@/lib/api';
 import { PageHeader } from '@/components/headers';
 import { renderBlocks } from '@/utils/blockRenderer';
+import PageLayout from '@/components/layout/PageLayout';
 import { notFound } from 'next/navigation';
 import { getPreviewData, isPreviewFromSearchParams } from '@/utils/preview';
 import { processPageLayout } from '@/utils/processDynamicBlocks';
@@ -63,9 +64,17 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
 
   // Process dynamic blocks on the server side
   const processedPage = await processPageLayout(page);
+  const layout = (processedPage as PageData).layout || [];
+  const lastBlock = layout[layout.length - 1];
+  const lastBlockIsMatch =
+    lastBlock?.blockType === 'highlightGridGenerator' ||
+    lastBlock?.blockType === 'router';
 
   return (
-    <div data-content-type="page" className="grid gap-24 pb-48">
+    <PageLayout
+      contentType="page"
+      paddingBottom={!lastBlockIsMatch}
+    >
       {(processedPage as PageData).header && (
         <PageHeader
           text={(processedPage as PageData).header!.text}
@@ -93,6 +102,6 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
       )}
 
       {renderBlocks((processedPage as PageData).layout)}
-    </div>
+    </PageLayout>
   );
 }

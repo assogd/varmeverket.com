@@ -2,6 +2,7 @@ import { PayloadAPI } from '@/lib/api';
 import { ArticleHeader } from '@/components/headers';
 import ArticleContent from '@/components/blocks/articles/ArticleContent';
 import RelatedArticles from '@/components/articles/RelatedArticles';
+import PageLayout from '@/components/layout/PageLayout';
 import React, { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { ContentItem } from '@/components/blocks/layout/HighlightGridGenerator/types';
@@ -178,7 +179,7 @@ async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   return (
-    <div data-content-type="article" className="min-h-screen grid gap-24 pb-36">
+    <PageLayout contentType="article">
       {/* Article Header */}
       <ArticleHeader
         articleData={article}
@@ -236,7 +237,7 @@ async function ArticlePage({ params }: ArticlePageProps) {
       {relatedArticles.length >= 2 && (
         <RelatedArticles relatedArticles={relatedArticles} />
       )}
-    </div>
+    </PageLayout>
   );
 }
 

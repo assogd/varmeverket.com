@@ -8,6 +8,7 @@ import { motion, easeOut } from 'framer-motion';
 import { FadeIn } from '@/components/ui/FadeIn';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import ImageRenderer from '@/components/common/ImageRenderer';
+import PageLayout from '@/components/layout/PageLayout';
 
 interface Asset {
   type: 'image' | 'mux' | 'video';
@@ -29,6 +30,7 @@ interface HomepageHeaderBlockProps {
   text: any;
   assets?: Asset[];
   children?: React.ReactNode;
+  paddingBottom?: boolean;
   // New gradient variant props
   variant?: 'standard' | 'gradient';
   heroAsset?: {
@@ -44,6 +46,7 @@ export default function HomepageHeaderBlock({
   text,
   assets = [],
   children,
+  paddingBottom = true,
 }: HomepageHeaderBlockProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const richTextRef = useRef<HTMLDivElement>(null);
@@ -150,21 +153,23 @@ export default function HomepageHeaderBlock({
 
       <motion.div
         ref={containerRef}
-        className="mt-[50vh] sm:mt-[calc(100vh-2rem)] relative z-10 bg-bg rounded-t-xl grid gap-24 pb-48"
+        className="mt-[50vh] sm:mt-[calc(100vh-2rem)] relative z-10 bg-bg rounded-t-xl"
       >
-        <FadeIn
-          ref={richTextRef}
-          className="flex items-center justify-center px-4 text-center pt-8 sm:pt-16 md:pt-20"
-          timing="slow"
-          delay={1}
-        >
-          <RichText
-            data={text}
-            className="flex flex-col items-center gap-3"
-            converters={jsxConverter}
-          />
-        </FadeIn>
-        {children}
+        <PageLayout className="pt-8 sm:pt-16 md:pt-20" paddingBottom={paddingBottom}>
+          <FadeIn
+            ref={richTextRef}
+            className="flex items-center justify-center px-4 text-center"
+            timing="slow"
+            delay={1}
+          >
+            <RichText
+              data={text}
+              className="flex flex-col items-center gap-3"
+              converters={jsxConverter}
+            />
+          </FadeIn>
+          {children}
+        </PageLayout>
       </motion.div>
     </>
   );

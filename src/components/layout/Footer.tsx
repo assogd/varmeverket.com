@@ -98,7 +98,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ links = [] }) => {
   return (
-    <footer className="relative bg-bg">
+    <footer className="relative bg-bg relative">
       <div className="mx-2">
         {/* Top row */}
         <GridRow hasBorders>{generateGridColumns(15)}</GridRow>

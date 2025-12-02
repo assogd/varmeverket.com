@@ -42,6 +42,10 @@ export default async function HomePage() {
   // Process dynamic blocks on the server side
   const processedPage = await processPageLayout(page);
   const blocks = processedPage.layout || [];
+  const lastBlock = blocks[blocks.length - 1];
+  const lastBlockIsMatch =
+    lastBlock?.blockType === 'highlightGridGenerator' ||
+    lastBlock?.blockType === 'router';
 
   return (
     <div className="homepage">
@@ -61,6 +65,7 @@ export default async function HomePage() {
               mux?: string;
             }>
           }
+          paddingBottom={!lastBlockIsMatch}
         >
           {renderBlocks(blocks)}
         </HomepageHeaderBlock>

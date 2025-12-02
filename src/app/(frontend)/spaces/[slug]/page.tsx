@@ -1,6 +1,7 @@
 import PayloadAPI from '@/lib/api';
 import { SpaceHeader } from '@/components/headers';
 import { renderBlocks } from '@/utils/blockRenderer';
+import PageLayout from '@/components/layout/PageLayout';
 import { notFound } from 'next/navigation';
 import { SpacesPageWrapper } from '@/components/wrappers';
 import { processPageLayout } from '@/utils/processDynamicBlocks';
@@ -71,10 +72,18 @@ async function SpacePage({ params }: SpacePageProps) {
 
   // Process dynamic blocks on the server side
   const processedSpace = await processPageLayout(space);
+  const layout = (processedSpace?.layout as Array<{ blockType: string; [key: string]: unknown }>) || [];
+  const lastBlock = layout[layout.length - 1];
+  const lastBlockIsMatch =
+    lastBlock?.blockType === 'highlightGridGenerator' ||
+    lastBlock?.blockType === 'router';
 
   return (
     <SpacesPageWrapper>
-      <div data-content-type="space" className="min-h-screen grid gap-24 pb-36">
+      <PageLayout
+        contentType="space"
+        paddingBottom={!lastBlockIsMatch}
+      >
         {/* Hero Section */}
         <SpaceHeader
           spaceData={processedSpace as SpaceDataForHeader}
@@ -82,7 +91,7 @@ async function SpacePage({ params }: SpacePageProps) {
         />
 
         {renderBlocks(processedSpace?.layout, { pageType: 'space' })}
-      </div>
+      </PageLayout>
     </SpacesPageWrapper>
   );
 }
