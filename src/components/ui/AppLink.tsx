@@ -36,12 +36,12 @@ const sizeStyles = {
 
 const getBaseStyles = (isDark: boolean) => ({
   primary: isDark
-    ? 'uppercase border border-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap'
-    : 'uppercase bg-text text-bg mix-blend-multiply rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+    ? 'uppercase border border-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none'
+    : 'uppercase bg-text text-bg mix-blend-multiply rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none',
   secondary:
-    'uppercase bg-accent rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+    'uppercase bg-accent rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none',
   outline:
-    'uppercase border border-text rounded-md inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+    'uppercase border border-text rounded-md inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none',
   minimal: 'block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
   noCSS: '',
 });

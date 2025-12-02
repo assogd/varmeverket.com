@@ -155,7 +155,10 @@ export default function HomepageHeaderBlock({
         ref={containerRef}
         className="mt-[50vh] sm:mt-[calc(100vh-2rem)] relative z-10 bg-bg rounded-t-xl"
       >
-        <PageLayout className="pt-8 sm:pt-16 md:pt-20" paddingBottom={paddingBottom}>
+        <PageLayout
+          className="pt-8 sm:pt-16 md:pt-20"
+          paddingBottom={paddingBottom}
+        >
           <FadeIn
             ref={richTextRef}
             className="flex items-center justify-center px-4 text-center"

@@ -134,7 +134,7 @@ export const Footer: React.FC<FooterProps> = ({ links = [] }) => {
           width={670}
           height={520}
           unoptimized
-          className="p-2 mt-20 w-28 h-auto mix-blend-multiply dark:invert dark:mix-blend-lighten"
+          className="px-2 pb-14 sm:pb-2 mt-4 md:mt-20 w-28 h-auto mix-blend-multiply dark:invert dark:mix-blend-lighten"
         />
       </div>
     </footer>

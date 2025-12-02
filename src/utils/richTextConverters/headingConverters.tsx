@@ -2,6 +2,7 @@
 // Lexical node structures are dynamic and vary by block type
 import React from 'react';
 import { Heading } from '@/components/headings';
+import { BalancedHeading } from '@/components/headings/BalancedHeading';
 
 export const headingConverters = {
   // Standard heading mapping
@@ -11,9 +12,9 @@ export const headingConverters = {
     switch (node.tag) {
       case 'h1':
         return (
-          <Heading variant="page-header" as="h1">
+          <BalancedHeading variant="page-header" as="h1" charsPerLine={24}>
             {text}
-          </Heading>
+          </BalancedHeading>
         );
       case 'h2':
         return (
