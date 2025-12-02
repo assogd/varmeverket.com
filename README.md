@@ -45,6 +45,7 @@ Create a `.env` file in the root directory with the following variables:
 
 **Optional:**
 
+- `NEXT_PUBLIC_BACKEND_API_URL` or `BACKEND_API_URL` - Backend API URL for portal operations (e.g., `https://api.varmeverket.com`)
 - `PREVIEW_SECRET` - Secret token for preview mode (defaults to `your-preview-secret` - **change this in production!**)
 
 **Note:** This is a frontend-only repository that connects to an external Payload CMS backend. You don't need `PAYLOAD_SECRET` or `DATABASE_URI` unless you're running Payload CMS locally.
@@ -53,6 +54,7 @@ Create a `.env` file in the root directory with the following variables:
 
 ```env
 NEXT_PUBLIC_PAYLOAD_API_URL=https://payload.cms.varmeverket.com/api
+NEXT_PUBLIC_BACKEND_API_URL=https://api.varmeverket.com
 PREVIEW_SECRET=your-preview-secret-here
 ```
 
