@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import BackendAPI from '@/lib/backendApi';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -19,14 +17,13 @@ export default function LoginPage() {
     setMessage({ type: null, text: '' });
 
     try {
-      const redirectUrl = window.location.origin + '/portal';
+      const redirectUrl = `/dashboard`;
       const response = await BackendAPI.signOn(email, redirectUrl);
 
       setMessage({
         type: 'success',
         text:
-          response.message ||
-          'Check your inbox for a magic link to sign in.',
+          response.message || 'Check your inbox for a magic link to sign in.',
       });
       setEmail(''); // Clear email after successful submission
     } catch (error) {
@@ -48,15 +45,13 @@ export default function LoginPage() {
         <div className="bg-surface p-8 rounded-lg">
           <h1 className="text-2xl font-bold mb-2">Sign In</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-            Enter your email address and we'll send you a magic link to sign in.
+            Enter your email address and we&apos;ll send you a magic link to
+            sign in.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium mb-2"
-              >
+              <label htmlFor="email" className="block text-sm font-medium mb-2">
                 Email Address
               </label>
               <input
@@ -94,8 +89,8 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
             <p>
-              After clicking the link in your email, you'll be automatically
-              signed in.
+              After clicking the link in your email, you&apos;ll be
+              automatically signed in.
             </p>
           </div>
         </div>
@@ -103,4 +98,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

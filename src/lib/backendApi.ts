@@ -134,6 +134,12 @@ export class BackendAPI {
     }
 
     try {
+      console.log(`🔵 Backend API request: ${url}`, {
+        method: fetchOptions.method || 'GET',
+        credentials: requireAuth ? 'include' : 'omit',
+        hasBody,
+      });
+
       const response = await fetch(url, {
         ...fetchOptions,
         credentials: requireAuth ? 'include' : 'omit', // Only include cookies if auth is required
@@ -143,9 +149,22 @@ export class BackendAPI {
         },
       });
 
+      // Log response headers to see if Set-Cookie is present
+      const setCookieHeader = response.headers.get('Set-Cookie');
+      console.log(`🔵 Backend API response: ${url}`, {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        hasSetCookie: !!setCookieHeader,
+      });
+
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
+        console.error(`❌ Backend API error (${endpoint}):`, {
+          status: response.status,
+          data,
+        });
         throw new BackendAPIError(
           data.message || `API request failed: ${response.statusText}`,
           response.status,
@@ -233,14 +252,28 @@ export class BackendAPI {
    * Sign on (initiate login/registration via magic link)
    * POST /session/sign-on?redirect={redirect}
    * Sends a magic link to the email address
+   * @param email - User email address
+   * @param redirect - Full URL to redirect to after sign-on (e.g., "http://local.addd:3000/dashboard")
    */
   static async signOn(
     email: string,
-    redirect?: string
+    redirect: string
   ): Promise<SignOnResponse> {
+    // Ensure redirect is a full URL (API guide requires this)
     const redirectUrl =
-      redirect || (typeof window !== 'undefined' ? window.location.origin : '');
+      redirect.startsWith('http://') || redirect.startsWith('https://')
+        ? redirect
+        : `${
+            typeof window !== 'undefined' ? window.location.origin : ''
+          }${redirect.startsWith('/') ? redirect : `/${redirect}`}`;
+
     const endpoint = `/session/sign-on?redirect=${encodeURIComponent(redirectUrl)}`;
+
+    console.log('🔵 signOn request:', {
+      email,
+      redirect: redirectUrl,
+      endpoint,
+    });
 
     return this.fetch<SignOnResponse>(endpoint, {
       method: 'POST',

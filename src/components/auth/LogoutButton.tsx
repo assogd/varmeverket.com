@@ -12,12 +12,12 @@ export default function LogoutButton() {
     setLoading(true);
     try {
       await BackendAPI.logout();
-      router.push('/portal/login');
+      router.push('/login');
       router.refresh();
     } catch (error) {
       console.error('Logout failed:', error);
       // Still redirect even if logout request fails
-      router.push('/portal/login');
+      router.push('/login');
       router.refresh();
     } finally {
       setLoading(false);
