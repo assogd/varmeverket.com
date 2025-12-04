@@ -17,6 +17,7 @@ export { AccordionArrowIcon } from './AccordionArrowIcon';
 export { PlusIcon } from './PlusIcon';
 export { MuteIcon } from './MuteIcon';
 export { UnmuteIcon } from './UnmuteIcon';
+export { LockIcon } from './LockIcon';
 
 // Icon name type for type safety
 export type IconName =
@@ -30,7 +31,8 @@ export type IconName =
   | 'accordion-arrow'
   | 'plus'
   | 'mute'
-  | 'unmute';
+  | 'unmute'
+  | 'lock';
 
 // Icon mapping for dynamic usage
 import { CheckIcon } from './CheckIcon';
@@ -44,6 +46,7 @@ import { AccordionArrowIcon } from './AccordionArrowIcon';
 import { PlusIcon } from './PlusIcon';
 import { MuteIcon } from './MuteIcon';
 import { UnmuteIcon } from './UnmuteIcon';
+import { LockIcon } from './LockIcon';
 import { IconProps } from '@/components/icons/Icon';
 
 export const ICONS: Record<IconName, React.ComponentType<IconProps>> = {
@@ -58,4 +61,5 @@ export const ICONS: Record<IconName, React.ComponentType<IconProps>> = {
   plus: PlusIcon,
   mute: MuteIcon,
   unmute: UnmuteIcon,
+  lock: LockIcon,
 };

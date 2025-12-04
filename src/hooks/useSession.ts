@@ -24,36 +24,24 @@ export function useSession(): UseSessionResult {
       setLoading(true);
       setError(null);
 
-      // Check if we can access cookies for the backend domain
-      // Note: document.cookie only shows cookies for current domain, not third-party
-      console.log('🔵 Checking session...');
-      console.log('🔵 Current domain cookies:', document.cookie || '(none)');
-      console.log('🔵 Note: Backend cookies (api.varmeverket.com) won\'t show here due to same-origin policy');
-
       // Make direct client-side call to backend API
       // The cookie is set for api.varmeverket.com, so it will be sent automatically
       // with credentials: 'include' when making requests to that domain
       const sessionData = await BackendAPI.getSession();
-      console.log('✅ Session found:', sessionData);
       setSession(sessionData);
     } catch (err) {
-      // 401 means not logged in, which is fine
-      if (err instanceof Error && err.message.includes('401')) {
-        console.log(`⚠️ Session check returned 401 (retries left: ${retries})`);
-        console.log('💡 This usually means:');
-        console.log('   1. Cookie not set by backend when clicking magic link');
-        console.log('   2. Cookie not accessible due to SameSite/domain restrictions');
-        console.log('   3. Cookie expired or invalid');
-        console.log('   → Check DevTools → Application → Cookies → api.varmeverket.com');
-        
-        // If we get 401 and have retries left, wait a bit and retry
-        // This handles the case where cookie might not be immediately available after redirect
-        if (retries > 0) {
-          console.log('⏳ Retrying session check in 500ms...');
-          await new Promise(resolve => setTimeout(resolve, 500));
-          return fetchSession(retries - 1);
-        }
-        console.log('❌ No session found after retries');
+      // 401 or 400 means not logged in, which is fine
+      const isNotAuthenticated = err instanceof Error && (
+        err.message.includes('401') || 
+        err.message.includes('400') ||
+        err.message.includes('Not authenticated') ||
+        (err as any).status === 401 ||
+        (err as any).status === 400
+      );
+      
+      if (isNotAuthenticated) {
+        // Not logged in - this is normal, not an error
+        // Don't retry for 400/401 - user is simply not authenticated
         setSession(null);
         setError(null);
       } else {

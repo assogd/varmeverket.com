@@ -76,13 +76,13 @@ export const AppAction: React.FC<AppActionProps> = ({
     if (textToCopy) {
       try {
         await navigator.clipboard.writeText(textToCopy);
-        showSuccess('Kopierat!', {
+        showSuccess?.('Kopierat!', {
           duration: 5000,
         });
         onCopy?.();
       } catch (err) {
         console.error('Failed to copy:', err);
-        showError('Kunde inte kopiera texten');
+        showError?.('Kunde inte kopiera texten');
       }
     }
   };

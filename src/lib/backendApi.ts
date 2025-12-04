@@ -253,7 +253,7 @@ export class BackendAPI {
    * POST /session/sign-on?redirect={redirect}
    * Sends a magic link to the email address
    * @param email - User email address
-   * @param redirect - Full URL to redirect to after sign-on (e.g., "http://local.addd:3000/dashboard")
+   * @param redirect - Full URL to redirect to after sign-on (e.g., "http://local.addd.varmeverket.com:3000/dashboard")
    */
   static async signOn(
     email: string,
@@ -267,9 +267,44 @@ export class BackendAPI {
             typeof window !== 'undefined' ? window.location.origin : ''
           }${redirect.startsWith('/') ? redirect : `/${redirect}`}`;
 
+    // Use server-side proxy when running in browser to avoid CORS issues
+    const isClient = typeof window !== 'undefined';
+
+    if (isClient) {
+      // Use Next.js API route proxy to avoid CORS
+      const proxyUrl = `/api/backend/sign-on`;
+
+      console.log('🔵 signOn request (via proxy):', {
+        email,
+        redirect: redirectUrl,
+        proxyUrl,
+      });
+
+      const response = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, redirect: redirectUrl }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new BackendAPIError(
+          data.message || `Sign-on request failed: ${response.statusText}`,
+          response.status,
+          data
+        );
+      }
+
+      return data as SignOnResponse;
+    }
+
+    // Server-side: call backend API directly
     const endpoint = `/session/sign-on?redirect=${encodeURIComponent(redirectUrl)}`;
 
-    console.log('🔵 signOn request:', {
+    console.log('🔵 signOn request (direct):', {
       email,
       redirect: redirectUrl,
       endpoint,
@@ -287,6 +322,44 @@ export class BackendAPI {
    * Returns session + user if logged in, 401 if not
    */
   static async getSession(): Promise<SessionResponse> {
+    // Always call backend API directly with credentials: 'include'
+    // This ensures cookies for api.varmeverket.com are sent
+    // Backend should have CORS configured to allow requests from our frontend domain
+    const isClient = typeof window !== 'undefined';
+
+    if (isClient) {
+      // Call backend API directly - cookies will be sent automatically
+      // Backend must have CORS configured to allow this
+      const url = `${BACKEND_API_URL}/session`;
+
+      console.log('🔵 getSession - calling backend directly:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include', // This ensures cookies are sent
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // 401 or 400 can mean not logged in
+        if (response.status === 401 || response.status === 400) {
+          throw new BackendAPIError('Not authenticated', 401, data);
+        }
+        throw new BackendAPIError(
+          data.message || `Session check failed: ${response.statusText}`,
+          response.status,
+          data
+        );
+      }
+
+      return data as SessionResponse;
+    }
+
+    // Server-side: call backend API directly
     return this.fetch<SessionResponse>('/session');
   }
 
