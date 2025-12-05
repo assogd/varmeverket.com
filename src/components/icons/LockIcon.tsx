@@ -2,20 +2,18 @@ import React from 'react';
 import { Icon, IconProps } from '@/components/icons/Icon';
 
 export const LockIcon: React.FC<IconProps> = ({
-  size = 22,
+  size = 18,
   className = '',
   color = 'white',
 }) => {
   return (
-    <Icon size={size} className={className} color={color} viewBox="0 0 24 24">
+    <Icon size={size} className={className} color={color} viewBox="0 0 17 22">
       <path
-        d="M6 10V8C6 5.79086 7.79086 4 10 4H14C16.2091 4 18 5.79086 18 8V10M6 10H4C2.89543 10 2 10.8954 2 12V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V12C22 10.8954 21.1046 10 20 10H18M6 10H18"
+        d="M8.25 0.125C11.079 0.125 13.375 2.42096 13.375 5.25V7.125H14.25C15.419 7.125 16.375 8.08096 16.375 9.25V19.25C16.375 20.419 15.419 21.375 14.25 21.375H2.25C1.08096 21.375 0.125 20.419 0.125 19.25V9.25C0.125 8.08096 1.08096 7.125 2.25 7.125H11.2246V5.25C11.2246 3.60904 9.89096 2.27539 8.25 2.27539C6.60904 2.27539 5.27539 3.60904 5.27539 5.25V5.375H3.125V5.25C3.125 2.42096 5.42096 0.125 8.25 0.125ZM2.375 19.125H14.125V9.375H2.375V19.125ZM8.25 12.125C9.41904 12.125 10.375 13.081 10.375 14.25C10.375 15.419 9.41904 16.375 8.25 16.375C7.08096 16.375 6.125 15.419 6.125 14.25C6.125 13.081 7.08096 12.125 8.25 12.125Z"
+        fill="currentColor"
         stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeWidth="0.25"
       />
     </Icon>
   );
 };
-

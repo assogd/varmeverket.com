@@ -28,7 +28,7 @@ const HighlightLink: React.FC<HighlightLinkProps> = ({
   const href = linkResult.href || '#';
 
   const highlightLinkClasses = clsx(
-    `fixed ${NAV_DIMENSIONS.Z_INDEX.LOW} bottom-2 left-2 right-2 md:right-auto md:bottom-auto md:top-2 md:left-[2.65em] ${NAV_DIMENSIONS.HEIGHT} ${NAV_DIMENSIONS.BORDER_RADIUS}`,
+    `fixed ${NAV_DIMENSIONS.Z_INDEX.LOW} bottom-2 left-2 right-2 md:right-auto md:bottom-auto md:top-2 md:left-[4.8em] ${NAV_DIMENSIONS.HEIGHT} ${NAV_DIMENSIONS.BORDER_RADIUS}`,
     !mounted && 'mix-blend-multiply bg-text',
     mounted && isDarkMode && 'text-text border border-white',
     mounted && !isDarkMode && 'mix-blend-multiply bg-text text-white'

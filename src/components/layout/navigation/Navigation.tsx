@@ -8,6 +8,7 @@ import NavigationButton from './NavigationButton';
 import HighlightLink from './HighlightLink';
 import Logo from './Logo';
 import MenuOverlay from './MenuOverlay';
+import AuthButton from './AuthButton';
 import { FadeIn } from '@/components/ui/FadeIn';
 
 const Navigation: React.FC<NavigationProps> = ({ navigation }) => {
@@ -53,6 +54,7 @@ const Navigation: React.FC<NavigationProps> = ({ navigation }) => {
             mounted={mounted}
           />
         )}
+        <AuthButton isDarkMode={isDarkMode} mounted={mounted} />
         <FadeIn
           variant="fadeDown"
           timing="normal"
