@@ -2,6 +2,7 @@ import React from 'react';
 import HeaderBlockAssetsAbove from './HeaderBlockAssetsAbove';
 import HeaderBlockStandard from './HeaderBlockStandard';
 import HeaderBlockTextOnly from './HeaderBlockTextOnly';
+import type { LinkGroup } from '@/utils/linkRouter';
 
 interface Asset {
   type: 'image' | 'mux';
@@ -27,12 +28,16 @@ interface HeaderBlockProps {
     unit?: string;
   }>;
   variant?: 'text-only' | 'assets-before' | 'text-before' | 'gradient';
+  label?: string;
+  link?: LinkGroup;
 }
 
 export default function HeaderBlock({
   text,
   assets = [],
   variant = 'text-only',
+  label,
+  link,
 }: HeaderBlockProps) {
   // Handle gradient variant
   if (variant === 'gradient') {
@@ -41,7 +46,7 @@ export default function HeaderBlock({
 
   // Handle text-only variant
   if (variant === 'text-only') {
-    return <HeaderBlockTextOnly text={text} />;
+    return <HeaderBlockTextOnly text={text} label={label} link={link} />;
   }
 
   // Filter assets that actually have content uploaded
@@ -59,14 +64,28 @@ export default function HeaderBlock({
 
   // Handle assets-before variant
   if (variant === 'assets-before' && validAssets.length > 0) {
-    return <HeaderBlockAssetsAbove text={text} assets={validAssets} />;
+    return (
+      <HeaderBlockAssetsAbove
+        text={text}
+        assets={validAssets}
+        label={label}
+        link={link}
+      />
+    );
   }
 
   // Handle text-before variant
   if (variant === 'text-before' && validAssets.length > 0) {
-    return <HeaderBlockStandard text={text} assets={validAssets} />;
+    return (
+      <HeaderBlockStandard
+        text={text}
+        assets={validAssets}
+        label={label}
+        link={link}
+      />
+    );
   }
 
   // Fallback to text-only if no valid assets
-  return <HeaderBlockTextOnly text={text} />;
+  return <HeaderBlockTextOnly text={text} label={label} link={link} />;
 }

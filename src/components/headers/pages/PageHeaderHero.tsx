@@ -7,6 +7,9 @@ import { DevIndicator } from '@/components/dev/DevIndicator';
 import MediaAsset from '@/components/common/MediaAsset';
 import { defaultConverter } from '@/utils/richTextConverters/index';
 import { FadeInUp } from '@/components/ui';
+import { AppAction } from '@/components/ui';
+import { PageHeaderLabel } from '@/components/headings';
+import { routeLink, type LinkGroup } from '@/utils/linkRouter';
 import clsx from 'clsx';
 
 interface Asset {
@@ -20,12 +23,16 @@ interface PageHeaderHeroProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   text: any;
   assets?: Asset[];
+  label?: string;
+  link?: LinkGroup;
 }
 
 // Custom converter for page headers with label headlines
 export default function PageHeaderHero({
   text,
   assets = [],
+  label,
+  link,
 }: PageHeaderHeroProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -52,6 +59,8 @@ export default function PageHeaderHero({
     }
     return false;
   });
+
+  const linkResult = link ? routeLink(link) : null;
 
   return (
     <div className="relative">
@@ -82,13 +91,23 @@ export default function PageHeaderHero({
         <div className="absolute inset-x-0 bottom-0 h-0 bg-bg rounded-t-xl" />
       </div>
       {/* Content */}
-      {text && (
-        <FadeInUp as="div" timing="fast">
-          <RichText
-            data={text}
-            className="grid gap-3 justify-center place-items-center mt-20 px-4 text-center"
-            converters={defaultConverter}
-          />
+      {(text || label || link) && (
+        <FadeInUp as="div" timing="fast" className="grid gap-3 mt-20 px-4 text-center">
+          {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
+          {text && (
+            <RichText
+              data={text}
+              className="grid gap-3 justify-center place-items-center"
+              converters={defaultConverter}
+            />
+          )}
+          {linkResult?.href && link?.text && (
+            <div className="mt-4">
+              <AppAction href={linkResult.href} variant="outline">
+                {link.text}
+              </AppAction>
+            </div>
+          )}
         </FadeInUp>
       )}
     </div>

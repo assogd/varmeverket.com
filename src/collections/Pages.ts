@@ -22,6 +22,7 @@ import Model3D from '@/blocks/media/Model3D';
 import MinimalCarousel from '@/blocks/layout/MinimalCarousel';
 import Image from '@/blocks/media/Image';
 import SEOFields from '@/fields/SEOFields';
+import LinkGroup from '@/fields/LinkGroup';
 import { authenticated } from '@/access/authenticated';
 import { authenticatedOrPublished } from '@/access/authenticatedOrPublished';
 
@@ -85,6 +86,14 @@ const Pages: CollectionConfig = {
                   required: true,
                   admin: {
                     description: 'Choose the header display style',
+                  },
+                },
+                {
+                  name: 'label',
+                  type: 'text',
+                  required: false,
+                  admin: {
+                    description: 'Small title displayed above the main header text',
                   },
                 },
                 {
@@ -165,6 +174,7 @@ const Pages: CollectionConfig = {
                   ],
                   required: false,
                 },
+                LinkGroup,
               ],
               required: false,
             },

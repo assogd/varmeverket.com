@@ -7,9 +7,12 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import VideoBlock from '@/components/blocks/media/VideoBlock';
 import { FadeInUp, FadeInDown } from '@/components/ui/FadeIn';
+import { AppAction } from '@/components/ui';
+import { PageHeaderLabel } from '@/components/headings';
 // import clsx from 'clsx';
 import { fixImageUrl } from '@/utils/imageUrl';
 import { jsxConverter } from '@/utils/richTextConverters/index';
+import { routeLink, type LinkGroup } from '@/utils/linkRouter';
 
 interface Asset {
   type: 'image' | 'mux';
@@ -21,11 +24,15 @@ interface HeaderBlockAssetsAboveProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   text: any;
   assets: Asset[];
+  label?: string;
+  link?: LinkGroup;
 }
 
 export default function HeaderBlockAssetsAbove({
   text,
   assets,
+  label,
+  link,
 }: HeaderBlockAssetsAboveProps) {
   const ref = useRef(null);
 
@@ -40,6 +47,8 @@ export default function HeaderBlockAssetsAbove({
 
   // Add slight y-axis movement for parallax effect
   const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
+
+  const linkResult = link ? routeLink(link) : null;
 
   const renderAsset = (asset: Asset, key: number) => {
     const assetCount = assets.length;
@@ -142,12 +151,20 @@ export default function HeaderBlockAssetsAbove({
       </motion.div>
 
       {/* Render rich text with enhanced motion effects */}
-      <FadeInUp as="div" className="max-w-7xl mx-auto px-4" timing="fast">
+      <FadeInUp as="div" className="max-w-7xl mx-auto px-4" timing="fast"      >
+        {label && <PageHeaderLabel className="mb-2">{label}</PageHeaderLabel>}
         <RichText
           data={text}
           className="rich-text font-mono grid gap-3 hyphens-auto"
           converters={jsxConverter}
         />
+        {linkResult?.href && link?.text && (
+          <div className="mt-4">
+            <AppAction href={linkResult.href} variant="outline">
+              {link.text}
+            </AppAction>
+          </div>
+        )}
       </FadeInUp>
     </div>
   );

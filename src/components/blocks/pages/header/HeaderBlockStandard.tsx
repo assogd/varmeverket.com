@@ -7,9 +7,12 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import VideoBlock from '@/components/blocks/media/VideoBlock';
 import { FadeIn } from '@/components/ui';
+import { AppAction } from '@/components/ui';
+import { PageHeaderLabel } from '@/components/headings';
 // import clsx from 'clsx';
 import { fixImageUrl } from '@/utils/imageUrl';
 import { jsxConverter } from '@/utils/richTextConverters/index';
+import { routeLink, type LinkGroup } from '@/utils/linkRouter';
 
 interface Asset {
   type: 'image' | 'mux';
@@ -21,11 +24,15 @@ interface HeaderBlockStandardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   text: any;
   assets: Asset[];
+  label?: string;
+  link?: LinkGroup;
 }
 
 export default function HeaderBlockStandard({
   text,
   assets,
+  label,
+  link,
 }: HeaderBlockStandardProps) {
   const ref = useRef(null);
 
@@ -43,6 +50,8 @@ export default function HeaderBlockStandard({
 
   // Asset scale - inverse of text scale for dynamic balance
   const assetScale = useTransform(scrollYProgress, [0, 0.1], [0.95, 1]);
+
+  const linkResult = link ? routeLink(link) : null;
 
   const renderAsset = (asset: Asset, key: number) => {
     const height = asset.image?.height || 600;
@@ -105,11 +114,19 @@ export default function HeaderBlockStandard({
           timing="slow"
           delay={0.2}
         >
+          {label && <PageHeaderLabel className="mb-2">{label}</PageHeaderLabel>}
           <RichText
             data={text}
             className="grid gap-3"
             converters={jsxConverter}
           />
+          {linkResult?.href && link?.text && (
+            <div className="mt-4">
+              <AppAction href={linkResult.href} variant="outline">
+                {link.text}
+              </AppAction>
+            </div>
+          )}
         </FadeIn>
       </motion.div>
 
