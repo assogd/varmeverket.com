@@ -8,7 +8,9 @@
 import { monitoredFetch } from '@/utils/cacheMonitor';
 
 // Environment configuration - always use external for frontend
-const API_BASE_URL = process.env.NEXT_PUBLIC_PAYLOAD_API_URL || 'https://payload.cms.varmeverket.com/api';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_PAYLOAD_API_URL ||
+  'https://payload.cms.varmeverket.com/api';
 const USE_EXTERNAL_BACKEND = true; // Always use external for frontend
 
 // API response types
@@ -235,6 +237,39 @@ export class PayloadAPI {
         throw error;
       }
     });
+  }
+
+  /**
+   * Submit a form
+   */
+  static async submitForm(
+    formId: string,
+    formData: Record<string, unknown>
+  ): Promise<{ message?: string; id?: string }> {
+    const url = `${API_BASE_URL}/forms/${formId}/submit`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message ||
+            `Form submission failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error(`❌ Failed to submit form (${formId}):`, error);
+      throw error;
+    }
   }
 
   /**

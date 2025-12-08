@@ -41,11 +41,13 @@ The current focus is on:
 **Important:** Authentication cookies are configured for `varmeverket.com` and subdomains. To test login functionality locally, you need to use a subdomain instead of `localhost`.
 
 1. Add an entry to `/etc/hosts`:
+
    ```bash
    sudo nano /etc/hosts
    ```
-   
+
    Add this line:
+
    ```
    127.0.0.1 local.addd.varmeverket.com
    ```
@@ -73,6 +75,16 @@ Create a `.env` file in the root directory with the following variables:
 - `NEXT_PUBLIC_BACKEND_API_URL` or `BACKEND_API_URL` - Backend API URL for portal operations (e.g., `https://api.varmeverket.com`)
 - `PREVIEW_SECRET` - Secret token for preview mode (defaults to `your-preview-secret` - **change this in production!**)
 
+**Email Configuration (for form submissions):**
+
+- `SMTP_HOST` - SMTP server hostname (defaults to `smtp.resend.com` for Resend)
+- `SMTP_PORT` - SMTP server port (defaults to `587`)
+- `SMTP_USER` - SMTP username (defaults to `resend` for Resend)
+- `SMTP_PASS` or `RESEND_API_KEY` - SMTP password/API key (required for sending emails)
+- `SMTP_SECURE` - Use secure connection (set to `true` for port 465, defaults to `false`)
+- `PAYLOAD_EMAIL_FROM` - Default sender email address (defaults to `noreply@varmeverket.com`)
+- `PAYLOAD_EMAIL_FROM_NAME` - Default sender name (defaults to `Värmeverket`)
+
 **Note:** This is a frontend-only repository that connects to an external Payload CMS backend. You don't need `PAYLOAD_SECRET` or `DATABASE_URI` unless you're running Payload CMS locally.
 
 **Example `.env` file:**
@@ -82,6 +94,14 @@ NEXT_PUBLIC_PAYLOAD_API_URL=https://payload.cms.varmeverket.com/api
 NEXT_PUBLIC_SITE_URL=http://local.addd.varmeverket.com:3000
 NEXT_PUBLIC_BACKEND_API_URL=https://api.varmeverket.com
 PREVIEW_SECRET=your-preview-secret-here
+
+# Email configuration (for form submissions)
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=587
+SMTP_USER=resend
+RESEND_API_KEY=re_your_api_key_here
+PAYLOAD_EMAIL_FROM=noreply@varmeverket.com
+PAYLOAD_EMAIL_FROM_NAME=Värmeverket
 ```
 
 ### Building for Production

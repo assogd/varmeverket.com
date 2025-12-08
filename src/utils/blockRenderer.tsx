@@ -18,6 +18,7 @@ import TextBlock from '@/components/blocks/content/TextBlock';
 import { FAQBlock } from '@/components/blocks/interactive/FAQ';
 import MinimalCarousel from '@/components/blocks/layout/MinimalCarousel';
 import CTABlock from '@/components/blocks/interactive/CTABlock';
+import FormBlock from '@/components/blocks/interactive/FormBlock';
 import HighlightGridBlock from '@/components/blocks/layout/HighlightGridBlock';
 import CalendarBlock from '@/components/blocks/interactive/CalendarBlock';
 import HorizontalMarqueeBlock from '@/components/blocks/interactive/HorizontalMarqueeBlock';
@@ -58,6 +59,7 @@ const blockRegistry: Record<
   faq: FAQBlock,
   minimalCarousel: MinimalCarousel,
   cta: CTABlock,
+  form: FormBlock,
   highlightGrid: HighlightGridBlock,
   calendar: CalendarBlock,
   horizontalMarquee: HorizontalMarqueeBlock,
