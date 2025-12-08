@@ -54,7 +54,7 @@ const AssetTextBlock: React.FC<AssetTextBlockProps> = ({
     paragraph: pageType === 'space' ? 'space' : 'default',
     blockquote: 'default',
     heading: 'assetText',
-    list: 'default',
+    list: 'assetText',
   });
 
   return (

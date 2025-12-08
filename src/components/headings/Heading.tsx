@@ -76,7 +76,7 @@ const variantConfig = {
   },
   'small-title': {
     defaultAs: 'h4' as const,
-    className: 'font-display uppercase text-md',
+    className: 'font-mono uppercase',
   },
   'small-card-title': {
     defaultAs: 'h4' as const,
