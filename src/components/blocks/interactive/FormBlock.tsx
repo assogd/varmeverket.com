@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { Heading } from '@/components/headings';
 import { PayloadAPI } from '@/lib/api';
+import { FormRenderer } from '@/components/forms';
+import type { FormConfig, FormField } from '@/components/forms';
 import clsx from 'clsx';
 
-interface FormField {
+interface CMSFormField {
   name: string;
   label: string;
   fieldType:
@@ -25,10 +27,10 @@ interface FormField {
   width?: number;
 }
 
-interface FormData {
+interface CMSFormData {
   id: string;
   title?: string;
-  fields?: FormField[];
+  fields?: CMSFormField[];
   submitButtonLabel?: string;
   confirmationType?: 'message' | 'redirect';
   confirmationMessage?: {
@@ -48,22 +50,25 @@ interface FormData {
 
 interface FormBlockProps {
   form:
-    | FormData
+    | CMSFormData
     | string
     | { value?: string; id?: string }
-    | { id: string; [key: string]: unknown }; // Can be a relationship object or just an ID
+    | { id: string; [key: string]: unknown };
 }
 
-export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<{
-    type: 'success' | 'error';
-    message: string;
-  } | null>(null);
-  const [formValues, setFormValues] = useState<Record<string, unknown>>({});
+// Convert CMS form field to FormRenderer field
+const convertCMSFieldToFormField = (cmsField: CMSFormField): FormField => ({
+  name: cmsField.name,
+  label: cmsField.label,
+  fieldType: cmsField.fieldType as FormField['fieldType'],
+  required: cmsField.required,
+  defaultValue: cmsField.defaultValue,
+  options: cmsField.options,
+});
 
+export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
   // Handle different relationship formats from Payload
-  let actualForm: FormData | null = null;
+  let actualForm: CMSFormData | null = null;
   let formId: string | null = null;
 
   if (typeof form === 'string') {
@@ -71,7 +76,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
   } else if (form && typeof form === 'object') {
     // Check if it's a populated form object
     if ('id' in form && 'fields' in form) {
-      actualForm = form as FormData;
+      actualForm = form as CMSFormData;
       formId = form.id;
     } else if ('value' in form && typeof form.value === 'string') {
       // Relationship format: { value: 'id' }
@@ -82,7 +87,6 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
   }
 
   // If we don't have form data but have an ID, we'd need to fetch it
-  // For now, we'll show an error if form data is missing
   if (!actualForm && formId) {
     console.warn(
       'Form data not populated. Ensure depth is sufficient when fetching the page.'
@@ -100,53 +104,25 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
     );
   }
 
-  if (!actualForm) {
-    return null;
-  }
-
   if (!actualForm || !actualForm.fields || actualForm.fields.length === 0) {
     return null;
   }
 
-  const handleInputChange = (
-    fieldName: string,
-    value: string | number | boolean
-  ) => {
-    setFormValues(prev => ({
-      ...prev,
-      [fieldName]: value,
-    }));
-    // Clear submit status when user starts typing
-    if (submitStatus) {
-      setSubmitStatus(null);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setSubmitStatus(null);
-
-    try {
+  // Convert CMS form to FormRenderer config
+  const formConfig: FormConfig = {
+    id: actualForm.id,
+    title: actualForm.title,
+    fields: actualForm.fields.map(convertCMSFieldToFormField),
+    submitButtonLabel: actualForm.submitButtonLabel || 'Submit',
+    onSubmit: async formData => {
       if (!formId) {
         throw new Error('Form ID is missing');
       }
-      await PayloadAPI.submitForm(formId, formValues);
-
-      setSubmitStatus({
-        type: 'success',
-        message: actualForm.confirmationMessage
-          ? 'Form submitted successfully!'
-          : 'Form submitted successfully!',
-      });
-
-      // Reset form if confirmation type is message
-      if (actualForm.confirmationType === 'message') {
-        setFormValues({});
-      }
-
+      await PayloadAPI.submitForm(formId, formData);
+    },
+    onSuccess: () => {
       // Handle redirect if needed
-      if (actualForm.confirmationType === 'redirect' && actualForm.redirect) {
+      if (actualForm?.confirmationType === 'redirect' && actualForm.redirect) {
         if (actualForm.redirect.type === 'custom' && actualForm.redirect.url) {
           window.location.href = actualForm.redirect.url;
         } else if (
@@ -164,150 +140,12 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
           }
         }
       }
-    } catch (error) {
-      setSubmitStatus({
-        type: 'error',
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Failed to submit form. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const renderField = (field: FormField) => {
-    const fieldId = `field-${field.name}`;
-    const isRequired = field.required ?? false;
-    const value = formValues[field.name] ?? field.defaultValue ?? '';
-
-    switch (field.fieldType) {
-      case 'textarea':
-        return (
-          <div key={field.name} className="w-full">
-            <label htmlFor={fieldId} className="block mb-2 font-mono text-sm">
-              {field.label}
-              {isRequired && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <textarea
-              id={fieldId}
-              name={field.name}
-              required={isRequired}
-              value={value as string}
-              onChange={e => handleInputChange(field.name, e.target.value)}
-              className="w-full px-4 py-3 border border-text bg-bg text-text font-mono rounded focus:outline-none focus:ring-2 focus:ring-text"
-              rows={4}
-            />
-          </div>
-        );
-
-      case 'select':
-        return (
-          <div key={field.name} className="w-full">
-            <label htmlFor={fieldId} className="block mb-2 font-mono text-sm">
-              {field.label}
-              {isRequired && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <select
-              id={fieldId}
-              name={field.name}
-              required={isRequired}
-              value={value as string}
-              onChange={e => handleInputChange(field.name, e.target.value)}
-              className="w-full px-4 py-3 border border-text bg-bg text-text font-mono rounded focus:outline-none focus:ring-2 focus:ring-text"
-            >
-              <option value="">Select an option...</option>
-              {field.options?.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        );
-
-      case 'checkbox':
-        return (
-          <div key={field.name} className="w-full flex items-start gap-3">
-            <input
-              type="checkbox"
-              id={fieldId}
-              name={field.name}
-              required={isRequired}
-              checked={value as boolean}
-              onChange={e => handleInputChange(field.name, e.target.checked)}
-              className="mt-1 w-5 h-5 border border-text bg-bg text-text rounded focus:ring-2 focus:ring-text"
-            />
-            <label htmlFor={fieldId} className="font-mono text-sm flex-1">
-              {field.label}
-              {isRequired && <span className="text-red-500 ml-1">*</span>}
-            </label>
-          </div>
-        );
-
-      case 'number':
-        return (
-          <div key={field.name} className="w-full">
-            <label htmlFor={fieldId} className="block mb-2 font-mono text-sm">
-              {field.label}
-              {isRequired && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <input
-              type="number"
-              id={fieldId}
-              name={field.name}
-              required={isRequired}
-              value={value as number}
-              onChange={e =>
-                handleInputChange(field.name, parseFloat(e.target.value) || 0)
-              }
-              className="w-full px-4 py-3 border border-text bg-bg text-text font-mono rounded focus:outline-none focus:ring-2 focus:ring-text"
-            />
-          </div>
-        );
-
-      case 'email':
-        return (
-          <div key={field.name} className="w-full">
-            <label htmlFor={fieldId} className="block mb-2 font-mono text-sm">
-              {field.label}
-              {isRequired && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <input
-              type="email"
-              id={fieldId}
-              name={field.name}
-              required={isRequired}
-              value={value as string}
-              onChange={e => handleInputChange(field.name, e.target.value)}
-              className="w-full px-4 py-3 border border-text bg-bg text-text font-mono rounded focus:outline-none focus:ring-2 focus:ring-text"
-            />
-          </div>
-        );
-
-      case 'text':
-      case 'state':
-      case 'country':
-      default:
-        return (
-          <div key={field.name} className="w-full">
-            <label htmlFor={fieldId} className="block mb-2 font-mono text-sm">
-              {field.label}
-              {isRequired && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <input
-              type="text"
-              id={fieldId}
-              name={field.name}
-              required={isRequired}
-              value={value as string}
-              onChange={e => handleInputChange(field.name, e.target.value)}
-              className="w-full px-4 py-3 border border-text bg-bg text-text font-mono rounded focus:outline-none focus:ring-2 focus:ring-text"
-            />
-          </div>
-        );
-    }
+    },
+    successMessage: actualForm.confirmationMessage
+      ? 'Form submitted successfully!'
+      : 'Form submitted successfully!',
+    showSuccessMessage:
+      actualForm.confirmationType === 'message' || !actualForm.confirmationType,
   };
 
   return (
@@ -321,45 +159,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
           </Heading>
         )}
 
-        {submitStatus && (
-          <div
-            className={clsx(
-              'mb-6 p-4 rounded border',
-              submitStatus.type === 'success'
-                ? 'bg-green-50 border-green-500 text-green-800'
-                : 'bg-red-50 border-red-500 text-red-800'
-            )}
-          >
-            <p className="font-mono text-sm">
-              {typeof submitStatus.message === 'string'
-                ? submitStatus.message
-                : 'Form submitted successfully!'}
-            </p>
-          </div>
-        )}
-
-        {(!submitStatus || submitStatus.type === 'error') && (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid gap-6">
-              {actualForm.fields.map(field => renderField(field))}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={clsx(
-                'w-full px-6 py-3 border border-text bg-text text-bg font-mono rounded transition-colors duration-200',
-                isLoading
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:bg-opacity-90 active:scale-[0.99]'
-              )}
-            >
-              {isLoading
-                ? 'Submitting...'
-                : actualForm.submitButtonLabel || 'Submit'}
-            </button>
-          </form>
-        )}
+        <FormRenderer config={formConfig} />
       </div>
     </div>
   );
