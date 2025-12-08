@@ -12,7 +12,12 @@ export const headingConverters = {
     switch (node.tag) {
       case 'h1':
         return (
-          <BalancedHeading variant="page-header" as="h1" charsPerLine={24}>
+          <BalancedHeading
+            variant="page-header"
+            as="h1"
+            charsPerLine={24}
+            className="pt-8 pb-2"
+          >
             {text}
           </BalancedHeading>
         );
@@ -57,25 +62,37 @@ export const headingConverters = {
       case 'h1':
         // Convert h1 to h2 in articles
         return (
-          <Heading variant="article-h2" as="h2">
+          <Heading
+            variant="content-h2"
+            as="h2"
+            className="px-4 text-center mb-2 mt-4"
+          >
             {text}
           </Heading>
         );
       case 'h2':
         return (
-          <Heading variant="article-h2" as="h2">
+          <Heading
+            variant="content-h2"
+            as="h2"
+            className="px-4 text-center mb-2 mt-4"
+          >
             {text}
           </Heading>
         );
       case 'h3':
         return (
-          <Heading variant="article-h3" as="h3">
+          <Heading
+            variant="content-h3"
+            as="h3"
+            className="px-4 text-center mt-4"
+          >
             {text}
           </Heading>
         );
       case 'h4':
         return (
-          <Heading variant="article-h4" as="h4">
+          <Heading variant="content-h4" as="h4" className="px-4 mt-3">
             {text}
           </Heading>
         );
@@ -108,7 +125,11 @@ export const headingConverters = {
   card: ({ node, nodesToJSX }: any) => {
     const text = nodesToJSX({ nodes: node.children });
     return (
-      <Heading variant="small-card-title" as={node.tag}>
+      <Heading
+        variant="small-title"
+        as={node.tag}
+        className="pb-2 pt-2 [&:has(+_ul)]:border-b [&:has(+_ul)]:border-text"
+      >
         {text}
       </Heading>
     );
@@ -187,7 +208,7 @@ export const headingConverters = {
         );
       case 'h4':
         return (
-          <Heading variant="small-title" as="h4">
+          <Heading variant="small-title" as="h4" className="mt-2 ml-4">
             {text}
           </Heading>
         );
@@ -201,6 +222,60 @@ export const headingConverters = {
       default:
         return (
           <Heading variant="subsection" as="h2">
+            {text}
+          </Heading>
+        );
+    }
+  },
+
+  // For TextBlock: similar to article but h3 is uppercase text-base
+  textBlock: ({ node, nodesToJSX }: any) => {
+    const text = nodesToJSX({ nodes: node.children });
+
+    switch (node.tag) {
+      case 'h1':
+        // Convert h1 to h2 in TextBlock
+        return (
+          <Heading
+            variant="content-h2"
+            as="h2"
+            className="px-4 text-center mb-2 mt-4"
+          >
+            {text}
+          </Heading>
+        );
+      case 'h2':
+        return (
+          <Heading
+            variant="content-h2"
+            as="h2"
+            className="px-4 text-center mb-2 mt-4"
+          >
+            {text}
+          </Heading>
+        );
+      case 'h3':
+        return (
+          <Heading variant="content-h3" as="h3" className="px-4 text-center">
+            {text}
+          </Heading>
+        );
+      case 'h4':
+        return (
+          <Heading variant="content-h4" as="h4" className="px-4 mt-3">
+            {text}
+          </Heading>
+        );
+      case 'h5':
+      case 'h6':
+        return (
+          <Heading variant="label" as={node.tag}>
+            {text}
+          </Heading>
+        );
+      default:
+        return (
+          <Heading variant="section" as={node.tag}>
             {text}
           </Heading>
         );
