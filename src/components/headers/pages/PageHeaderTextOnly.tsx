@@ -24,7 +24,7 @@ export default function PageHeaderTextOnly({
   return (
     <div className="px-4 text-center relative pt-36">
       <DevIndicator componentName="PageHeaderTextOnly" position="top-right" />
-      <FadeInUp as="div" timing="fast" className="grid gap-3">
+      <FadeInUp as="div" timing="fast" className="grid gap-6">
         {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
         <RichText
           data={text}
@@ -32,7 +32,7 @@ export default function PageHeaderTextOnly({
           converters={jsxConverter}
         />
         {linkResult?.href && link?.text && (
-          <div className="mt-4">
+          <div className="">
             <AppAction href={linkResult.href} variant="outline">
               {link.text}
             </AppAction>

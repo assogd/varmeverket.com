@@ -76,18 +76,18 @@ export default function PageHeaderStandard({
       >
         <FadeIn
           as="div"
-          className="max-w-7xl mx-auto px-4"
+          className="max-w-7xl mx-auto px-4 grid gap-6"
           timing="slow"
           delay={0.2}
         >
-          {label && <PageHeaderLabel className="mb-2">{label}</PageHeaderLabel>}
+          {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
           <RichText
             data={text}
             className="grid gap-3"
             converters={jsxConverter}
           />
           {linkResult?.href && link?.text && (
-            <div className="mt-4">
+            <div className="">
               <AppAction href={linkResult.href} variant="outline">
                 {link.text}
               </AppAction>

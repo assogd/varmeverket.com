@@ -89,18 +89,18 @@ export default function PageHeaderAssetsAbove({
       {/* Render rich text with enhanced motion effects */}
       <FadeInUp
         as="div"
-        className="max-w-7xl mx-auto px-4"
+        className="max-w-7xl mx-auto px-4 grid gap-6"
         timing="fast"
         delay={0.2}
       >
-        {label && <PageHeaderLabel className="mb-2">{label}</PageHeaderLabel>}
+        {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
         <RichText
           data={text}
           className="rich-text font-mono grid gap-3 hyphens-auto"
           converters={jsxConverter}
         />
         {linkResult?.href && link?.text && (
-          <div className="mt-4">
+          <div className="">
             <AppAction href={linkResult.href} variant="outline">
               {link.text}
             </AppAction>

@@ -92,7 +92,11 @@ export default function PageHeaderHero({
       </div>
       {/* Content */}
       {(text || label || link) && (
-        <FadeInUp as="div" timing="fast" className="grid gap-3 mt-20 px-4 text-center">
+        <FadeInUp
+          as="div"
+          timing="fast"
+          className="grid gap-6 mt-20 px-4 text-center"
+        >
           {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
           {text && (
             <RichText
@@ -102,7 +106,7 @@ export default function PageHeaderHero({
             />
           )}
           {linkResult?.href && link?.text && (
-            <div className="mt-4">
+            <div className="">
               <AppAction href={linkResult.href} variant="outline">
                 {link.text}
               </AppAction>
