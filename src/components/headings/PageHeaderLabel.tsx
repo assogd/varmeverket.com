@@ -5,5 +5,7 @@ interface PageHeaderLabelProps {
 }
 
 export function PageHeaderLabel({ children, ...props }: PageHeaderLabelProps) {
-  return <div className="font-sans uppercase m-4">{children}</div>;
+  return (
+    <div className="font-sans uppercase m-4 tracking-wide">{children}</div>
+  );
 }
