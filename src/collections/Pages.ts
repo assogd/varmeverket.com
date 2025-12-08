@@ -18,6 +18,7 @@ import InfoOverlay from '@/blocks/interactive/InfoOverlay';
 import HorizontalMarqueeBlock from '@/blocks/interactive/HorizontalMarqueeBlock';
 import TextBlock from '@/blocks/content/TextBlock';
 import CTA from '@/blocks/interactive/CTA';
+import Form from '@/blocks/interactive/Form';
 import Model3D from '@/blocks/media/Model3D';
 import MinimalCarousel from '@/blocks/layout/MinimalCarousel';
 import Image from '@/blocks/media/Image';
@@ -207,6 +208,7 @@ const Pages: CollectionConfig = {
                 HorizontalMarqueeBlock,
                 TextBlock,
                 CTA,
+                Form,
                 Model3D,
                 MinimalCarousel,
                 Image,

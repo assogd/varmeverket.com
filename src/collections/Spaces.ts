@@ -7,6 +7,7 @@ import List from '@/blocks/layout/List';
 import TextBlock from '@/blocks/content/TextBlock';
 import MinimalCarousel from '@/blocks/layout/MinimalCarousel';
 import CTA from '@/blocks/interactive/CTA';
+import Form from '@/blocks/interactive/Form';
 import HighlightGrid from '@/blocks/layout/HighlightGrid';
 import HighlightGridGenerator from '@/blocks/layout/HighlightGridGenerator';
 import Calendar from '@/blocks/interactive/Calendar';
@@ -157,6 +158,7 @@ const Spaces: CollectionConfig = {
                 LogotypeWall,
                 PartnerBlock,
                 CTA,
+                Form,
                 List,
                 MinimalCarousel,
                 TextBlock,

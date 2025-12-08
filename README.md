@@ -29,11 +29,37 @@ The current focus is on:
    npm install
    ```
 
-3. Set up environment variables (see below)
-4. Run the development server:
+3. Set up local domain for development (see below)
+4. Set up environment variables (see below)
+5. Run the development server:
    ```bash
    npm run dev
    ```
+
+### Local Development Domain Setup
+
+**Important:** Authentication cookies are configured for `varmeverket.com` and subdomains. To test login functionality locally, you need to use a subdomain instead of `localhost`.
+
+1. Add an entry to `/etc/hosts`:
+
+   ```bash
+   sudo nano /etc/hosts
+   ```
+
+   Add this line:
+
+   ```
+   127.0.0.1 local.addd.varmeverket.com
+   ```
+
+2. Access the application at:
+   ```
+   http://local.addd.varmeverket.com:3000
+   ```
+
+**Note:** Your browser may show a "Not Secure" warning because we're using HTTP instead of HTTPS for local development. This is normal and safe for local development only. The warning appears because the connection is not encrypted, but since you're only accessing your own local machine, this is acceptable.
+
+This setup ensures that cookies set by the backend API (which are domain-restricted to `varmeverket.com` and subdomains) will be properly retained during local development.
 
 ### Environment Variables
 
@@ -47,6 +73,16 @@ Create a `.env` file in the root directory with the following variables:
 
 - `PREVIEW_SECRET` - Secret token for preview mode (defaults to `your-preview-secret` - **change this in production!**)
 
+**Email Configuration (for form submissions):**
+
+- `SMTP_HOST` - SMTP server hostname (defaults to `smtp.resend.com` for Resend)
+- `SMTP_PORT` - SMTP server port (defaults to `587`)
+- `SMTP_USER` - SMTP username (defaults to `resend` for Resend)
+- `SMTP_PASS` or `RESEND_API_KEY` - SMTP password/API key (required for sending emails)
+- `SMTP_SECURE` - Use secure connection (set to `true` for port 465, defaults to `false`)
+- `PAYLOAD_EMAIL_FROM` - Default sender email address (defaults to `noreply@varmeverket.com`)
+- `PAYLOAD_EMAIL_FROM_NAME` - Default sender name (defaults to `Värmeverket`)
+
 **Note:** This is a frontend-only repository that connects to an external Payload CMS backend. You don't need `PAYLOAD_SECRET` or `DATABASE_URI` unless you're running Payload CMS locally.
 
 **Example `.env` file:**
@@ -54,6 +90,14 @@ Create a `.env` file in the root directory with the following variables:
 ```env
 NEXT_PUBLIC_PAYLOAD_API_URL=https://payload.cms.varmeverket.com/api
 PREVIEW_SECRET=your-preview-secret-here
+
+# Email configuration (for form submissions)
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=587
+SMTP_USER=resend
+RESEND_API_KEY=re_your_api_key_here
+PAYLOAD_EMAIL_FROM=noreply@varmeverket.com
+PAYLOAD_EMAIL_FROM_NAME=Värmeverket
 ```
 
 ### Building for Production

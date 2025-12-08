@@ -6,6 +6,8 @@ import { mongooseAdapter } from '@payloadcms/db-mongodb';
 // Next version will transition to external Payload database.
 import { payloadCloudPlugin } from '@payloadcms/payload-cloud';
 import { lexicalEditor, LinkFeature } from '@payloadcms/richtext-lexical';
+import { formBuilderPlugin } from '@payloadcms/plugin-form-builder';
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer';
 import path from 'path';
 import { buildConfig } from 'payload';
 import { fileURLToPath } from 'url';
@@ -108,9 +110,38 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || '',
   }),
+  email: nodemailerAdapter({
+    defaultFromAddress:
+      process.env.PAYLOAD_EMAIL_FROM || 'noreply@varmeverket.com',
+    defaultFromName: process.env.PAYLOAD_EMAIL_FROM_NAME || 'Värmeverket',
+    transportOptions: {
+      host: process.env.SMTP_HOST || 'smtp.resend.com',
+      port: parseInt(process.env.SMTP_PORT || '587', 10),
+      auth: {
+        user: process.env.SMTP_USER || 'resend',
+        pass: process.env.SMTP_PASS || process.env.RESEND_API_KEY || '',
+      },
+      secure: process.env.SMTP_SECURE === 'true', // Use true for port 465
+    },
+  }),
   sharp,
   plugins: [
     payloadCloudPlugin(),
+    formBuilderPlugin({
+      fields: {
+        text: true,
+        textarea: true,
+        select: true,
+        email: true,
+        state: true,
+        country: true,
+        checkbox: true,
+        number: true,
+        message: true,
+        payment: false, // Disable payment fields for now
+      },
+      redirectRelationships: ['pages'], // Collections to use for form redirects
+    }),
     // storage-adapter-placeholder
   ],
 });
