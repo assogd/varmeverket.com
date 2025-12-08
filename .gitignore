@@ -40,6 +40,12 @@ next-env.d.ts
 # Exclude font files in public/fonts/
 public/fonts/
 
+<<<<<<< HEAD
+=======
+# Add the root media/ directory to .gitignore (not src/components/blocks/media/)
+/media/
+
+>>>>>>> 20db61d4ad8d2daa51e87483f690ee57a798c0fa
 # Add .env to .gitignore to prevent environment variables from being tracked by git.
 .env
 backend-integration/

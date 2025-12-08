@@ -170,7 +170,7 @@ export default function ArticleHeaderAssetsAbove({
           >
             {/* Add article title as h1 if no h1 is found in RichText */}
             {articleData.title && !hasH1(text) && (
-              <Heading variant="article-title" as="h1">
+              <Heading variant="page-header" as="h1">
                 {articleData.title}
               </Heading>
             )}
@@ -184,7 +184,7 @@ export default function ArticleHeaderAssetsAbove({
 
         {/* Fallback: Show title as h1 if no text at all */}
         {!text && articleData.title && (
-          <Heading variant="article-title" as="h1">
+          <Heading variant="page-header" as="h1">
             {articleData.title}
           </Heading>
         )}

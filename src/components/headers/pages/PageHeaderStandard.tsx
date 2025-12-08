@@ -5,8 +5,11 @@ import { RichText } from '@payloadcms/richtext-lexical/react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { FadeIn } from '@/components/ui';
+import { AppAction } from '@/components/ui';
+import { PageHeaderLabel } from '@/components/headings';
 import { jsxConverter } from '@/utils/richTextConverters/index';
 import MediaAsset from '@/components/common/MediaAsset';
+import { routeLink, type LinkGroup } from '@/utils/linkRouter';
 import clsx from 'clsx';
 
 interface Asset {
@@ -19,11 +22,15 @@ interface PageHeaderStandardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   text: any;
   assets: Asset[];
+  label?: string;
+  link?: LinkGroup;
 }
 
 export default function PageHeaderStandard({
   text,
   assets,
+  label,
+  link,
 }: PageHeaderStandardProps) {
   const ref = useRef(null);
 
@@ -50,6 +57,8 @@ export default function PageHeaderStandard({
   // Asset scale - inverse of text scale for dynamic balance
   const assetScale = useTransform(scrollYProgress, [0, 0.1], [0.95, 1]);
 
+  const linkResult = link ? routeLink(link) : null;
+
   return (
     <div ref={ref} className="px-2 sm:px-4 text-center relative">
       <DevIndicator componentName="PageHeaderStandard" position="top-right" />
@@ -67,15 +76,23 @@ export default function PageHeaderStandard({
       >
         <FadeIn
           as="div"
-          className="max-w-7xl mx-auto px-4"
+          className="max-w-7xl mx-auto px-4 grid gap-6"
           timing="slow"
           delay={0.2}
         >
+          {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
           <RichText
             data={text}
             className="grid gap-3"
             converters={jsxConverter}
           />
+          {linkResult?.href && link?.text && (
+            <div className="">
+              <AppAction href={linkResult.href} variant="outline">
+                {link.text}
+              </AppAction>
+            </div>
+          )}
         </FadeIn>
       </motion.div>
 

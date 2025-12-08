@@ -43,7 +43,7 @@ export const FAQBlock: React.FC<FAQBlockProps> = ({
       {(headline || description) && (
         <div className="mb-8 text-center">
           {headline && (
-            <Heading variant="faq-title" as="h2" className="mb-4 px-2">
+            <Heading variant="content-h2" as="h2" className="mb-4 px-2">
               {headline}
             </Heading>
           )}

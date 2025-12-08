@@ -13,6 +13,13 @@ interface PageData {
   slug: string;
   header?: {
     text?: string;
+    label?: string;
+    link?: {
+      type: 'internal' | 'external' | 'copy';
+      doc?: unknown;
+      url?: string;
+      text?: string;
+    };
     assets?: Array<{
       type: string;
       image?: {
@@ -22,6 +29,7 @@ interface PageData {
         height?: number;
       };
     }>;
+    variant?: 'text-only' | 'assets-before' | 'text-before' | 'gradient';
   };
   layout?: Array<{
     blockType: string;
@@ -98,6 +106,8 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
             }>
           }
           variant={(processedPage as PageData).header!.variant}
+          label={(processedPage as PageData).header!.label}
+          link={(processedPage as PageData).header!.link}
         />
       )}
 

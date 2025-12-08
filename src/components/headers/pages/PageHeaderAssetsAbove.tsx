@@ -5,8 +5,11 @@ import { RichText } from '@payloadcms/richtext-lexical/react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { FadeInUp, FadeInDown } from '@/components/ui/FadeIn';
+import { AppAction } from '@/components/ui';
+import { PageHeaderLabel } from '@/components/headings';
 import { jsxConverter } from '@/utils/richTextConverters/index';
 import MediaAsset from '@/components/common/MediaAsset';
+import { routeLink, type LinkGroup } from '@/utils/linkRouter';
 
 interface Asset {
   type: 'image' | 'mux';
@@ -18,11 +21,15 @@ interface PageHeaderAssetsAboveProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   text: any;
   assets: Asset[];
+  label?: string;
+  link?: LinkGroup;
 }
 
 export default function PageHeaderAssetsAbove({
   text,
   assets,
+  label,
+  link,
 }: PageHeaderAssetsAboveProps) {
   const ref = useRef(null);
 
@@ -37,6 +44,8 @@ export default function PageHeaderAssetsAbove({
 
   // Add slight y-axis movement for parallax effect
   const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
+
+  const linkResult = link ? routeLink(link) : null;
 
   return (
     <div ref={ref} className="px-2 text-center relative">
@@ -80,15 +89,23 @@ export default function PageHeaderAssetsAbove({
       {/* Render rich text with enhanced motion effects */}
       <FadeInUp
         as="div"
-        className="max-w-7xl mx-auto px-4"
+        className="max-w-7xl mx-auto px-4 grid gap-6"
         timing="fast"
         delay={0.2}
       >
+        {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
         <RichText
           data={text}
           className="rich-text font-mono grid gap-3 hyphens-auto"
           converters={jsxConverter}
         />
+        {linkResult?.href && link?.text && (
+          <div className="">
+            <AppAction href={linkResult.href} variant="outline">
+              {link.text}
+            </AppAction>
+          </div>
+        )}
       </FadeInUp>
     </div>
   );

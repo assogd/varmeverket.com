@@ -99,7 +99,7 @@ export default function ArticleHeaderStandard({
           >
             {/* Add article title as h1 if no h1 is found in RichText */}
             {text && articleData.title && !hasH1(text) && (
-              <Heading variant="article-title" as="h1">
+              <Heading variant="page-header" as="h1">
                 {articleData.title}
               </Heading>
             )}

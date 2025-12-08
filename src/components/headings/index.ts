@@ -12,3 +12,5 @@ export {
   type HeadingVariant,
   type HeadingSize,
 } from './Heading';
+
+export { PageHeaderLabel } from './PageHeaderLabel';

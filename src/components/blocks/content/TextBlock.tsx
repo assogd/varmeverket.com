@@ -1,7 +1,7 @@
 import React from 'react';
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
-import { articleConverter } from '@/utils/richTextConverters/index';
+import { buildConverter } from '@/utils/richTextConverters/converterBuilder';
 
 interface TextBlockProps {
   content: {
@@ -32,6 +32,17 @@ export default function TextBlock({
 
   const WrapperComponent = variant === 'article' ? 'article' : 'section';
 
+  // Create custom converter with textBlock heading converter
+  // h3 is styled as uppercase text-base
+  // Using 'article' paragraph for centered narrow width, 'page' blockquote for page styling
+  const converter = buildConverter({
+    paragraph: variant === 'article' ? 'article' : 'default',
+    blockquote: variant === 'article' ? 'article' : 'page',
+    heading: 'textBlock',
+    list: 'outlinedBoxes',
+    includeBlocks: true,
+  });
+
   return (
     <WrapperComponent className={containerClasses}>
       <DevIndicator componentName="TextBlock" />
@@ -39,7 +50,7 @@ export default function TextBlock({
       <RichText
         data={content as never}
         className={richTextClasses}
-        converters={articleConverter}
+        converters={converter}
       />
     </WrapperComponent>
   );

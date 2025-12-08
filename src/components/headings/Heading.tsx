@@ -1,18 +1,24 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
 
-// Heading variants based on your current system
+// Heading variants - consolidated and organized by hierarchy
 export type HeadingVariant =
-  | 'page-title' // Main page titles (H1)
-  | 'article-title' // Article titles (H1)
-  | 'page-header' // Page header titles (H1) - matches globals.css
-  | 'section' // Section headings (H2)
-  | 'faq-title' // FAQ section titles (H2) - alternative styling
-  | 'subsection' // Subsection headings (H3)
-  | 'card-title' // Card/component titles (H3)
-  | 'small-title' // Small titles (H4)
-  | 'building-title' // Building-specific titles (H1-H3)
-  | 'label'; // Labels (H5/H6)
+  // H1 variants
+  | 'page-header' // Main page/article titles (H1) - font-display, uppercase, text-2xl
+  | 'space-header' // Space page headers (H1) - font-ballPill, centered, white text
+  | 'building-title' // Building/hero titles (H1) - font-ballPill, text-3xl
+  // H2 variants
+  | 'section' // Standard section headings (H2) - font-sans, text-lg
+  | 'content-h2' // Content section headings (H2) - font-display, uppercase, text-xl, centered
+  // H3 variants
+  | 'subsection' // Standard subsection headings (H3) - font-display, uppercase, text-lg
+  | 'content-h3' // Content subsection headings (H3) - font-sans, text-lg, centered
+  | 'card-title' // Card/component titles (H3) - font-display, uppercase, responsive
+  // H4 variants
+  | 'small-title' // Small titles (H4) - font-mono, uppercase
+  | 'content-h4' // Content small titles (H4) - font-sans, uppercase
+  // H5/H6 variants
+  | 'label'; // Labels (H5/H6) - font-mono, uppercase, text-sm
 
 export type HeadingSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
 
@@ -27,66 +33,62 @@ export interface HeadingProps {
 
 // Default configurations for each variant
 const variantConfig = {
+  // H1 variants
   'page-header': {
     defaultAs: 'h1' as const,
     className:
-      'font-display uppercase text-2xl leading-[0.95em] tracking-[-0.01em] px-4 pt-8 pb-2',
+      'font-display uppercase text-2xl leading-[0.95em] tracking-[-0.01em] px-4',
+    // Note: Add pt-8 pb-2 for page headers, omit for article titles
   },
   'space-header': {
     defaultAs: 'h1' as const,
     className:
       'text-2xl xl:text-3xl text-center font-ballPill hyphens-auto break-words text-white',
   },
-  'article-title': {
+  'building-title': {
     defaultAs: 'h1' as const,
-    className:
-      'font-display uppercase text-2xl leading-[0.95em] tracking-[-0.01em] px-4',
+    className: 'font-ballPill text-3xl hyphens-auto break-words',
   },
-  'article-h2': {
-    defaultAs: 'h2' as const,
-    className: 'px-4 font-display uppercase text-center text-xl mb-2 mt-4',
-  },
-  'article-h3': {
-    defaultAs: 'h3' as const,
-    className: 'px-4 font-sans text-center text-lg mt-4',
-  },
-  'article-h4': {
-    defaultAs: 'h4' as const,
-    className: 'px-4 mt-3 font-sans uppercase',
-  },
+  // H2 variants
   section: {
     defaultAs: 'h2' as const,
     className:
       'font-sans text-lg leading-[1em] tracking-[-0.01em] pt-8 first:pt-1',
   },
-  'faq-title': {
+  'content-h2': {
     defaultAs: 'h2' as const,
     className:
-      'font-display text-xl uppercase leading-[1.1em] tracking-[-0.01em]',
+      'font-display uppercase text-xl leading-[1.1em] tracking-[-0.01em]',
+    // Note: Add px-4 text-center mb-2 mt-4 for centered content, omit for FAQ
   },
+  // H3 variants
   subsection: {
     defaultAs: 'h3' as const,
     className:
       'font-display uppercase text-lg leading-[1.1em] tracking-[0.005em]',
+  },
+  'content-h3': {
+    defaultAs: 'h3' as const,
+    className: 'font-sans uppercase pt-2',
+    // Note: Add px-4 text-center mt-4 for centered content
   },
   'card-title': {
     defaultAs: 'h3' as const,
     className:
       'font-display uppercase text-lg sm:text-[1.8em] leading-[1em] break-words tracking-[-0.01em]',
   },
+  // H4 variants
   'small-title': {
     defaultAs: 'h4' as const,
-    className: 'font-display uppercase text-md',
+    className: 'font-mono uppercase',
+    // Note: Add pb-2 pt-2 [&:has(+_ul)]:border-b [&:has(+_ul)]:border-text for card titles
   },
-  'small-card-title': {
+  'content-h4': {
     defaultAs: 'h4' as const,
-    className:
-      'font-mono uppercase pb-2 pt-2 [&:has(+_ul)]:border-b [&:has(+_ul)]:border-text',
+    className: 'font-sans uppercase',
+    // Note: Add px-4 mt-3 for content spacing
   },
-  'building-title': {
-    defaultAs: 'h1' as const,
-    className: 'font-ballPill text-3xl hyphens-auto break-words',
-  },
+  // H5/H6 variants
   label: {
     defaultAs: 'h5' as const,
     className: 'font-mono uppercase text-sm px-4 pb-1',
@@ -132,12 +134,19 @@ export function Heading({
 }
 
 // Convenience components for common use cases
-export const PageTitle = (props: Omit<HeadingProps, 'variant'>) => (
-  <Heading variant="page-title" {...props} />
-);
+export const PageTitle = (props: Omit<HeadingProps, 'variant'>) => {
+  const { className, ...rest } = props;
+  return (
+    <Heading
+      variant="page-header"
+      {...rest}
+      className={cn('pt-8 pb-2', className)}
+    />
+  );
+};
 
 export const ArticleTitle = (props: Omit<HeadingProps, 'variant'>) => (
-  <Heading variant="article-title" {...props} />
+  <Heading variant="page-header" {...props} />
 );
 
 export const SectionHeading = (props: Omit<HeadingProps, 'variant'>) => (

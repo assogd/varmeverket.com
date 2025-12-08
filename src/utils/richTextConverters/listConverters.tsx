@@ -73,4 +73,23 @@ export const listConverters = {
       return <li>{children}</li>;
     },
   },
+
+  // For AssetTextBlock: same as default but with font-mono
+  assetText: {
+    list: ({ node, nodesToJSX }: any) => {
+      const children = nodesToJSX({ nodes: node.children });
+      const NodeTag = node.tag;
+      return (
+        <NodeTag className="space-y-[-1px] py-1 font-mono">{children}</NodeTag>
+      );
+    },
+    listitem: ({ node, nodesToJSX }: any) => {
+      const children = nodesToJSX({ nodes: node.children });
+      return (
+        <ListItem variant="bullet" size="sm">
+          {children}
+        </ListItem>
+      );
+    },
+  },
 };
