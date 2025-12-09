@@ -15,6 +15,7 @@ import {
   StateField,
   CountryField,
   MessageField,
+  DateField,
 } from './fields';
 
 interface FormFieldProps {
@@ -81,6 +82,9 @@ export const FormFieldComponent: React.FC<FormFieldProps> = ({
 
     case 'message':
       return <MessageField {...commonProps} onChange={handleStringChange} />;
+
+    case 'date':
+      return <DateField {...commonProps} onChange={handleStringChange} />;
 
     case 'text':
     default:

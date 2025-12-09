@@ -32,7 +32,7 @@ export default function FormExamplePage() {
         required: true,
         placeholder: 'Enter a secure password',
         helpText: 'Must be at least 8 characters',
-        validation: value => {
+        validation: (value: unknown) => {
           if (typeof value === 'string' && value.length < 8) {
             return 'Password must be at least 8 characters';
           }
@@ -56,13 +56,21 @@ export default function FormExamplePage() {
       createField('age', 'Age', 'number', {
         placeholder: '25',
         helpText: 'Your age in years',
-        validation: value => {
+        validation: (value: unknown) => {
           if (typeof value === 'number') {
             if (value < 0) return 'Age cannot be negative';
             if (value > 150) return 'Please enter a valid age';
           }
           return true;
         },
+      }),
+
+      // Date field (birth date)
+      createField('birthDate', 'Birth Date', 'date', {
+        required: true,
+        helpText: 'Select your date of birth',
+        minYear: 1920, // Custom year range
+        maxYear: new Date().getFullYear() - 15,
       }),
 
       // Select field

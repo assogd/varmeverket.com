@@ -15,6 +15,7 @@ export { CheckboxField } from './CheckboxField';
 export { StateField } from './StateField';
 export { CountryField } from './CountryField';
 export { MessageField } from './MessageField';
+export { DateField } from './DateField';
 
 // Export shared components
 export * from './shared';

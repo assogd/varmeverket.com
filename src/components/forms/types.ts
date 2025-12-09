@@ -14,7 +14,8 @@ export type FieldType =
   | 'country'
   | 'message'
   | 'tel'
-  | 'url';
+  | 'url'
+  | 'date';
 
 export interface FormFieldOption {
   label: string;
@@ -32,6 +33,8 @@ export interface FormField {
   width?: number;
   validation?: (value: unknown) => true | string;
   helpText?: string;
+  minYear?: number; // For date fields: minimum year
+  maxYear?: number; // For date fields: maximum year
 }
 
 export interface FormConfig {
