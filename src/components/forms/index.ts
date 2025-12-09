@@ -4,6 +4,31 @@
 
 export { FormRenderer } from './FormRenderer';
 export { FormFieldComponent } from './FormField';
+
+// Export individual field components for direct use if needed
+export {
+  TextField,
+  TextareaField,
+  EmailField,
+  PasswordField,
+  TelField,
+  UrlField,
+  NumberField,
+  SelectField,
+  CheckboxField,
+  StateField,
+  CountryField,
+  MessageField,
+} from './fields';
+
+// Export shared field components
+export {
+  FieldLabel,
+  FieldHelpText,
+  FieldError,
+  FieldWrapper,
+} from './fields/shared';
+
 export type {
   FormConfig,
   FormField,

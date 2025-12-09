@@ -21,7 +21,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       createField('email', 'Email Address', 'email', {
         required: true,
         placeholder: 'user@example.com',
-        helpText: 'We'll send you a magic link to sign in',
+        helpText: "We'll send you a magic link to sign in",
       }),
     ],
     submitButtonLabel: 'Send Magic Link',

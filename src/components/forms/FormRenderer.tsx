@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { FormFieldComponent } from './FormField';
 import type { FormConfig, FormValues, FormErrors } from './types';
 import { validateRequired, validateEmail } from '@/utils/validation';
+import { Heading } from '@/components/headings';
 import clsx from 'clsx';
 
 interface FormRendererProps {
@@ -161,7 +162,9 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   return (
     <div className={clsx('w-full', className)}>
       {config.title && (
-        <h2 className="text-2xl font-bold mb-6">{config.title}</h2>
+        <Heading variant="page-header" as="h1" className="mb-6 text-center">
+          {config.title}
+        </Heading>
       )}
 
       {submitStatus && (
@@ -178,7 +181,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       )}
 
       {(!submitStatus || submitStatus.type === 'error') && (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
           <div className="grid gap-6">
             {config.fields.map(field => (
               <FormFieldComponent
