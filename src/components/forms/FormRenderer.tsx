@@ -5,6 +5,7 @@ import { FormFieldComponent } from './FormField';
 import type { FormConfig, FormValues, FormErrors } from './types';
 import { validateRequired, validateEmail } from '@/utils/validation';
 import { Heading } from '@/components/headings';
+import { MarqueeButton, Button } from '@/components/ui';
 import clsx from 'clsx';
 
 interface FormRendererProps {
@@ -195,18 +196,28 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
             ))}
           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={clsx(
-              'w-full px-6 py-3 border border-text bg-text text-bg font-mono rounded transition-colors duration-200',
-              isLoading
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:bg-opacity-90 active:scale-[0.99]'
-            )}
-          >
-            {isLoading ? 'Submitting...' : config.submitButtonLabel || 'Submit'}
-          </button>
+          {config.submitButtonVariant === 'marquee' ? (
+            <MarqueeButton
+              type="submit"
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading
+                ? 'Submitting...'
+                : config.submitButtonLabel || 'Submit'}
+            </MarqueeButton>
+          ) : (
+            <Button
+              type="submit"
+              disabled={isLoading}
+              variant="primary"
+              className="w-full"
+            >
+              {isLoading
+                ? 'Submitting...'
+                : config.submitButtonLabel || 'Submit'}
+            </Button>
+          )}
         </form>
       )}
     </div>

@@ -42,6 +42,7 @@ export interface FormConfig {
   title?: string;
   fields: FormField[];
   submitButtonLabel?: string;
+  submitButtonVariant?: 'marquee' | 'solid';
   onSubmit?: (data: Record<string, unknown>) => Promise<void> | void;
   onSuccess?: (data: Record<string, unknown>) => void;
   onError?: (error: Error) => void;
