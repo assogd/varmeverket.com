@@ -149,45 +149,6 @@ export default function FormExamplePage() {
         <div className="p-8">
           <FormRenderer config={formConfig} />
         </div>
-
-        <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
-          <h2 className="text-xl font-bold mb-4">Field Types Demonstrated:</h2>
-          <ul className="list-disc list-inside space-y-2 font-mono text-sm">
-            <li>Text (First Name, Last Name)</li>
-            <li>Email (with email validation)</li>
-            <li>Password (with custom length validation)</li>
-            <li>Tel (Phone Number)</li>
-            <li>URL (Website)</li>
-            <li>Number (Age with range validation)</li>
-            <li>Select (Country dropdown)</li>
-            <li>State/Province</li>
-            <li>Textarea (Message)</li>
-            <li>Checkbox (Newsletter, Terms)</li>
-          </ul>
-        </div>
-
-        <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-          <h3 className="text-lg font-bold mb-2">Code Example:</h3>
-          <pre className="font-mono text-xs overflow-x-auto bg-bg p-4 rounded border border-text">
-            <code>{`import { FormRenderer, createField } from '@/components/forms';
-
-const formConfig = {
-  fields: [
-    createField('email', 'Email', 'email', { required: true }),
-    createField('message', 'Message', 'textarea', { required: true }),
-    createField('agree', 'I agree', 'checkbox', { required: true }),
-  ],
-  onSubmit: async (data) => {
-    await fetch('/api/submit', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-};
-
-<FormRenderer config={formConfig} />`}</code>
-          </pre>
-        </div>
       </div>
     </div>
   );

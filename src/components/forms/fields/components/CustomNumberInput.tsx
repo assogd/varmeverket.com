@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import { PlusIcon } from '@/components/icons';
 
@@ -17,6 +17,7 @@ interface CustomNumberInputProps {
   min?: number;
   max?: number;
   step?: number;
+  validation?: (value: unknown) => true | string;
   className?: string;
 }
 
@@ -33,14 +34,31 @@ export const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
   min,
   max,
   step = 1,
+  validation,
   className = '',
 }) => {
   const [localValue, setLocalValue] = useState(String(value || 0));
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentValueRef = useRef<number>(value || 0);
 
   // Sync local value when external value changes
   useEffect(() => {
     setLocalValue(String(value || 0));
+    currentValueRef.current = value || 0;
   }, [value]);
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleChange = (newValue: string) => {
     setLocalValue(newValue);
@@ -71,6 +89,79 @@ export const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
     handleChange(String(finalValue));
   };
 
+  const startRapidIncrement = () => {
+    if (disabled) return;
+
+    // First increment immediately
+    handleIncrement();
+
+    // Then wait a bit before starting rapid increments
+    timeoutRef.current = setTimeout(() => {
+      // Start rapid increments
+      intervalRef.current = setInterval(() => {
+        // Use ref to get the latest value (avoids closure issues)
+        const currentValue = currentValueRef.current;
+        const newValue = currentValue + step;
+        const finalValue =
+          max !== undefined ? Math.min(newValue, max) : newValue;
+
+        // Stop if we hit max or would be invalid
+        if (max !== undefined && finalValue >= max) {
+          stopRapidChange();
+          return;
+        }
+        if (wouldBeInvalid(finalValue)) {
+          stopRapidChange();
+          return;
+        }
+
+        handleChange(String(finalValue));
+      }, 50); // Rapid increment every 50ms
+    }, 300); // Wait 300ms before starting rapid mode
+  };
+
+  const startRapidDecrement = () => {
+    if (disabled) return;
+
+    // First decrement immediately
+    handleDecrement();
+
+    // Then wait a bit before starting rapid decrements
+    timeoutRef.current = setTimeout(() => {
+      // Start rapid decrements
+      intervalRef.current = setInterval(() => {
+        // Use ref to get the latest value (avoids closure issues)
+        const currentValue = currentValueRef.current;
+        const newValue = currentValue - step;
+        const finalValue =
+          min !== undefined ? Math.max(newValue, min) : newValue;
+
+        // Stop if we hit min or would be invalid
+        if (min !== undefined && finalValue <= min) {
+          stopRapidChange();
+          return;
+        }
+        if (wouldBeInvalid(finalValue)) {
+          stopRapidChange();
+          return;
+        }
+
+        handleChange(String(finalValue));
+      }, 50); // Rapid decrement every 50ms
+    }, 300); // Wait 300ms before starting rapid mode
+  };
+
+  const stopRapidChange = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
   const handleBlur = () => {
     // Ensure value is valid on blur
     const numValue = parseFloat(localValue);
@@ -81,6 +172,31 @@ export const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
       setLocalValue(String(numValue));
     }
     onBlur?.();
+  };
+
+  // Check if a value would be invalid according to validation
+  const wouldBeInvalid = (testValue: number): boolean => {
+    if (validation) {
+      const result = validation(testValue);
+      return result !== true;
+    }
+    return false;
+  };
+
+  // Check if increment would result in invalid value
+  const wouldIncrementBeInvalid = (): boolean => {
+    const currentValue = parseFloat(localValue) || 0;
+    const newValue = currentValue + step;
+    const finalValue = max !== undefined ? Math.min(newValue, max) : newValue;
+    return wouldBeInvalid(finalValue);
+  };
+
+  // Check if decrement would result in invalid value
+  const wouldDecrementBeInvalid = (): boolean => {
+    const currentValue = parseFloat(localValue) || 0;
+    const newValue = currentValue - step;
+    const finalValue = min !== undefined ? Math.max(newValue, min) : newValue;
+    return wouldBeInvalid(finalValue);
   };
 
   return (
@@ -112,13 +228,33 @@ export const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
         <button
           type="button"
           onClick={handleDecrement}
-          disabled={disabled || (min !== undefined && value <= min)}
+          onMouseDown={e => {
+            e.preventDefault();
+            startRapidDecrement();
+          }}
+          onMouseUp={stopRapidChange}
+          onMouseLeave={stopRapidChange}
+          onTouchStart={e => {
+            e.preventDefault();
+            startRapidDecrement();
+          }}
+          onTouchEnd={stopRapidChange}
+          disabled={
+            disabled ||
+            (min !== undefined && value <= min) ||
+            wouldDecrementBeInvalid()
+          }
           className={clsx(
-            'px-5 aspect-square border-r border-text flex items-center justify-center transition-colors font-sans',
+            'px-5 aspect-square border-r border-text flex items-center justify-center transition-colors font-sans select-none',
             {
-              'hover:bg-surface dark:hover:bg-gray-800': !disabled,
+              'hover:bg-surface dark:hover:bg-gray-800':
+                !disabled &&
+                !(min !== undefined && value <= min) &&
+                !wouldDecrementBeInvalid(),
               'opacity-50 cursor-not-allowed':
-                disabled || (max !== undefined && value >= max),
+                disabled ||
+                (min !== undefined && value <= min) ||
+                wouldDecrementBeInvalid(),
             }
           )}
           aria-label="Decrease value"
@@ -153,13 +289,33 @@ export const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
         <button
           type="button"
           onClick={handleIncrement}
-          disabled={disabled || (max !== undefined && value >= max)}
+          onMouseDown={e => {
+            e.preventDefault();
+            startRapidIncrement();
+          }}
+          onMouseUp={stopRapidChange}
+          onMouseLeave={stopRapidChange}
+          onTouchStart={e => {
+            e.preventDefault();
+            startRapidIncrement();
+          }}
+          onTouchEnd={stopRapidChange}
+          disabled={
+            disabled ||
+            (max !== undefined && value >= max) ||
+            wouldIncrementBeInvalid()
+          }
           className={clsx(
-            'px-5 aspect-square border-l border-text flex items-center justify-center transition-colors font-sans',
+            'px-5 aspect-square border-l border-text flex items-center justify-center transition-colors font-sans select-none',
             {
-              'hover:bg-surface dark:hover:bg-gray-800': !disabled,
+              'hover:bg-surface dark:hover:bg-gray-800':
+                !disabled &&
+                !(max !== undefined && value >= max) &&
+                !wouldIncrementBeInvalid(),
               'opacity-50 cursor-not-allowed':
-                disabled || (max !== undefined && value >= max),
+                disabled ||
+                (max !== undefined && value >= max) ||
+                wouldIncrementBeInvalid(),
             }
           )}
           aria-label="Increase value"

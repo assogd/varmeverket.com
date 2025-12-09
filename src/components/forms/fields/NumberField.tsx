@@ -43,6 +43,7 @@ export const NumberField: React.FC<NumberFieldProps> = ({
         error={error}
         required={field.required}
         placeholder={field.placeholder}
+        validation={field.validation}
       />
     </FieldWrapper>
   );
