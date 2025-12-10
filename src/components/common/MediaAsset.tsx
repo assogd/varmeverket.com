@@ -50,6 +50,7 @@ interface MediaAssetProps {
   preload?: boolean;
   isVisible?: boolean;
   draggable?: boolean;
+  playsInline?: boolean;
 }
 
 const MediaAsset: React.FC<MediaAssetProps> = ({
@@ -70,6 +71,7 @@ const MediaAsset: React.FC<MediaAssetProps> = ({
   preload = false,
   isVisible = true,
   draggable = true,
+  playsInline = true,
 }) => {
   // Variant-based defaults
   const getVariantDefaults = (variant: MediaAssetVariant) => {
@@ -214,6 +216,7 @@ const MediaAsset: React.FC<MediaAssetProps> = ({
         className={defaults.className}
         videoClassName={defaults.videoClassName}
         isVisible={isVisible}
+        playsInline={playsInline}
       />
     );
   }
@@ -242,6 +245,7 @@ const MediaAsset: React.FC<MediaAssetProps> = ({
         className={defaults.className}
         videoClassName={defaults.videoClassName}
         isVisible={isVisible}
+        playsInline={playsInline}
       />
     );
   }
