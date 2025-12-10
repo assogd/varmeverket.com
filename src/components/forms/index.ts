@@ -32,6 +32,7 @@ export {
 export type {
   FormConfig,
   FormField,
+  FormSection,
   FormFieldOption,
   FormValues,
   FormErrors,
@@ -52,4 +53,17 @@ export const createField = (
   fieldType,
   required: false,
   ...options,
+});
+
+/**
+ * Helper function to create form sections easily
+ */
+export const createSection = (
+  title: string,
+  fields: FormField[],
+  id?: string
+): FormSection => ({
+  id,
+  title,
+  fields,
 });

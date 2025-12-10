@@ -15,6 +15,7 @@ import sharp from 'sharp';
 
 import { Users, collections } from './schema/index';
 import { globals } from './globals/index';
+import { extendFormsCollection } from './plugins/extendFormsCollection';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -142,6 +143,7 @@ export default buildConfig({
       },
       redirectRelationships: ['pages'], // Collections to use for form redirects
     }),
+    extendFormsCollection, // Extend forms collection with sections support
     // storage-adapter-placeholder
   ],
 });

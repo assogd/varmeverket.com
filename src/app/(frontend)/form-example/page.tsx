@@ -1,11 +1,84 @@
 'use client';
 
 import React from 'react';
-import { FormRenderer, createField } from '@/components/forms';
+import { FormRenderer, createField, createSection } from '@/components/forms';
 import type { FormConfig } from '@/components/forms';
 import { Heading } from '@/components/headings';
 
 export default function FormExamplePage() {
+  // Example with sections (like in the image)
+  const formConfigWithSections: FormConfig = {
+    title: 'ANSÖKAN OM MEDLEMSKAP',
+    sections: [
+      createSection('Personuppgifter', [
+        createField('name', 'Namn', 'text', {
+          required: true,
+          placeholder: 'För- och efternamn',
+          helpText: 'Detta är ditt offentliga visningsnamn.',
+        }),
+        createField('mobile', 'Mobilnummer', 'tel', {
+          required: true,
+          placeholder: 'Ditt mobilnummer',
+        }),
+        createField('birthDate', 'Födelsedatum', 'date', {
+          required: true,
+          placeholder: 'MM/DD/ÅÅÅÅ',
+        }),
+        createField('location', 'Vart är du baserad?', 'select', {
+          required: true,
+          placeholder: 'Välj',
+          options: [
+            { label: 'Stockholm', value: 'stockholm' },
+            { label: 'Göteborg', value: 'goteborg' },
+            { label: 'Malmö', value: 'malmo' },
+            { label: 'Övrigt', value: 'other' },
+          ],
+        }),
+        createField('gender', 'Vilket kön identifierar du dig som?', 'select', {
+          required: true,
+          options: [
+            { label: 'Man', value: 'man' },
+            { label: 'Kvinna', value: 'kvinna' },
+            { label: 'Icke-binär', value: 'non-binary' },
+            { label: 'Vill ej uppge', value: 'prefer-not-to-say' },
+            { label: 'Övrigt', value: 'other' },
+          ],
+        }),
+      ]),
+      createSection('Dina behov', [
+        createField('needs', 'Beskriv dina behov', 'textarea', {
+          required: true,
+          placeholder: 'Berätta om dina behov...',
+        }),
+        createField('preferences', 'Preferenser', 'textarea', {
+          placeholder: 'Eventuella preferenser...',
+        }),
+      ]),
+    ],
+    submitButtonLabel: 'Skicka ansökan',
+    onSubmit: async data => {
+      console.log('Form submitted:', data);
+      // Submit to API endpoint
+      const response = await fetch('/api/form-example', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(
+          error.message || 'Failed to submit form. Please try again.'
+        );
+      }
+
+      return response.json();
+    },
+    successMessage: 'Tack! Din ansökan har skickats. Vi återkommer snart.',
+    showSuccessMessage: true,
+  };
+
+  // Original example with flat fields (for backward compatibility)
   const formConfig: FormConfig = {
     title: 'Complete Form Example',
     fields: [
@@ -133,9 +206,9 @@ export default function FormExamplePage() {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4">
+    <div className="min-h-screen pt-36 pb-12 px-4">
       <div className="">
-        <div className="mb-8 text-center">
+        <div className="mb-20 text-center">
           <Heading variant="section" as="h1" className="mb-4">
             Form Example Page
           </Heading>
@@ -146,8 +219,8 @@ export default function FormExamplePage() {
           </p>
         </div>
 
-        <div className="p-8">
-          <FormRenderer config={formConfig} />
+        <div className="p-8 space-y-12">
+          <FormRenderer config={formConfigWithSections} />
         </div>
       </div>
     </div>

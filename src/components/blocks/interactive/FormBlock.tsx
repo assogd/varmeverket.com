@@ -5,7 +5,7 @@ import { DevIndicator } from '@/components/dev/DevIndicator';
 import { Heading } from '@/components/headings';
 import { PayloadAPI } from '@/lib/api';
 import { FormRenderer } from '@/components/forms';
-import type { FormConfig, FormField } from '@/components/forms';
+import type { FormConfig, FormField, FormSection } from '@/components/forms';
 import clsx from 'clsx';
 
 interface CMSFormField {
@@ -20,17 +20,27 @@ interface CMSFormField {
     | 'number'
     | 'state'
     | 'country'
-    | 'message';
+    | 'message'
+    | 'date';
   required?: boolean;
   defaultValue?: string | number | boolean;
   options?: Array<{ label: string; value: string }>;
   width?: number;
+  placeholder?: string;
+  helpText?: string;
+}
+
+interface CMSFormSection {
+  id?: string;
+  title: string;
+  fields?: CMSFormField[];
 }
 
 interface CMSFormData {
   id: string;
   title?: string;
   fields?: CMSFormField[];
+  sections?: CMSFormSection[];
   submitButtonLabel?: string;
   confirmationType?: 'message' | 'redirect';
   confirmationMessage?: {
@@ -64,6 +74,17 @@ const convertCMSFieldToFormField = (cmsField: CMSFormField): FormField => ({
   required: cmsField.required,
   defaultValue: cmsField.defaultValue,
   options: cmsField.options,
+  placeholder: cmsField.placeholder,
+  helpText: cmsField.helpText,
+});
+
+// Convert CMS form section to FormRenderer section
+const convertCMSSectionToFormSection = (
+  cmsSection: CMSFormSection
+): FormSection => ({
+  id: cmsSection.id,
+  title: cmsSection.title,
+  fields: (cmsSection.fields || []).map(convertCMSFieldToFormField),
 });
 
 export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
@@ -104,7 +125,11 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
     );
   }
 
-  if (!actualForm || !actualForm.fields || actualForm.fields.length === 0) {
+  // Check if form has sections or fields
+  const hasSections = actualForm?.sections && actualForm.sections.length > 0;
+  const hasFields = actualForm?.fields && actualForm.fields.length > 0;
+
+  if (!actualForm || (!hasSections && !hasFields)) {
     return null;
   }
 
@@ -112,7 +137,14 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
   const formConfig: FormConfig = {
     id: actualForm.id,
     title: actualForm.title,
-    fields: actualForm.fields.map(convertCMSFieldToFormField),
+    // Use sections if available, otherwise fall back to flat fields
+    ...(hasSections
+      ? {
+          sections: actualForm.sections.map(convertCMSSectionToFormSection),
+        }
+      : {
+          fields: actualForm.fields?.map(convertCMSFieldToFormField) || [],
+        }),
     submitButtonLabel: actualForm.submitButtonLabel || 'Submit',
     onSubmit: async formData => {
       if (!formId) {

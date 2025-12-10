@@ -37,10 +37,18 @@ export interface FormField {
   maxYear?: number; // For date fields: maximum year
 }
 
+export interface FormSection {
+  id?: string; // Optional ID for CMS sections
+  title: string; // Section header/title
+  fields: FormField[]; // Fields within this section
+}
+
 export interface FormConfig {
   id?: string; // For CMS forms
   title?: string;
-  fields: FormField[];
+  // Support both flat fields (for backward compatibility) and sections
+  fields?: FormField[]; // Flat array of fields (deprecated, use sections)
+  sections?: FormSection[]; // Array of sections, each containing fields
   submitButtonLabel?: string;
   submitButtonVariant?: 'marquee' | 'solid';
   onSubmit?: (data: Record<string, unknown>) => Promise<void> | void;

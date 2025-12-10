@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FormFieldComponent } from './FormField';
-import type { FormConfig, FormValues, FormErrors } from './types';
+import type { FormConfig, FormValues, FormErrors, FormField } from './types';
 import { validateRequired, validateEmail } from '@/utils/validation';
 import { Heading } from '@/components/headings';
 import { MarqueeButton, Button } from '@/components/ui';
@@ -17,10 +17,18 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   config,
   className,
 }) => {
+  // Get all fields from sections or flat fields array (for backward compatibility)
+  const allFields = useMemo<FormField[]>(() => {
+    if (config.sections) {
+      return config.sections.flatMap(section => section.fields);
+    }
+    return config.fields || [];
+  }, [config.sections, config.fields]);
+
   const [formValues, setFormValues] = useState<FormValues>(() => {
     // Initialize with default values
     const defaults: FormValues = {};
-    config.fields.forEach(field => {
+    allFields.forEach(field => {
       if (field.defaultValue !== undefined) {
         defaults[field.name] = field.defaultValue;
       }
@@ -35,7 +43,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   } | null>(null);
 
   const validateField = (fieldName: string, value: unknown): string | null => {
-    const field = config.fields.find(f => f.name === fieldName);
+    const field = allFields.find(f => f.name === fieldName);
     if (!field) return null;
 
     // Required validation
@@ -69,7 +77,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     const newErrors: FormErrors = {};
     let isValid = true;
 
-    config.fields.forEach(field => {
+    allFields.forEach(field => {
       const error = validateField(field.name, formValues[field.name]);
       if (error) {
         newErrors[field.name] = error;
@@ -183,18 +191,55 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
       {(!submitStatus || submitStatus.type === 'error') && (
         <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-          <div className="grid gap-6">
-            {config.fields.map(field => (
-              <FormFieldComponent
-                key={field.name}
-                field={field}
-                value={formValues[field.name]}
-                error={errors[field.name]}
-                onChange={value => handleInputChange(field.name, value)}
-                disabled={isLoading}
-              />
-            ))}
-          </div>
+          {config.sections ? (
+            // Render with sections
+            <div className="space-y-8">
+              {config.sections.map((section, sectionIndex) => (
+                <div key={section.id || sectionIndex} className="space-y-6">
+                  {/* Section header with divider */}
+                  <div className="space-y-2">
+                    <div className="border-t border-text/20 pt-4">
+                      <Heading
+                        variant="section"
+                        as="h2"
+                        className="text-center"
+                      >
+                        {section.title}
+                      </Heading>
+                    </div>
+                  </div>
+
+                  {/* Section fields */}
+                  <div className="grid gap-6">
+                    {section.fields.map(field => (
+                      <FormFieldComponent
+                        key={field.name}
+                        field={field}
+                        value={formValues[field.name]}
+                        error={errors[field.name]}
+                        onChange={value => handleInputChange(field.name, value)}
+                        disabled={isLoading}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Render flat fields (backward compatibility)
+            <div className="grid gap-6">
+              {allFields.map(field => (
+                <FormFieldComponent
+                  key={field.name}
+                  field={field}
+                  value={formValues[field.name]}
+                  error={errors[field.name]}
+                  onChange={value => handleInputChange(field.name, value)}
+                  disabled={isLoading}
+                />
+              ))}
+            </div>
+          )}
 
           {config.submitButtonVariant === 'marquee' ? (
             <MarqueeButton
