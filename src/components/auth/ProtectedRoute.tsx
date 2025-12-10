@@ -36,8 +36,13 @@ export default function ProtectedRoute({
     );
   }
 
-  // Show error if there was one (but not 401, which is expected)
-  if (error && !error.includes('401')) {
+  // Show error if there was one (but not 401/400, which are expected when not logged in)
+  if (
+    error &&
+    !error.includes('401') &&
+    !error.includes('400') &&
+    !error.includes('Not authenticated')
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-surface p-6 rounded-lg">
@@ -45,6 +50,16 @@ export default function ProtectedRoute({
             Session Error
           </h2>
           <p className="text-sm mb-4">{error}</p>
+          {error.includes('SSL') || error.includes('Network error') ? (
+            <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded text-sm">
+              <p className="font-semibold mb-1">SSL/Network Issue:</p>
+              <p>
+                This appears to be a local development SSL certificate issue.
+                Try accessing the site via HTTP instead of HTTPS, or configure a
+                valid SSL certificate for local development.
+              </p>
+            </div>
+          ) : null}
           <button
             onClick={() => router.push(redirectTo)}
             className="px-4 py-2 bg-accent text-white rounded hover:bg-accent/90"
@@ -63,4 +78,3 @@ export default function ProtectedRoute({
 
   return <>{children}</>;
 }
-

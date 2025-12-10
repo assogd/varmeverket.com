@@ -31,22 +31,48 @@ export function useSession(): UseSessionResult {
       setSession(sessionData);
     } catch (err) {
       // 401 or 400 means not logged in, which is fine
-      const isNotAuthenticated = err instanceof Error && (
-        err.message.includes('401') || 
-        err.message.includes('400') ||
-        err.message.includes('Not authenticated') ||
-        (err as any).status === 401 ||
-        (err as any).status === 400
-      );
-      
+      const isNotAuthenticated =
+        (err instanceof Error &&
+          (err.message.includes('401') ||
+            err.message.includes('400') ||
+            err.message.includes('Not authenticated'))) ||
+        (err as any)?.status === 401 ||
+        (err as any)?.status === 400;
+
       if (isNotAuthenticated) {
         // Not logged in - this is normal, not an error
-        // Don't retry for 400/401 - user is simply not authenticated
+        // Note: document.cookie only shows cookies for current domain
+        // Session cookies for api.varmeverket.com won't be visible here
+        // but will still be sent automatically with credentials: 'include'
+        const hasLocalCookies =
+          document.cookie.includes('session=') ||
+          document.cookie.includes('remember_token=');
+
+        // Log info about the authentication failure
+        console.info('ℹ️ Session check: Not authenticated', {
+          message: err instanceof Error ? err.message : 'Unknown error',
+          status: (err as any)?.status,
+          note: hasLocalCookies
+            ? 'Local cookies found, but session cookies for api.varmeverket.com are cross-domain and not visible in document.cookie. They are still sent automatically with the request.'
+            : 'No local cookies found. Session cookies for api.varmeverket.com are cross-domain and not visible in document.cookie.',
+          suggestion:
+            'If you were logged in on another app, the session might have expired or be invalid. Try logging in again.',
+        });
+
+        // Don't set error for expected authentication failures
         setSession(null);
         setError(null);
       } else {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch session';
-        console.error('❌ Session fetch error:', err);
+        // Only log and set error for actual problems (network errors, etc.)
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to fetch session';
+        // Only log if it's not a network/SSL error that we can't fix
+        if (
+          !errorMessage.includes('SSL') &&
+          !errorMessage.includes('Network error')
+        ) {
+          console.error('❌ Session fetch error:', err);
+        }
         setError(errorMessage);
         setSession(null);
       }
@@ -73,4 +99,3 @@ export function useSession(): UseSessionResult {
     refetch: fetchSession,
   };
 }
-

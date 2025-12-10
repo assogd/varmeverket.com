@@ -332,31 +332,126 @@ export class BackendAPI {
       // Backend must have CORS configured to allow this
       const url = `${BACKEND_API_URL}/session`;
 
-      console.log('🔵 getSession - calling backend directly:', url);
+      try {
+        // Note: document.cookie only shows cookies for the current domain
+        // Session cookies for api.varmeverket.com won't appear here, but will still be sent
+        // with credentials: 'include' when making requests to that domain
+        const localCookies = document.cookie;
+        const hasLocalSessionCookie = localCookies.includes('session=');
+        const hasLocalRememberToken = localCookies.includes('remember_token=');
 
-      const response = await fetch(url, {
-        method: 'GET',
-        credentials: 'include', // This ensures cookies are sent
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+        console.log('🔵 getSession - Request details:', {
+          url,
+          localDomain:
+            typeof window !== 'undefined' ? window.location.hostname : 'server',
+          note: 'Session cookies for api.varmeverket.com are not visible in document.cookie but will be sent automatically with credentials: include',
+          localCookies: {
+            hasSessionCookie: hasLocalSessionCookie,
+            hasRememberToken: hasLocalRememberToken,
+            cookieCount: localCookies
+              ? localCookies.split(';').filter(c => c.trim()).length
+              : 0,
+          },
+        });
 
-      const data = await response.json();
+        const response = await fetch(url, {
+          method: 'GET',
+          credentials: 'include', // This ensures cookies for api.varmeverket.com are sent
+          // Note: GET requests typically don't need Content-Type header
+          // Some backends might reject GET requests with Content-Type
+          headers: {
+            Accept: 'application/json',
+          },
+        });
 
-      if (!response.ok) {
-        // 401 or 400 can mean not logged in
-        if (response.status === 401 || response.status === 400) {
-          throw new BackendAPIError('Not authenticated', 401, data);
+        // Handle non-OK responses
+        if (!response.ok) {
+          // Try to parse error response, but don't fail if it's not JSON
+          let data: unknown = {};
+          try {
+            data = await response.json();
+          } catch {
+            // Response is not JSON, that's okay
+          }
+
+          // Log 400 responses with details for debugging
+          if (response.status === 400) {
+            const errorData = data as {
+              message?: string;
+              error?: string;
+              status_code?: number;
+              status_message?: string;
+            };
+            const errorMessage =
+              errorData?.message ||
+              errorData?.error ||
+              errorData?.status_message ||
+              'Bad request';
+
+            console.warn('⚠️ Backend returned 400 for session check:', {
+              message: errorMessage,
+              fullResponse: errorData,
+              status: response.status,
+              requestUrl: url,
+              requestMethod: 'GET',
+              note: 'Cookies for api.varmeverket.com are sent automatically with credentials: include. A 400 response might indicate: 1) Invalid/expired session cookie, 2) Backend validation issue, 3) Request format issue. Check Network tab to see actual cookies sent.',
+              troubleshooting:
+                'If you were logged in on another app, try: 1) Check if cookies exist in DevTools → Application → Cookies → api.varmeverket.com, 2) Try logging in again through this app, 3) Check if the other app uses a different endpoint or request format',
+            });
+
+            // Check if it's actually an authentication issue or something else
+            const isAuthError =
+              errorMessage.toLowerCase().includes('session') ||
+              errorMessage.toLowerCase().includes('cookie') ||
+              errorMessage.toLowerCase().includes('authenticated') ||
+              errorMessage.toLowerCase().includes('unauthorized') ||
+              errorMessage.toLowerCase().includes('invalid') ||
+              errorMessage.toLowerCase() === 'bad request'; // Generic 400 often means invalid session
+
+            if (isAuthError) {
+              throw new BackendAPIError('Not authenticated', 401, data);
+            }
+
+            // Otherwise, it's a different 400 error - show the actual message
+            throw new BackendAPIError(
+              errorMessage || 'Session check failed: Bad request',
+              400,
+              data
+            );
+          }
+
+          // 401 means not logged in - this is expected, not an error
+          if (response.status === 401) {
+            throw new BackendAPIError('Not authenticated', 401, data);
+          }
+
+          // Other errors are actual problems
+          throw new BackendAPIError(
+            (data as { message?: string })?.message ||
+              `Session check failed: ${response.statusText}`,
+            response.status,
+            data
+          );
         }
-        throw new BackendAPIError(
-          data.message || `Session check failed: ${response.statusText}`,
-          response.status,
-          data
-        );
-      }
 
-      return data as SessionResponse;
+        const data = await response.json();
+        return data as SessionResponse;
+      } catch (error) {
+        // Re-throw BackendAPIError as-is
+        if (error instanceof BackendAPIError) {
+          throw error;
+        }
+        // Handle network errors (like SSL errors)
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          throw new BackendAPIError(
+            'Network error: Unable to connect to backend API. Check your connection and SSL certificate.',
+            0,
+            error
+          );
+        }
+        // Re-throw other errors
+        throw error;
+      }
     }
 
     // Server-side: call backend API directly
