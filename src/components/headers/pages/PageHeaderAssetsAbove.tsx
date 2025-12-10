@@ -79,8 +79,6 @@ export default function PageHeaderAssetsAbove({
               quality={75}
               sizes="(max-width: 768px) 50vw, 100vw"
               controls={false}
-              autoplay={true}
-              loop={true}
             />
           ))}
         </FadeInDown>

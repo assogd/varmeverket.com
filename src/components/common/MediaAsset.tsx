@@ -217,6 +217,7 @@ const MediaAsset: React.FC<MediaAssetProps> = ({
         videoClassName={defaults.videoClassName}
         isVisible={isVisible}
         playsInline={playsInline}
+        muted={defaults.autoplay} // Mute when autoplay is enabled (required for autoplay to work)
       />
     );
   }
@@ -246,6 +247,7 @@ const MediaAsset: React.FC<MediaAssetProps> = ({
         videoClassName={defaults.videoClassName}
         isVisible={isVisible}
         playsInline={playsInline}
+        muted={defaults.autoplay} // Mute when autoplay is enabled (required for autoplay to work)
       />
     );
   }
