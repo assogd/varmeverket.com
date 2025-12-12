@@ -118,7 +118,7 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   const baseClasses = clsx(
     'rounded-md overflow-hidden flex items-center justify-center',
-    'bg-black text-white',
+    'bg-black text-white dark:bg-transparent',
     sizeClasses[size],
     className
   );

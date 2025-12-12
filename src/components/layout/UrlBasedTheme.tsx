@@ -9,6 +9,9 @@ const DARK_MODE_SLUGS = ['spaces', 'event-spaces', 'studios', 'musikstudios'];
 // Configuration for dark mode collections
 const DARK_MODE_COLLECTIONS = ['spaces'];
 
+// Authenticated/portal routes that should always be dark mode
+const AUTHENTICATED_ROUTES = ['dashboard', 'login'];
+
 interface UrlBasedThemeProps {
   children: React.ReactNode;
 }
@@ -44,6 +47,11 @@ function shouldPathUseDarkMode(pathname: string): boolean {
   // Check for dark mode slugs in the first segment
   if (segments.length > 0) {
     const firstSegment = segments[0];
+
+    // Check if first segment matches any authenticated route (always dark)
+    if (AUTHENTICATED_ROUTES.includes(firstSegment)) {
+      return true;
+    }
 
     // Check if first segment matches any dark mode slug
     if (DARK_MODE_SLUGS.includes(firstSegment)) {

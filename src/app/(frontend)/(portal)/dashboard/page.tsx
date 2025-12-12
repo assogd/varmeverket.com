@@ -3,7 +3,7 @@
 import { useSession } from '@/hooks/useSession';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import LogoutButton from '@/components/auth/LogoutButton';
-import BackendAPI from '@/lib/backendApi';
+import BackendAPI, { type User } from '@/lib/backendApi';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -11,6 +11,8 @@ export default function DashboardPage() {
   const { user, session, loading, error } = useSession();
   const [bookings, setBookings] = useState<unknown[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [fullUserData, setFullUserData] = useState<User | null>(null);
+  const [userDataLoading, setUserDataLoading] = useState(false);
   const searchParams = useSearchParams();
 
   // Check if we're coming from a magic link redirect
@@ -27,6 +29,22 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user?.email) {
+      // Fetch full user data
+      setUserDataLoading(true);
+      BackendAPI.getUserByEmail(user.email)
+        .then(data => {
+          setFullUserData(data);
+        })
+        .catch(error => {
+          console.error('Failed to fetch user data:', error);
+          // Fall back to session user data if full fetch fails
+          setFullUserData(user);
+        })
+        .finally(() => {
+          setUserDataLoading(false);
+        });
+
+      // Fetch bookings
       setBookingsLoading(true);
       BackendAPI.getBookings(user.email)
         .then(data => {
@@ -165,7 +183,91 @@ export default function DashboardPage() {
 
               <div className="bg-surface p-6 rounded-lg">
                 <h2 className="text-xl font-semibold mb-4">Profile</h2>
-                {user && (
+                {userDataLoading ? (
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Loading profile data...
+                  </p>
+                ) : fullUserData ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                          Name
+                        </p>
+                        <p className="text-base">{fullUserData.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                          Email
+                        </p>
+                        <p className="text-base">{fullUserData.email}</p>
+                      </div>
+                      {fullUserData.username && (
+                        <div>
+                          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                            Username (UUID)
+                          </p>
+                          <p className="text-base font-mono text-sm">
+                            {fullUserData.username}
+                          </p>
+                        </div>
+                      )}
+                      {fullUserData.idx && (
+                        <div>
+                          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                            User ID
+                          </p>
+                          <p className="text-base">{fullUserData.idx}</p>
+                        </div>
+                      )}
+                      {fullUserData.roles && fullUserData.roles.length > 0 && (
+                        <div>
+                          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                            Roles
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {fullUserData.roles.map((role, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-accent/10 text-accent rounded text-sm"
+                              >
+                                {role}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {fullUserData.created && (
+                        <div>
+                          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                            Account Created
+                          </p>
+                          <p className="text-base">
+                            {new Date(fullUserData.created).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+                      {fullUserData.updated && (
+                        <div>
+                          <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                            Last Updated
+                          </p>
+                          <p className="text-base">
+                            {new Date(fullUserData.updated).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <details className="mt-4">
+                      <summary className="cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
+                        View raw user data
+                      </summary>
+                      <pre className="mt-2 p-3 bg-black/10 dark:bg-white/10 rounded overflow-auto text-xs">
+                        {JSON.stringify(fullUserData, null, 2)}
+                      </pre>
+                    </details>
+                  </div>
+                ) : user ? (
                   <div className="space-y-2">
                     <p>
                       <strong>Name:</strong> {user.name}
@@ -179,6 +281,10 @@ export default function DashboardPage() {
                       </p>
                     )}
                   </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No user data available
+                  </p>
                 )}
               </div>
 

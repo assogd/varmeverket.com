@@ -17,3 +17,4 @@ export { default as Model3D } from './Model3D';
 export { AnimatedArrow } from './AnimatedArrow';
 export { TextOnlyCard, CompactCard, MediumCard, LargeCard } from './UserCard';
 export { MarqueeButton, Button } from './buttons';
+export { Avatar } from './Avatar';
