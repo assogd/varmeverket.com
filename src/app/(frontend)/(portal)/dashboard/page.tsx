@@ -2,10 +2,11 @@
 
 import { useSession } from '@/hooks/useSession';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import LogoutButton from '@/components/auth/LogoutButton';
 import BackendAPI, { type User } from '@/lib/backendApi';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { PageHeaderTextOnly } from '@/components/headers/pages';
+import PageLayout from '@/components/layout/PageLayout';
 
 export default function DashboardPage() {
   const { user, session, loading, error } = useSession();
@@ -13,6 +14,14 @@ export default function DashboardPage() {
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [fullUserData, setFullUserData] = useState<User | null>(null);
   const [userDataLoading, setUserDataLoading] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{
+    email: string;
+    user_idx: number;
+    verified: string;
+    subscribed: number;
+    enabled: number;
+  } | null>(null);
+  const [checkingEmail, setCheckingEmail] = useState(false);
   const searchParams = useSearchParams();
 
   // Check if we're coming from a magic link redirect
@@ -52,22 +61,122 @@ export default function DashboardPage() {
         })
         .catch(error => {
           console.error('Failed to fetch bookings:', error);
+          // Log more details about the error
+          if (error instanceof Error) {
+            console.error('Booking error details:', {
+              message: error.message,
+              name: error.name,
+              stack: error.stack,
+            });
+          }
+          if (error && typeof error === 'object' && 'status' in error) {
+            console.error('Booking API error status:', (error as any).status);
+          }
         })
         .finally(() => {
           setBookingsLoading(false);
         });
+
+      // Check email activation status
+      if (user?.email) {
+        checkEmailStatus(user.email);
+      }
     }
   }, [user]);
 
+  const checkEmailStatus = async (email: string) => {
+    setCheckingEmail(true);
+    try {
+      // Use server-side API route to check email status
+      // This keeps the API key credentials secure on the server
+      const response = await fetch(
+        `/api/admin/check-email?email=${encodeURIComponent(email)}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setEmailStatus(Array.isArray(data) ? data[0] : data);
+      } else {
+        console.error('Failed to check email status:', response.status);
+      }
+    } catch (error) {
+      console.error('Error checking email status:', error);
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
+
+  const activateEmail = async (email: string) => {
+    try {
+      // Use server-side API route to activate email
+      // This keeps the API key credentials secure on the server
+      const response = await fetch('/api/admin/check-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setEmailStatus(Array.isArray(data) ? data[0] : data);
+        alert('User activated successfully!');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(
+          `Failed to activate: ${errorData.status_message || response.statusText}`
+        );
+      }
+    } catch (error) {
+      console.error('Error activating email:', error);
+      alert('Error activating user');
+    }
+  };
+
   return (
     <ProtectedRoute>
-      <div className="min-h-screen p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <LogoutButton />
-          </div>
-
+      <PageLayout contentType="page">
+        <PageHeaderTextOnly
+          text={{
+            root: {
+              children: [
+                {
+                  children: [
+                    {
+                      detail: 0,
+                      format: 0,
+                      mode: 'normal',
+                      style: '',
+                      text: 'Dashboard',
+                      type: 'text',
+                      version: 1,
+                    },
+                  ],
+                  direction: 'ltr',
+                  format: '',
+                  indent: 0,
+                  type: 'heading',
+                  tag: 'h1',
+                  version: 1,
+                },
+              ],
+              direction: 'ltr',
+              format: '',
+              indent: 0,
+              type: 'root',
+              version: 1,
+            },
+          }}
+        />
+        <div className="max-w-4xl mx-auto px-8 pb-8">
           {loading ? (
             <p>Loading...</p>
           ) : error &&
@@ -258,6 +367,38 @@ export default function DashboardPage() {
                         </div>
                       )}
                     </div>
+                    {emailStatus && (
+                      <div className="mt-4 p-4 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                        <h3 className="font-semibold mb-2">
+                          Email Activation Status
+                        </h3>
+                        <p className="text-sm mb-2">
+                          <strong>Enabled:</strong>{' '}
+                          {emailStatus.enabled === 1 ? (
+                            <span className="text-green-600 dark:text-green-400">
+                              Yes ✓
+                            </span>
+                          ) : (
+                            <span className="text-red-600 dark:text-red-400">
+                              No ✗
+                            </span>
+                          )}
+                        </p>
+                        {emailStatus.enabled === 0 && user?.email && (
+                          <button
+                            onClick={() => activateEmail(user.email)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                          >
+                            Activate User
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {checkingEmail && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                        Checking email status...
+                      </p>
+                    )}
                     <details className="mt-4">
                       <summary className="cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">
                         View raw user data
@@ -318,7 +459,7 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-      </div>
+      </PageLayout>
     </ProtectedRoute>
   );
 }

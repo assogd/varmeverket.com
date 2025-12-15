@@ -530,6 +530,55 @@ export class BackendAPI {
   }
 
   /**
+   * Get email activation status
+   * GET /v2/email/:email
+   * Requires API key authentication or admin session
+   */
+  static async getEmailStatus(email: string): Promise<{
+    email: string;
+    user_idx: number;
+    verified: string;
+    subscribed: number;
+    enabled: number;
+  }> {
+    return this.fetch<{
+      email: string;
+      user_idx: number;
+      verified: string;
+      subscribed: number;
+      enabled: number;
+    }>(`/v2/email/${encodeURIComponent(email)}`);
+  }
+
+  /**
+   * Activate a user (set enabled=1)
+   * PATCH /v2/email/:email
+   * Requires API key authentication or admin session
+   * Body should be form-encoded: enabled=1
+   */
+  static async activateUser(email: string): Promise<{
+    email: string;
+    user_idx: number;
+    verified: string;
+    subscribed: number;
+    enabled: number;
+  }> {
+    return this.fetch<{
+      email: string;
+      user_idx: number;
+      verified: string;
+      subscribed: number;
+      enabled: number;
+    }>(`/v2/email/${encodeURIComponent(email)}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'enabled=1',
+    });
+  }
+
+  /**
    * Get user's bookings
    * GET /v2/bookings?email={userEmail}
    */

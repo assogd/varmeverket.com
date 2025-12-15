@@ -32,6 +32,7 @@ Behaviour:
 
 - Sends a magic link to the email
 - `redirectUrl` is where the user lands after clicking the link (e.g. your front-end app URL)
+- **Important**: Only users with `enabled=1` can sign in. If a user is not enabled, the endpoint will return an error indicating the address is not activated.
 
 Example (JS):
 
@@ -337,27 +338,219 @@ Visiting this endpoint clears the current session.
 
 ---
 
-## 7. Mailboxes (Sign-up Internals)
+## 7. Form Submissions
+
+Base URL:
+
+    /v3/forms
+
+### 7.1 Submit a form
+
+Endpoint:
+
+    POST /v3/forms/<form>
+
+The `form` parameter can be either:
+
+- A slug of the form
+- The name of the form as created in Payload CMS
+
+The important thing is that it's the main identifier for all submissions for a given form.
+
+Example:
+
+    curl -X POST "https://api.varmeverket.com/v3/forms/test-11" -d 'namn=Förnamn Efternamn'
+
+Response:
+
+    {
+      "id": 661,
+      "form": "test-11",
+      "submission": {
+        "namn": "Förnamn Efternamn"
+      },
+      "user_id": null,
+      "created_at": "Wed, 10 Dec 2025 14:23:45 GMT",
+      "archived": 0
+    }
+
+Notes:
+
+- All submissions get `archived=0` by default
+- By default, only non-archived submissions are returned in queries
+- If a submission contains an `email` field, a `user_id` will be created or linked (not required for all forms)
+- Email address is required for submissions related to membership applications
+
+### 7.2 Get form submissions
+
+Endpoint:
+
+    GET /v3/forms/<form>
+
+Example:
+
+    curl -X GET "https://username:secret@api.varmeverket.com/v3/forms/test-11"
+
+Response:
+
+    [
+      {
+        "id": 661,
+        "form": "test-11",
+        "submission": {
+          "namn": "Förnamn Efternamn"
+        },
+        "user_id": null,
+        "created_at": "Wed, 10 Dec 2025 14:23:45 GMT",
+        "archived": 0
+      }
+    ]
+
+By default, only non-archived submissions are returned. To include archived submissions:
+
+    GET /v3/forms/<form>?archived=1
+
+### 7.3 Archive a submission
+
+Endpoint:
+
+    PATCH /v3/forms/<submission_id>
+
+Archive a submission when it's been handled and is no longer current. This is a separate step so that unapproved applications can be archived without activating a member.
+
+Example:
+
+    curl -X PATCH "https://username:secret@api.varmeverket.com/v3/forms/663" -d 'archived=1'
+
+Response:
+
+    {
+      "id": 663,
+      "form": "Test 11",
+      "submission": {
+        "name": "New Name"
+      },
+      "user_id": null,
+      "created_at": "Wed, 10 Dec 2025 15:04:16 GMT",
+      "archived": 1
+    }
+
+---
+
+## 8. User Activation
+
+Base URL:
+
+    /v2/email
+
+### 8.1 Check user activation status
+
+Endpoint:
+
+    GET /v2/email/<email>
+
+Example:
+
+    curl -X GET "https://username:secret@api.varmeverket.com/v2/email/benji@superstition.io"
+
+Response:
+
+    [
+      {
+        "email": "benji@superstition.io",
+        "user_idx": 308,
+        "verified": "Wed, 03 Dec 2025 01:58:02 GMT",
+        "subscribed": 0,
+        "enabled": 0
+      }
+    ]
+
+Notes:
+
+- All new registrations are flagged as `enabled=0` by default
+- Submissions containing an `email` field will be registered in the email table
+- Users with `enabled=0` cannot sign in via `/session/sign-on`
+
+### 8.2 Activate a user
+
+Endpoint:
+
+    PATCH /v2/email/<email>
+    Body: { "enabled": 1 }
+
+To approve a user and allow them to log in, set `enabled=1`:
+
+Example:
+
+    curl -X PATCH "https://$credentials@api.varmeverket.com/v2/email/benji@superstition.io" -d 'enabled=1'
+
+Response:
+
+    [
+      {
+        "email": "benji@superstition.io",
+        "user_idx": 308,
+        "verified": "Wed, 03 Dec 2025 01:58:02 GMT",
+        "subscribed": 0,
+        "enabled": 1
+      }
+    ]
+
+After activation, you can sign the user in programmatically:
+
+    curl -X POST "https://api.varmeverket.com/session/sign-on?redirect=https://<subdomain>.varmeverket.com" -d '{"email": "user@example.com"}'
+
+---
+
+## 9. API Key Authentication
+
+For server-side operations (e.g., managing submissions and user activations), an API key is available that has permissions for queries and changes related to users.
+
+Authentication is done via HTTP Basic Auth:
+
+Example credentials:
+
+    {
+      "username": "a66d164d-fb7b-57b4-a1c7-b63c0f79703b",
+      "password": "pC1J2b8bryDVh8IlVMFfMcI-5_uz2VLLWqHI1hCAkoM"
+    }
+
+Using in curl:
+
+    curl -X GET "https://username:password@api.varmeverket.com/v2/email/user@example.com"
+
+Using as header:
+
+    Authorization: Basic YTY2ZDE2NGQtZmI3Yi01N2I0LWExYzctYjYzYzBmNzk3MDNiOnBDMUoyYjhicnlEVmg4SWxWTUZmTWNJLTVfdXoyVkxMV3FISTFoQ0Frb00=
+
+Note: This API key is intended for use in server context only.
+
+---
+
+## 10. Mailboxes (Sign-up Internals)
 
 Mailboxes represent email addresses that may not yet have full user accounts (e.g. during sign-up).
 
 Fields:
 
 - `email`: email address
-- `enabled`: datetime when email was validated
+- `user_idx`: user ID if a user account exists
+- `verified`: datetime when email was validated
 - `subscribed`: boolean, permission to send email
+- `enabled`: boolean (0 or 1), whether the user can sign in
 
 Flow summary:
 
-1. User submits email
-2. Mailbox entry is created / updated with token
-3. Magic link is sent
-4. User clicks link → token is validated
-5. Session is created and (if needed) a user is created
+1. User submits form with email
+2. Mailbox entry is created / updated with `enabled=0`
+3. Magic link is sent (if applicable)
+4. User clicks link → token is validated, `verified` is set
+5. Admin activates user by setting `enabled=1`
+6. User can now sign in via `/session/sign-on`
 
 ---
 
-## 8. Front-End Integration Checklist
+## 11. Front-End Integration Checklist
 
 - Use `credentials: "include"` for all authenticated calls
 - Set `contentType: "application/json"` header for JSON requests

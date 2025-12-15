@@ -25,17 +25,6 @@ export default function ProtectedRoute({
     }
   }, [user, loading, router, redirectTo]);
 
-  // Show loading state while checking session
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg">Checking session...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Show error if there was one (but not 401/400, which are expected when not logged in)
   if (
     error &&
@@ -71,10 +60,7 @@ export default function ProtectedRoute({
     );
   }
 
-  // Don't render children if not authenticated (will redirect)
-  if (!user) {
-    return null;
-  }
-
+  // Render children optimistically - if not authenticated, redirect will happen
+  // No need to show a loading state that flashes on every page load
   return <>{children}</>;
 }
