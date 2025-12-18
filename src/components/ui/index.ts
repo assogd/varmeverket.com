@@ -18,3 +18,5 @@ export { AnimatedArrow } from './AnimatedArrow';
 export { TextOnlyCard, CompactCard, MediumCard, LargeCard } from './UserCard';
 export { MarqueeButton, Button } from './buttons';
 export { Avatar } from './Avatar';
+export { BookingsList } from './BookingsList';
+export type { Booking, PaginationSettings } from './BookingsList';
