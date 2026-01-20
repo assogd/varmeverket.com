@@ -82,6 +82,18 @@ a {
   --color-accent: #1a1a1a;
 }
 
+.orange {
+  color-scheme: light;
+
+  /* Orange theme colors (for pre-login portal pages) */
+  --color-bg: #e68456;
+  --color-surface: #e68456;
+  --color-surface-dark: #d67547;
+  --color-text: #0c0c0c;
+  --color-border: #0c0c0c;
+  --color-accent: #e68456;
+}
+
 /* Theme transition animations - smooth transitions for all theme-related properties */
 html {
   transition: background-color var(--theme-transition-duration)
