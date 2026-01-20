@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
+import { isPortalRoute } from '@/utils/routes';
 
 interface NavItem {
   label: string;
@@ -30,13 +31,7 @@ export const MemberNavigation: React.FC = () => {
   }
 
   // Only show on portal routes
-  const isPortalRoute =
-    pathname?.startsWith('/dashboard') ||
-    pathname?.startsWith('/bokningar') ||
-    pathname?.startsWith('/installningar') ||
-    pathname?.startsWith('/login');
-
-  if (!isPortalRoute) {
+  if (!isPortalRoute(pathname)) {
     return null;
   }
 

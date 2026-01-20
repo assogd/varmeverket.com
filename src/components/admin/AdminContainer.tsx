@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
+import { isPortalRoute } from '@/utils/routes';
 
 interface AdminContainerProps {
   children: React.ReactNode;
@@ -27,13 +28,7 @@ export const AdminContainer: React.FC<AdminContainerProps> = ({
   }
 
   // Don't show on portal routes
-  const isPortalRoute =
-    pathname?.startsWith('/dashboard') ||
-    pathname?.startsWith('/bokningar') ||
-    pathname?.startsWith('/installningar') ||
-    pathname?.startsWith('/login');
-
-  if (isPortalRoute) {
+  if (isPortalRoute(pathname)) {
     return null;
   }
 
