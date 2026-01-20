@@ -19,13 +19,15 @@ export function PersonalTab({
   onProfileImageChange,
 }: PersonalTabProps) {
   return (
-    <div className="space-y-8">
-      <ProfilePictureUpload
-        currentImage={profileImage}
-        onImageChange={onProfileImageChange}
-      />
-      <FormRenderer config={formConfig} />
-    </div>
+    <FormRenderer
+      config={formConfig}
+      customFirstField={
+        <ProfilePictureUpload
+          currentImage={profileImage}
+          onImageChange={onProfileImageChange}
+        />
+      }
+    />
   );
 }
 

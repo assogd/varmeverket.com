@@ -20,6 +20,7 @@ import clsx from 'clsx';
 interface FormRendererProps {
   config: FormConfig;
   className?: string;
+  customFirstField?: React.ReactNode; // Custom component to inject as first field in first section
 }
 
 // Map block types to field types
@@ -128,6 +129,7 @@ const convertBlocksToSectionsAndFields = (
 export const FormRenderer: React.FC<FormRendererProps> = ({
   config,
   className,
+  customFirstField,
 }) => {
   // Convert blocks to sections/fields if content is provided
   const convertedConfig = useMemo(() => {
@@ -136,10 +138,11 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       return {
         ...config,
         ...converted,
+        customFirstField,
       };
     }
-    return config;
-  }, [config]);
+    return { ...config, customFirstField };
+  }, [config, customFirstField]);
 
   // Get all fields from sections or flat fields array (for backward compatibility)
   const allFields = useMemo<FormField[]>(() => {
@@ -335,6 +338,10 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
                   {/* Section fields */}
                   <div className="grid gap-6">
+                    {/* Inject custom first field if provided and this is the first section */}
+                    {sectionIndex === 0 && convertedConfig.customFirstField && (
+                      <div>{convertedConfig.customFirstField}</div>
+                    )}
                     {section.fields.map(field => (
                       <FormFieldComponent
                         key={field.name}

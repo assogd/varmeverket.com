@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * Form field and configuration types
  * 
@@ -88,6 +90,7 @@ export interface FormConfig {
   showSuccessMessage?: boolean;
   successMessage?: string;
   className?: string;
+  customFirstField?: React.ReactNode; // Custom component to inject as first field in first section
 }
 
 export interface FormValues {

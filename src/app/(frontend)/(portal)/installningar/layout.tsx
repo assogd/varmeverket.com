@@ -45,10 +45,8 @@ export default function SettingsLayout({
             },
           }}
         />
-        <div className="max-w-4xl mx-auto px-8 pb-24">
-          <SettingsNavigation />
-          {children}
-        </div>
+        <SettingsNavigation />
+        {children}
       </PageLayout>
     </ProtectedRoute>
   );

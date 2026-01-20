@@ -13,25 +13,45 @@ const settingsNavItems = [
 export function SettingsNavigation() {
   const pathname = usePathname();
 
+  // Determine active item - check if pathname matches or is the base /installningar
+  const getActiveItem = () => {
+    if (
+      pathname === '/installningar' ||
+      pathname === '/installningar/personligt'
+    ) {
+      return '/installningar/personligt';
+    }
+    return pathname;
+  };
+
+  const activeHref = getActiveItem();
+
   return (
-    <div className="flex gap-4 mb-8 border-b border-text/20 dark:border-dark-text/20">
-      {settingsNavItems.map(item => {
-        const isActive = pathname === item.href;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={clsx(
-              'pb-4 px-2 text-sm font-medium transition-colors',
-              isActive
-                ? 'text-text dark:text-dark-text border-b-2 border-text dark:border-dark-text'
-                : 'text-text/70 dark:text-dark-text/70 hover:text-text dark:hover:text-dark-text'
-            )}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
+    <div className="p-2">
+      <div className="flex mb-8 border border-text max-w-4xl mx-auto">
+        {settingsNavItems.map((item, index) => {
+          const isActive = activeHref === item.href;
+          const isLast = index === settingsNavItems.length - 1;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                'flex items-center justify-center uppercase',
+                'border-r border-text dark:border-dark-text',
+                'p-4 flex-1', // Equal growth for all buttons
+                isLast && 'border-r-0', // Remove border on last item
+                isActive
+                  ? 'text-text dark:text-dark-text underline'
+                  : 'text-text dark:text-dark-text'
+              )}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
