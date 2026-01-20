@@ -56,11 +56,7 @@ export default function PersonalSettingsPage() {
   );
 
   if (sessionLoading || loading) {
-    return (
-      <div>
-        <p className="text-text/70 dark:text-dark-text/70">Laddar...</p>
-      </div>
-    );
+    return null;
   }
 
   return (

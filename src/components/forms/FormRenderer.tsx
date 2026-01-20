@@ -265,7 +265,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       if (convertedConfig.showSuccessMessage !== false) {
         setSubmitStatus({
           type: 'success',
-          message: convertedConfig.successMessage || 'Form submitted successfully!',
+          message:
+            convertedConfig.successMessage || 'Form submitted successfully!',
         });
       }
 
@@ -317,15 +318,15 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       )}
 
       {(!submitStatus || submitStatus.type === 'error') && (
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+        <form onSubmit={handleSubmit} className="space-y-6 px-2">
           {convertedConfig.sections ? (
             // Render with sections
             <div className="space-y-8">
               {convertedConfig.sections.map((section, sectionIndex) => (
-                <div key={section.id || sectionIndex} className="space-y-6">
+                <div key={section.id || sectionIndex} className="space-y-2">
                   {/* Section header with divider */}
                   <div className="space-y-2">
-                    <div className="border-t border-text/20 pt-4">
+                    <div className="border-b border-text/20 pt-4 pb-8">
                       <Heading
                         variant="section"
                         as="h2"
@@ -337,7 +338,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                   </div>
 
                   {/* Section fields */}
-                  <div className="grid gap-6">
+                  <div className="grid gap-6 max-w-2xl mx-auto border-r border-l border-text p-12">
                     {/* Inject custom first field if provided and this is the first section */}
                     {sectionIndex === 0 && convertedConfig.customFirstField && (
                       <div>{convertedConfig.customFirstField}</div>
