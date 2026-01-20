@@ -5,7 +5,14 @@ import { DevIndicator } from '@/components/dev/DevIndicator';
 import { Heading } from '@/components/headings';
 import { PayloadAPI } from '@/lib/api';
 import { FormRenderer } from '@/components/forms';
-import type { FormConfig, FormField, FormSection } from '@/components/forms';
+import type {
+  FormConfig,
+  FormField,
+  FormSection,
+  FormContentBlock,
+  FormFieldBlock,
+  FormSectionBlock,
+} from '@/components/forms';
 import clsx from 'clsx';
 
 interface CMSFormField {
@@ -39,8 +46,9 @@ interface CMSFormSection {
 interface CMSFormData {
   id: string;
   title?: string;
-  fields?: CMSFormField[];
-  sections?: CMSFormSection[];
+  content?: FormContentBlock[]; // New blocks-based structure
+  fields?: CMSFormField[]; // Old structure (backward compatibility)
+  sections?: CMSFormSection[]; // Old structure (backward compatibility)
   submitButtonLabel?: string;
   confirmationType?: 'message' | 'redirect';
   confirmationMessage?: {
@@ -66,7 +74,110 @@ interface FormBlockProps {
     | { id: string; [key: string]: unknown };
 }
 
-// Convert CMS form field to FormRenderer field
+// Map block types to field types
+const blockTypeToFieldType = (
+  blockType: string
+): FormField['fieldType'] | null => {
+  const mapping: Record<string, FormField['fieldType']> = {
+    formFieldText: 'text',
+    formFieldTextarea: 'textarea',
+    formFieldEmail: 'email',
+    formFieldSelect: 'select',
+    formFieldCheckbox: 'checkbox',
+    formFieldNumber: 'number',
+    formFieldState: 'state',
+    formFieldCountry: 'country',
+    formFieldTel: 'tel',
+    formFieldUrl: 'url',
+    formFieldDate: 'date',
+    formFieldMessage: 'message',
+  };
+  return mapping[blockType] || null;
+};
+
+// Convert form field block to FormRenderer field
+const convertFormFieldBlockToFormField = (
+  block: FormFieldBlock
+): FormField | null => {
+  const fieldType = blockTypeToFieldType(block.blockType);
+  if (!fieldType) {
+    console.warn(`Unknown form field block type: ${block.blockType}`);
+    return null;
+  }
+
+  return {
+    name: block.name,
+    label: block.label,
+    fieldType,
+    required: block.required,
+    defaultValue: block.defaultValue,
+    placeholder: block.placeholder,
+    helpText: block.helpText,
+    options: block.options,
+    minYear: block.minYear,
+    maxYear: block.maxYear,
+  };
+};
+
+// Convert form section block to FormRenderer section
+const convertFormSectionBlockToFormSection = (
+  block: FormSectionBlock
+): FormSection | null => {
+  if (block.blockType !== 'formSection') {
+    return null;
+  }
+
+  const fields: FormField[] = [];
+  if (block.fields && Array.isArray(block.fields)) {
+    for (const fieldBlock of block.fields) {
+      const converted = convertFormFieldBlockToFormField(
+        fieldBlock as FormFieldBlock
+      );
+      if (converted) {
+        fields.push(converted);
+      }
+    }
+  }
+
+  return {
+    title: block.title,
+    fields,
+  };
+};
+
+// Convert blocks array to FormConfig format
+const convertBlocksToFormConfig = (
+  blocks: FormContentBlock[]
+): { fields?: FormField[]; sections?: FormSection[] } => {
+  const fields: FormField[] = [];
+  const sections: FormSection[] = [];
+
+  for (const block of blocks) {
+    if (block.blockType === 'formSection') {
+      const section = convertFormSectionBlockToFormSection(
+        block as FormSectionBlock
+      );
+      if (section) {
+        sections.push(section);
+      }
+    } else {
+      // It's a form field block
+      const field = convertFormFieldBlockToFormField(block as FormFieldBlock);
+      if (field) {
+        fields.push(field);
+      }
+    }
+  }
+
+  // If we have sections, return sections (they take priority)
+  // Otherwise, return flat fields
+  if (sections.length > 0) {
+    return { sections };
+  }
+  return { fields };
+};
+
+// Convert CMS form field to FormRenderer field (backward compatibility)
 const convertCMSFieldToFormField = (cmsField: CMSFormField): FormField => ({
   name: cmsField.name,
   label: cmsField.label,
@@ -78,7 +189,7 @@ const convertCMSFieldToFormField = (cmsField: CMSFormField): FormField => ({
   helpText: cmsField.helpText,
 });
 
-// Convert CMS form section to FormRenderer section
+// Convert CMS form section to FormRenderer section (backward compatibility)
 const convertCMSSectionToFormSection = (
   cmsSection: CMSFormSection
 ): FormSection => ({
@@ -96,7 +207,11 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
     formId = form;
   } else if (form && typeof form === 'object') {
     // Check if it's a populated form object
-    if ('id' in form && 'fields' in form) {
+    // Check for new blocks-based structure (content) or old structure (fields/sections)
+    if (
+      'id' in form &&
+      ('content' in form || 'fields' in form || 'sections' in form)
+    ) {
       actualForm = form as CMSFormData;
       formId = form.id;
     } else if ('value' in form && typeof form.value === 'string') {
@@ -125,26 +240,20 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
     );
   }
 
-  // Check if form has sections or fields
-  const hasSections = actualForm?.sections && actualForm.sections.length > 0;
+  // Check what structure the form uses
+  const hasContent = actualForm?.content && actualForm.content.length > 0;
+  const hasSections =
+    actualForm?.sections && actualForm.sections.length > 0;
   const hasFields = actualForm?.fields && actualForm.fields.length > 0;
 
-  if (!actualForm || (!hasSections && !hasFields)) {
+  if (!actualForm || (!hasContent && !hasSections && !hasFields)) {
     return null;
   }
 
   // Convert CMS form to FormRenderer config
-  const formConfig: FormConfig = {
+  let formConfig: FormConfig = {
     id: actualForm.id,
     title: actualForm.title,
-    // Use sections if available, otherwise fall back to flat fields
-    ...(hasSections
-      ? {
-          sections: actualForm.sections.map(convertCMSSectionToFormSection),
-        }
-      : {
-          fields: actualForm.fields?.map(convertCMSFieldToFormField) || [],
-        }),
     submitButtonLabel: actualForm.submitButtonLabel || 'Submit',
     onSubmit: async formData => {
       if (!formId) {
@@ -179,6 +288,16 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
     showSuccessMessage:
       actualForm.confirmationType === 'message' || !actualForm.confirmationType,
   };
+
+  // Use new blocks-based structure if available, otherwise fall back to old structure
+  if (hasContent && actualForm.content) {
+    const converted = convertBlocksToFormConfig(actualForm.content);
+    formConfig = { ...formConfig, ...converted };
+  } else if (hasSections && actualForm.sections) {
+    formConfig.sections = actualForm.sections.map(convertCMSSectionToFormSection);
+  } else if (hasFields && actualForm.fields) {
+    formConfig.fields = actualForm.fields.map(convertCMSFieldToFormField);
+  }
 
   return (
     <div className="relative px-4 pt-8 pb-12">
