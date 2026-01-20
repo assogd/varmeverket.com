@@ -2,7 +2,16 @@
 
 import React, { useState, useMemo } from 'react';
 import { FormFieldComponent } from './FormField';
-import type { FormConfig, FormValues, FormErrors, FormField } from './types';
+import type {
+  FormConfig,
+  FormValues,
+  FormErrors,
+  FormField,
+  FormSection,
+  FormContentBlock,
+  FormFieldBlock,
+  FormSectionBlock,
+} from './types';
 import { validateRequired, validateEmail } from '@/utils/validation';
 import { Heading } from '@/components/headings';
 import { MarqueeButton, Button } from '@/components/ui';
@@ -13,17 +22,132 @@ interface FormRendererProps {
   className?: string;
 }
 
+// Map block types to field types
+const blockTypeToFieldType = (
+  blockType: string
+): FormField['fieldType'] | null => {
+  const mapping: Record<string, FormField['fieldType']> = {
+    formFieldText: 'text',
+    formFieldTextarea: 'textarea',
+    formFieldEmail: 'email',
+    formFieldSelect: 'select',
+    formFieldCheckbox: 'checkbox',
+    formFieldNumber: 'number',
+    formFieldState: 'state',
+    formFieldCountry: 'country',
+    formFieldTel: 'tel',
+    formFieldUrl: 'url',
+    formFieldDate: 'date',
+    formFieldMessage: 'message',
+  };
+  return mapping[blockType] || null;
+};
+
+// Convert form field block to FormField
+const convertFormFieldBlockToFormField = (
+  block: FormFieldBlock
+): FormField | null => {
+  const fieldType = blockTypeToFieldType(block.blockType);
+  if (!fieldType) {
+    console.warn(`Unknown form field block type: ${block.blockType}`);
+    return null;
+  }
+
+  return {
+    name: block.name,
+    label: block.label,
+    fieldType,
+    required: block.required,
+    defaultValue: block.defaultValue,
+    placeholder: block.placeholder,
+    helpText: block.helpText,
+    options: block.options,
+    minYear: block.minYear,
+    maxYear: block.maxYear,
+  };
+};
+
+// Convert form section block to FormSection
+const convertFormSectionBlockToFormSection = (
+  block: FormSectionBlock
+): FormSection | null => {
+  if (block.blockType !== 'formSection') {
+    return null;
+  }
+
+  const fields: FormField[] = [];
+  if (block.fields && Array.isArray(block.fields)) {
+    for (const fieldBlock of block.fields) {
+      const converted = convertFormFieldBlockToFormField(
+        fieldBlock as FormFieldBlock
+      );
+      if (converted) {
+        fields.push(converted);
+      }
+    }
+  }
+
+  return {
+    title: block.title,
+    fields,
+  };
+};
+
+// Convert blocks array to sections/fields
+const convertBlocksToSectionsAndFields = (
+  blocks: FormContentBlock[]
+): { fields?: FormField[]; sections?: FormSection[] } => {
+  const fields: FormField[] = [];
+  const sections: FormSection[] = [];
+
+  for (const block of blocks) {
+    if (block.blockType === 'formSection') {
+      const section = convertFormSectionBlockToFormSection(
+        block as FormSectionBlock
+      );
+      if (section) {
+        sections.push(section);
+      }
+    } else {
+      // It's a form field block
+      const field = convertFormFieldBlockToFormField(block as FormFieldBlock);
+      if (field) {
+        fields.push(field);
+      }
+    }
+  }
+
+  // If we have sections, return sections (they take priority)
+  // Otherwise, return flat fields
+  if (sections.length > 0) {
+    return { sections };
+  }
+  return { fields };
+};
+
 export const FormRenderer: React.FC<FormRendererProps> = ({
   config,
   className,
 }) => {
+  // Convert blocks to sections/fields if content is provided
+  const convertedConfig = useMemo(() => {
+    if (config.content && config.content.length > 0) {
+      const converted = convertBlocksToSectionsAndFields(config.content);
+      return {
+        ...config,
+        ...converted,
+      };
+    }
+    return config;
+  }, [config]);
+
   // Get all fields from sections or flat fields array (for backward compatibility)
   const allFields = useMemo<FormField[]>(() => {
-    if (config.sections) {
-      return config.sections.flatMap(section => section.fields);
+    if (convertedConfig.sections) {
+      return convertedConfig.sections.flatMap(section => section.fields);
     }
-    return config.fields || [];
-  }, [config.sections, config.fields]);
+    return convertedConfig.fields || [];
+  }, [convertedConfig.sections, convertedConfig.fields]);
 
   const [formValues, setFormValues] = useState<FormValues>(() => {
     // Initialize with default values
@@ -125,25 +249,25 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
     try {
       // If there's a custom onSubmit handler, use it
-      if (config.onSubmit) {
-        await config.onSubmit(formValues);
+      if (convertedConfig.onSubmit) {
+        await convertedConfig.onSubmit(formValues);
       }
 
       // Call onSuccess callback if provided
-      if (config.onSuccess) {
-        config.onSuccess(formValues);
+      if (convertedConfig.onSuccess) {
+        convertedConfig.onSuccess(formValues);
       }
 
       // Show success message if enabled
-      if (config.showSuccessMessage !== false) {
+      if (convertedConfig.showSuccessMessage !== false) {
         setSubmitStatus({
           type: 'success',
-          message: config.successMessage || 'Form submitted successfully!',
+          message: convertedConfig.successMessage || 'Form submitted successfully!',
         });
       }
 
       // Reset form if no custom handlers
-      if (!config.onSubmit && !config.onSuccess) {
+      if (!convertedConfig.onSubmit && !convertedConfig.onSuccess) {
         setFormValues({});
       }
     } catch (error) {
@@ -158,8 +282,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       });
 
       // Call onError callback if provided
-      if (config.onError) {
-        config.onError(
+      if (convertedConfig.onError) {
+        convertedConfig.onError(
           error instanceof Error ? error : new Error(errorMessage)
         );
       }
@@ -170,9 +294,9 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
   return (
     <div className={clsx('w-full', className)}>
-      {config.title && (
+      {convertedConfig.title && (
         <Heading variant="page-header" as="h1" className="mb-6 text-center">
-          {config.title}
+          {convertedConfig.title}
         </Heading>
       )}
 
@@ -191,10 +315,10 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
       {(!submitStatus || submitStatus.type === 'error') && (
         <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-          {config.sections ? (
+          {convertedConfig.sections ? (
             // Render with sections
             <div className="space-y-8">
-              {config.sections.map((section, sectionIndex) => (
+              {convertedConfig.sections.map((section, sectionIndex) => (
                 <div key={section.id || sectionIndex} className="space-y-6">
                   {/* Section header with divider */}
                   <div className="space-y-2">
@@ -228,7 +352,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
           ) : (
             // Render flat fields (backward compatibility)
             <div className="grid gap-6">
-              {allFields.map(field => (
+              {(convertedConfig.fields || allFields).map(field => (
                 <FormFieldComponent
                   key={field.name}
                   field={field}
@@ -241,7 +365,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
             </div>
           )}
 
-          {config.submitButtonVariant === 'marquee' ? (
+          {convertedConfig.submitButtonVariant === 'marquee' ? (
             <MarqueeButton
               type="submit"
               disabled={isLoading}
@@ -249,7 +373,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
             >
               {isLoading
                 ? 'Submitting...'
-                : config.submitButtonLabel || 'Submit'}
+                : convertedConfig.submitButtonLabel || 'Submit'}
             </MarqueeButton>
           ) : (
             <Button
@@ -260,7 +384,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
             >
               {isLoading
                 ? 'Submitting...'
-                : config.submitButtonLabel || 'Submit'}
+                : convertedConfig.submitButtonLabel || 'Submit'}
             </Button>
           )}
         </form>

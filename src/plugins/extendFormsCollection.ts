@@ -30,6 +30,12 @@ export const extendFormsCollection: Plugin = (
     // Clone the existing collection config
     const formsCollection = { ...config.collections[formsCollectionIndex] };
 
+    // Set admin group to 'Content' to match other content collections
+    formsCollection.admin = {
+      ...formsCollection.admin,
+      group: 'Content',
+    };
+
     // Find and remove old fields/sections arrays if they exist
     const existingFields = formsCollection.fields || [];
     const filteredFields = existingFields.filter(

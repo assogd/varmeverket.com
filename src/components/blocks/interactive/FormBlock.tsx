@@ -3,7 +3,7 @@
 import React from 'react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { Heading } from '@/components/headings';
-import { PayloadAPI } from '@/lib/api';
+import { submitForm } from '@/services/formService';
 import { FormRenderer } from '@/components/forms';
 import type {
   FormConfig,
@@ -259,7 +259,8 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
       if (!formId) {
         throw new Error('Form ID is missing');
       }
-      await PayloadAPI.submitForm(formId, formData);
+      // Use form service for consistent error handling
+      await submitForm(formId, formData);
     },
     onSuccess: () => {
       // Handle redirect if needed

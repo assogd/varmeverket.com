@@ -1,18 +1,21 @@
 /**
  * Settings Page Handlers
- * Form submission and data handling logic
+ * Form submission and data handling logic with optimistic updates
  */
 
-import BackendAPI, { type User } from '@/lib/backendApi';
+import { updateUser } from '@/services/userService';
+import { clearUserCache } from '@/hooks/useUser';
+import type { User } from '@/lib/backendApi';
 
 /**
  * Handles submission of personal information form
+ * Uses service layer for consistent error handling
  */
 export async function handlePersonalFormSubmit(
   userEmail: string,
   data: Record<string, unknown>
-): Promise<void> {
-  await BackendAPI.updateUser(userEmail, {
+): Promise<User> {
+  const updatedUser = await updateUser(userEmail, {
     name: data.name as string,
     email: data.email as string,
     // Extended fields - will be saved when backend API supports them
@@ -21,6 +24,11 @@ export async function handlePersonalFormSubmit(
     location: data.location as string,
     gender: data.gender as string,
   });
+
+  // Clear cache to ensure fresh data on next fetch
+  clearUserCache(userEmail);
+
+  return updatedUser;
 }
 
 /**
@@ -33,6 +41,8 @@ export async function handleBusinessFormSubmit(
 ): Promise<void> {
   // TODO: Implement business form submission
   console.log('Business form data:', data);
+  // Clear cache when implemented
+  clearUserCache(userEmail);
 }
 
 /**
@@ -45,4 +55,6 @@ export async function handleAccountFormSubmit(
 ): Promise<void> {
   // TODO: Implement account form submission
   console.log('Account form data:', data);
+  // Clear cache when implemented
+  clearUserCache(userEmail);
 }

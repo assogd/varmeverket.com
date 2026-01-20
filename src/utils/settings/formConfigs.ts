@@ -1,9 +1,14 @@
 /**
  * Settings Page Form Configurations
  * Define all form configurations for different tabs here
+ * 
+ * Uses the new blocks-based form system for consistency with Payload CMS forms
  */
 
-import { createField, createSection } from '@/components/forms';
+import {
+  createFieldBlock,
+  createSectionBlock,
+} from '@/components/forms';
 import type { FormConfig } from '@/components/forms';
 import type { User } from '@/lib/backendApi';
 import { LOCATION_OPTIONS, GENDER_OPTIONS } from '@/utils/settings/constants';
@@ -11,6 +16,7 @@ import { LOCATION_OPTIONS, GENDER_OPTIONS } from '@/utils/settings/constants';
 /**
  * Creates the personal information form configuration
  * Easy to modify: add/remove fields, change options, update requirements
+ * Uses the new blocks-based structure for consistency with CMS forms
  */
 export function createPersonalFormConfig(
   user: User | null,
@@ -27,39 +33,39 @@ export function createPersonalFormConfig(
   };
 
   return {
-    sections: [
-      createSection('Personuppgifter', [
+    content: [
+      createSectionBlock('Personuppgifter', [
         // Required fields
-        createField('name', 'Namn', 'text', {
+        createFieldBlock('name', 'Namn', 'text', {
           required: true,
           placeholder: 'För- och efternamn',
           helpText: 'Detta är ditt offentliga visningsnamn.',
           defaultValue: defaults.name,
         }),
-        createField('email', 'Email', 'email', {
+        createFieldBlock('email', 'Email', 'email', {
           required: true,
           placeholder: 'Din e-postadress',
           defaultValue: defaults.email,
         }),
 
         // Optional fields
-        createField('phone', 'Mobilnummer', 'tel', {
+        createFieldBlock('phone', 'Mobilnummer', 'tel', {
           required: false,
           placeholder: 'Ditt mobilnummer',
           defaultValue: defaults.phone,
         }),
-        createField('dateOfBirth', 'Födelsedatum', 'date', {
+        createFieldBlock('dateOfBirth', 'Födelsedatum', 'date', {
           required: false,
           placeholder: 'MM/DD/AAAA',
           defaultValue: defaults.dateOfBirth,
         }),
-        createField('location', 'Vart är du baserad?', 'select', {
+        createFieldBlock('location', 'Vart är du baserad?', 'select', {
           required: false,
           placeholder: 'Välj',
           defaultValue: defaults.location,
           options: LOCATION_OPTIONS,
         }),
-        createField('gender', 'Vilket kön identifierar du dig som?', 'select', {
+        createFieldBlock('gender', 'Vilket kön identifierar du dig som?', 'select', {
           required: false,
           defaultValue: defaults.gender,
           options: GENDER_OPTIONS,
@@ -76,15 +82,16 @@ export function createPersonalFormConfig(
 /**
  * Creates the business information form configuration
  * TODO: Add fields when ready
+ * Uses the new blocks-based structure
  */
 export function createBusinessFormConfig(
   user: User | null,
   onSubmit: (data: Record<string, unknown>) => Promise<void>
 ): FormConfig {
   return {
-    sections: [
-      createSection('Verksamhetsinformation', [
-        // Add business fields here
+    content: [
+      createSectionBlock('Verksamhetsinformation', [
+        // Add business fields here using createFieldBlock
       ]),
     ],
     submitButtonLabel: 'SPARA',
@@ -97,15 +104,16 @@ export function createBusinessFormConfig(
 /**
  * Creates the account settings form configuration
  * TODO: Add fields when ready
+ * Uses the new blocks-based structure
  */
 export function createAccountFormConfig(
   user: User | null,
   onSubmit: (data: Record<string, unknown>) => Promise<void>
 ): FormConfig {
   return {
-    sections: [
-      createSection('Kontoinställningar', [
-        // Add account fields here
+    content: [
+      createSectionBlock('Kontoinställningar', [
+        // Add account fields here using createFieldBlock
       ]),
     ],
     submitButtonLabel: 'SPARA',

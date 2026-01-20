@@ -241,20 +241,56 @@ export class PayloadAPI {
 
   /**
    * Submit a form
+   * 
+   * Note: Form submissions go to Backend API (/v3/forms/<formSlug>), not Payload CMS.
+   * This ensures all form submissions are stored in the backend database and can be
+   * linked to users if an email field exists.
+   * 
+   * @param formId - Form slug or name (e.g., "test-11", "contact-form")
+   * @param formData - Form data to submit
+   * @returns Submission response with id, form, submission data, etc.
    */
   static async submitForm(
     formId: string,
     formData: Record<string, unknown>
-  ): Promise<{ message?: string; id?: string }> {
-    const url = `${API_BASE_URL}/forms/${formId}/submit`;
+  ): Promise<{
+    id: number;
+    form: string;
+    submission: Record<string, unknown>;
+    user_id: number | null;
+    created_at: string;
+    archived: number;
+  }> {
+    // Import BackendAPI to use its submitForm method
+    // This ensures we use the correct endpoint and authentication
+    const { BackendAPI } = await import('./backendApi');
+    
+    // Backend API expects form data as form-encoded for /v3/forms endpoint
+    // But the API_GUIDE shows it can accept JSON too, so we'll use JSON
+    // The BackendAPI.submitForm uses /forms/<formId>/submit which might be different
+    // Let's check the API_GUIDE - it says POST /v3/forms/<form>
+    
+    const BACKEND_API_URL =
+      process.env.NEXT_PUBLIC_BACKEND_API_URL ||
+      process.env.BACKEND_API_URL ||
+      'https://api.varmeverket.com';
+    
+    const url = `${BACKEND_API_URL}/v3/forms/${formId}`;
 
     try {
+      // Convert formData to URL-encoded format as per API_GUIDE example
+      const formBody = new URLSearchParams();
+      Object.entries(formData).forEach(([key, value]) => {
+        formBody.append(key, String(value));
+      });
+
       const response = await fetch(url, {
         method: 'POST',
+        credentials: 'include', // Include cookies for authenticated requests
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify(formData),
+        body: formBody.toString(),
       });
 
       if (!response.ok) {

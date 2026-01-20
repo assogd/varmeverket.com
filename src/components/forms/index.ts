@@ -67,3 +67,65 @@ export const createSection = (
   title,
   fields,
 });
+
+// Re-export block types for convenience
+export type {
+  FormFieldBlock,
+  FormSectionBlock,
+  FormContentBlock,
+} from './types';
+
+/**
+ * Helper function to create form field blocks easily
+ * Maps field types to block types for the new blocks-based system
+ */
+export const createFieldBlock = (
+  name: string,
+  label: string,
+  fieldType: FormField['fieldType'],
+  options?: Partial<FormField>
+): FormFieldBlock => {
+  // Map field types to block types
+  const fieldTypeToBlockType: Record<FormField['fieldType'], string> = {
+    text: 'formFieldText',
+    textarea: 'formFieldTextarea',
+    email: 'formFieldEmail',
+    password: 'formFieldText', // Password uses text field for now
+    select: 'formFieldSelect',
+    checkbox: 'formFieldCheckbox',
+    number: 'formFieldNumber',
+    state: 'formFieldState',
+    country: 'formFieldCountry',
+    tel: 'formFieldTel',
+    url: 'formFieldUrl',
+    date: 'formFieldDate',
+    message: 'formFieldMessage',
+  };
+
+  const blockType = fieldTypeToBlockType[fieldType] || 'formFieldText';
+
+  return {
+    blockType,
+    name,
+    label,
+    required: options?.required ?? false,
+    defaultValue: options?.defaultValue,
+    placeholder: options?.placeholder,
+    helpText: options?.helpText,
+    options: options?.options,
+    minYear: options?.minYear,
+    maxYear: options?.maxYear,
+  };
+};
+
+/**
+ * Helper function to create form section blocks easily
+ */
+export const createSectionBlock = (
+  title: string,
+  fields: FormFieldBlock[]
+): FormSectionBlock => ({
+  blockType: 'formSection',
+  title,
+  fields,
+});

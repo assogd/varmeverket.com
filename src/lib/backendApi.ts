@@ -659,15 +659,46 @@ export class BackendAPI {
   }
 
   /**
-   * Submit a form
+   * Submit a form to Backend API
+   * POST /v3/forms/<formSlug>
+   * 
+   * According to API_GUIDE.md, all form submissions should go to /v3/forms/<form>
+   * on the backend API. The form parameter can be either a slug or the name of the form.
+   * 
+   * @param formId - Form slug or name (e.g., "test-11", "contact-form")
+   * @param data - Form data to submit (will be converted to form-encoded format)
+   * @returns Submission response with id, form, submission data, etc.
    */
   static async submitForm(
     formId: string,
     data: Record<string, unknown>
-  ): Promise<{ success: boolean; message?: string }> {
-    return this.fetch(`/forms/${formId}/submit`, {
+  ): Promise<{
+    id: number;
+    form: string;
+    submission: Record<string, unknown>;
+    user_id: number | null;
+    created_at: string;
+    archived: number;
+  }> {
+    // Convert data to URL-encoded format as per API_GUIDE example
+    const formBody = new URLSearchParams();
+    Object.entries(data).forEach(([key, value]) => {
+      formBody.append(key, String(value));
+    });
+
+    return this.fetch<{
+      id: number;
+      form: string;
+      submission: Record<string, unknown>;
+      user_id: number | null;
+      created_at: string;
+      archived: number;
+    }>(`/v3/forms/${formId}`, {
       method: 'POST',
-      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formBody.toString(),
     });
   }
 
