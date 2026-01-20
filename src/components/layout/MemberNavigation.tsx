@@ -7,6 +7,7 @@ import { useSession } from '@/hooks/useSession';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import { isPortalRoute } from '@/utils/routes';
+import { FadeIn } from '@/components/ui/FadeIn';
 
 interface NavItem {
   label: string;
@@ -44,7 +45,18 @@ export const MemberNavigation: React.FC = () => {
   const backgroundIndex = hoveredIndex !== null ? hoveredIndex : activeIndex;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 px-2 py-3">
+    <FadeIn
+      variant="fadeUp"
+      timing="normal"
+      delay={0.4}
+      once={false}
+      customMotionProps={{
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+      }}
+      className="fixed bottom-0 left-0 right-0 z-50 px-2 py-3"
+      as="nav"
+    >
       <div className="max-w-sm mx-auto">
         <div className="relative flex items-center justify-around h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg overflow-hidden">
           {/* Animated background that moves between items */}
@@ -88,7 +100,7 @@ export const MemberNavigation: React.FC = () => {
           })}
         </div>
       </div>
-    </nav>
+    </FadeIn>
   );
 };
 
