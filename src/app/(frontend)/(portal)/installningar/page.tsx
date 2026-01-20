@@ -1,17 +1,31 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import Image from 'next/image';
 import { useSession } from '@/hooks/useSession';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { PageHeaderTextOnly } from '@/components/headers/pages';
 import PageLayout from '@/components/layout/PageLayout';
 import BackendAPI, { type User } from '@/lib/backendApi';
-import { FormRenderer, createField, createSection } from '@/components/forms';
 import type { FormConfig } from '@/components/forms';
 import clsx from 'clsx';
 
-type TabType = 'personal' | 'business' | 'account';
+// Settings imports
+import { TABS, type TabType } from '@/utils/settings/constants';
+import {
+  createPersonalFormConfig,
+  createBusinessFormConfig,
+  createAccountFormConfig,
+} from '@/utils/settings/formConfigs';
+import {
+  handlePersonalFormSubmit,
+  handleBusinessFormSubmit,
+  handleAccountFormSubmit,
+} from '@/utils/settings/handlers';
+import {
+  PersonalTab,
+  BusinessTab,
+  AccountTab,
+} from '@/components/portal/settings/components/TabContent';
 
 export default function SettingsPage() {
   const { user, loading: sessionLoading } = useSession();
@@ -20,14 +34,19 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState<string | undefined>();
 
-  // Load user data
+  // ==========================================================================
+  // Data Loading
+  // ==========================================================================
+
   useEffect(() => {
     if (user?.email) {
       setLoading(true);
       BackendAPI.getUserByEmail(user.email)
         .then(data => {
           setUserData(data);
-          // Profile image would come from user data when backend supports it
+          if (data.profileImage) {
+            setProfileImage(data.profileImage);
+          }
         })
         .catch(error => {
           console.error('Failed to load user data:', error);
@@ -38,29 +57,15 @@ export default function SettingsPage() {
     }
   }, [user]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // TODO: Implement image upload to backend
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // ==========================================================================
+  // Form Submission Handlers
+  // ==========================================================================
 
-  const handleFormSubmit = useCallback(
+  const handlePersonalSubmit = useCallback(
     async (data: Record<string, unknown>) => {
       if (!user?.email) return;
-
       try {
-        await BackendAPI.updateUser(user.email, {
-          name: data.name as string,
-          email: data.email as string,
-        });
-        // TODO: Save additional fields (phone, DOB, location, gender) when backend supports them
-        // These fields are currently only validated but not saved to backend
+        await handlePersonalFormSubmit(user.email, data);
         alert('Inställningar sparade!');
       } catch (error) {
         console.error('Failed to save settings:', error);
@@ -70,85 +75,56 @@ export default function SettingsPage() {
     [user?.email]
   );
 
-  // Create form config with pre-filled values from user data
-  const personalFormConfig: FormConfig = useMemo(() => {
-    const defaultValues = {
-      name: user?.name || '',
-      email: user?.email || '',
-      phone: '',
-      dateOfBirth: '',
-      location: '',
-      gender: '',
-    };
+  const handleBusinessSubmit = useCallback(
+    async (data: Record<string, unknown>) => {
+      if (!user?.email) return;
+      try {
+        await handleBusinessFormSubmit(user.email, data);
+        alert('Inställningar sparade!');
+      } catch (error) {
+        console.error('Failed to save settings:', error);
+        throw new Error('Kunde inte spara inställningar. Försök igen.');
+      }
+    },
+    [user?.email]
+  );
 
-    return {
-      sections: [
-        createSection('Personuppgifter', [
-          createField('name', 'Namn', 'text', {
-            required: true,
-            placeholder: 'För- och efternamn',
-            helpText: 'Detta är ditt offentliga visningsnamn.',
-            defaultValue: defaultValues.name,
-          }),
-          createField('email', 'Email', 'email', {
-            required: true,
-            placeholder: 'Din e-postadress',
-            defaultValue: defaultValues.email,
-          }),
-          createField('phone', 'Mobilnummer', 'tel', {
-            required: true,
-            placeholder: 'Ditt mobilnummer',
-            defaultValue: defaultValues.phone,
-          }),
-          createField('dateOfBirth', 'Födelsedatum', 'date', {
-            required: true,
-            placeholder: 'MM/DD/AAAA',
-            defaultValue: defaultValues.dateOfBirth,
-          }),
-          createField('location', 'Vart är du baserad?', 'select', {
-            required: true,
-            placeholder: 'Välj',
-            defaultValue: defaultValues.location,
-            options: [
-              { label: 'Stockholm', value: 'stockholm' },
-              { label: 'Göteborg', value: 'goteborg' },
-              { label: 'Malmö', value: 'malmo' },
-              { label: 'Uppsala', value: 'uppsala' },
-              { label: 'Linköping', value: 'linkoping' },
-              { label: 'Örebro', value: 'örebro' },
-              { label: 'Annat', value: 'annat' },
-            ],
-          }),
-          createField(
-            'gender',
-            'Vilket kön identifierar du dig som?',
-            'select',
-            {
-              required: true,
-              defaultValue: defaultValues.gender,
-              options: [
-                { label: 'Man', value: 'man' },
-                { label: 'Kvinna', value: 'kvinna' },
-                { label: 'Icke-binär', value: 'icke-binär' },
-                { label: 'Vill ej uppge', value: 'vill-ej-uppge' },
-                { label: 'Övrigt', value: 'övrigt' },
-              ],
-            }
-          ),
-        ]),
-      ],
-      submitButtonLabel: 'SPARA',
-      onSubmit: handleFormSubmit,
-      successMessage: 'Inställningar sparade!',
-      showSuccessMessage: true,
-    };
-  }, [user, handleFormSubmit]);
+  const handleAccountSubmit = useCallback(
+    async (data: Record<string, unknown>) => {
+      if (!user?.email) return;
+      try {
+        await handleAccountFormSubmit(user.email, data);
+        alert('Inställningar sparade!');
+      } catch (error) {
+        console.error('Failed to save settings:', error);
+        throw new Error('Kunde inte spara inställningar. Försök igen.');
+      }
+    },
+    [user?.email]
+  );
 
-  const tabs = [
-    { id: 'personal' as TabType, label: 'PERSONLIGT' },
-    { id: 'business' as TabType, label: 'VERKSAMHET' },
-    { id: 'account' as TabType, label: 'KONTO' },
-  ];
+  // ==========================================================================
+  // Form Configurations
+  // ==========================================================================
+
+  const personalFormConfig: FormConfig = useMemo(
+    () => createPersonalFormConfig(user, handlePersonalSubmit),
+    [user, handlePersonalSubmit]
+  );
+
+  const businessFormConfig: FormConfig = useMemo(
+    () => createBusinessFormConfig(user, handleBusinessSubmit),
+    [user, handleBusinessSubmit]
+  );
+
+  const accountFormConfig: FormConfig = useMemo(
+    () => createAccountFormConfig(user, handleAccountSubmit),
+    [user, handleAccountSubmit]
+  );
+
+  // ==========================================================================
+  // Render
+  // ==========================================================================
 
   if (sessionLoading || loading) {
     return (
@@ -200,7 +176,7 @@ export default function SettingsPage() {
         <div className="max-w-4xl mx-auto px-8 pb-24">
           {/* Tabs */}
           <div className="flex gap-4 mb-8 border-b border-text/20 dark:border-dark-text/20">
-            {tabs.map(tab => (
+            {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -218,66 +194,19 @@ export default function SettingsPage() {
 
           {/* Tab Content */}
           {activeTab === 'personal' && (
-            <div className="space-y-8">
-              {/* Profile Picture */}
-              <div className="space-y-4">
-                <label className="block text-sm font-medium">Profilbild</label>
-                <div className="flex items-start gap-4">
-                  <div className="relative w-24 h-24 rounded-lg bg-text/10 dark:bg-dark-text/10 flex items-center justify-center overflow-hidden">
-                    {profileImage ? (
-                      <Image
-                        src={profileImage}
-                        alt="Profile"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-text/5 dark:bg-dark-text/5" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      id="profile-image"
-                      accept="image/jpeg,image/png"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="profile-image"
-                      className="inline-block px-4 py-2 border border-text/30 dark:border-dark-text/30 rounded-md cursor-pointer hover:bg-text/5 dark:hover:bg-dark-text/5 transition-colors"
-                    >
-                      BYT UT BILD
-                    </label>
-                    <p className="text-xs text-text/60 dark:text-dark-text/60 mt-2">
-                      Bilden bör vara en jpg eller png.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Form */}
-              <FormRenderer config={personalFormConfig} />
-            </div>
+            <PersonalTab
+              formConfig={personalFormConfig}
+              profileImage={profileImage}
+              onProfileImageChange={setProfileImage}
+            />
           )}
 
           {activeTab === 'business' && (
-            <div className="space-y-8">
-              <h2 className="text-lg font-medium mb-6">Verksamhet</h2>
-              <p className="text-text/70 dark:text-dark-text/70">
-                Verksamhetsinställningar kommer snart...
-              </p>
-            </div>
+            <BusinessTab formConfig={businessFormConfig} />
           )}
 
           {activeTab === 'account' && (
-            <div className="space-y-8">
-              <h2 className="text-lg font-medium mb-6">Konto</h2>
-              <p className="text-text/70 dark:text-dark-text/70">
-                Kontoinställningar kommer snart...
-              </p>
-            </div>
+            <AccountTab formConfig={accountFormConfig} />
           )}
         </div>
       </PageLayout>

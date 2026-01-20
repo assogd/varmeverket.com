@@ -25,6 +25,12 @@ export interface User {
   updated?: string;
   username: string; // UUID
   roles?: string[]; // e.g., ["member"]
+  // Extended user profile fields (when backend supports them)
+  phone?: string;
+  dateOfBirth?: string;
+  location?: string;
+  gender?: string;
+  profileImage?: string;
 }
 
 /**
@@ -470,6 +476,7 @@ export class BackendAPI {
    * Update user (partial)
    * PATCH /v2/users/:email
    * Body may include: name, password, username, email (if changing address)
+   * Extended fields: phone, dateOfBirth, location, gender, profileImage (when backend supports them)
    */
   static async updateUser(
     email: string,
@@ -478,6 +485,12 @@ export class BackendAPI {
       password?: string;
       username?: string;
       email?: string; // New email if changing address
+      // Extended profile fields (when backend supports them)
+      phone?: string;
+      dateOfBirth?: string;
+      location?: string;
+      gender?: string;
+      profileImage?: string;
     }
   ): Promise<User> {
     return this.fetch<User>(`/v2/users/${email}`, {
