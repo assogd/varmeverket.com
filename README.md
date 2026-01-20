@@ -12,6 +12,16 @@ The current focus is on:
 - A flexible architecture to support future member functionality
 - Establishing clear design and code licensing practices to enable open collaboration and responsible reuse
 
+## Backend Integration & Roadmap
+
+For information about backend integration priorities, API specifications, and the roadmap for v1.0.0 (member portal), see **[BACKEND_INTEGRATION.md](./BACKEND_INTEGRATION.md)**.
+
+This document includes:
+- Prioritized backend integration features
+- API specifications for profile management and authentication
+- Implementation status and what needs to be built
+- Timeline and milestones for v1.0.0
+
 ## Setup
 
 ### Prerequisites
