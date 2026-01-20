@@ -1,39 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import Image from 'next/image';
 import { useSession } from '@/hooks/useSession';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { PageHeaderTextOnly } from '@/components/headers/pages';
 import PageLayout from '@/components/layout/PageLayout';
 import BackendAPI, { type User } from '@/lib/backendApi';
+import { FormRenderer, createField, createSection } from '@/components/forms';
+import type { FormConfig } from '@/components/forms';
 import clsx from 'clsx';
 
 type TabType = 'personal' | 'business' | 'account';
 
-interface PersonalFormData {
-  name: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  location: string;
-  gender: string;
-  profileImage?: string;
-}
-
 export default function SettingsPage() {
   const { user, loading: sessionLoading } = useSession();
   const [activeTab, setActiveTab] = useState<TabType>('personal');
-  const [userData, setUserData] = useState<User | null>(null);
+  const [, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState<PersonalFormData>({
-    name: '',
-    email: '',
-    phone: '',
-    dateOfBirth: '',
-    location: '',
-    gender: '',
-  });
+  const [profileImage, setProfileImage] = useState<string | undefined>();
 
   // Load user data
   useEffect(() => {
@@ -42,14 +27,7 @@ export default function SettingsPage() {
       BackendAPI.getUserByEmail(user.email)
         .then(data => {
           setUserData(data);
-          setFormData({
-            name: data.name || '',
-            email: data.email || '',
-            phone: '',
-            dateOfBirth: '',
-            location: '',
-            gender: '',
-          });
+          // Profile image would come from user data when backend supports it
         })
         .catch(error => {
           console.error('Failed to load user data:', error);
@@ -60,59 +38,116 @@ export default function SettingsPage() {
     }
   }, [user]);
 
-  const handleInputChange = (field: keyof PersonalFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = async () => {
-    if (!user?.email) return;
-
-    setSaving(true);
-    try {
-      await BackendAPI.updateUser(user.email, {
-        name: formData.name,
-        email: formData.email,
-      });
-      // TODO: Save additional fields (phone, DOB, location, gender) when backend supports them
-      alert('Inställningar sparade!');
-    } catch (error) {
-      console.error('Failed to save settings:', error);
-      alert('Kunde inte spara inställningar. Försök igen.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // TODO: Implement image upload to backend
-      console.log('Image upload:', file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
+
+  const handleFormSubmit = useCallback(
+    async (data: Record<string, unknown>) => {
+      if (!user?.email) return;
+
+      try {
+        await BackendAPI.updateUser(user.email, {
+          name: data.name as string,
+          email: data.email as string,
+        });
+        // TODO: Save additional fields (phone, DOB, location, gender) when backend supports them
+        // These fields are currently only validated but not saved to backend
+        alert('Inställningar sparade!');
+      } catch (error) {
+        console.error('Failed to save settings:', error);
+        throw new Error('Kunde inte spara inställningar. Försök igen.');
+      }
+    },
+    [user?.email]
+  );
+
+  // Create form config with pre-filled values from user data
+  const personalFormConfig: FormConfig = useMemo(() => {
+    const defaultValues = {
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: '',
+      dateOfBirth: '',
+      location: '',
+      gender: '',
+    };
+
+    return {
+      sections: [
+        createSection('Personuppgifter', [
+          createField('name', 'Namn', 'text', {
+            required: true,
+            placeholder: 'För- och efternamn',
+            helpText: 'Detta är ditt offentliga visningsnamn.',
+            defaultValue: defaultValues.name,
+          }),
+          createField('email', 'Email', 'email', {
+            required: true,
+            placeholder: 'Din e-postadress',
+            defaultValue: defaultValues.email,
+          }),
+          createField('phone', 'Mobilnummer', 'tel', {
+            required: true,
+            placeholder: 'Ditt mobilnummer',
+            defaultValue: defaultValues.phone,
+          }),
+          createField('dateOfBirth', 'Födelsedatum', 'date', {
+            required: true,
+            placeholder: 'MM/DD/AAAA',
+            defaultValue: defaultValues.dateOfBirth,
+          }),
+          createField('location', 'Vart är du baserad?', 'select', {
+            required: true,
+            placeholder: 'Välj',
+            defaultValue: defaultValues.location,
+            options: [
+              { label: 'Stockholm', value: 'stockholm' },
+              { label: 'Göteborg', value: 'goteborg' },
+              { label: 'Malmö', value: 'malmo' },
+              { label: 'Uppsala', value: 'uppsala' },
+              { label: 'Linköping', value: 'linkoping' },
+              { label: 'Örebro', value: 'örebro' },
+              { label: 'Annat', value: 'annat' },
+            ],
+          }),
+          createField(
+            'gender',
+            'Vilket kön identifierar du dig som?',
+            'select',
+            {
+              required: true,
+              defaultValue: defaultValues.gender,
+              options: [
+                { label: 'Man', value: 'man' },
+                { label: 'Kvinna', value: 'kvinna' },
+                { label: 'Icke-binär', value: 'icke-binär' },
+                { label: 'Vill ej uppge', value: 'vill-ej-uppge' },
+                { label: 'Övrigt', value: 'övrigt' },
+              ],
+            }
+          ),
+        ]),
+      ],
+      submitButtonLabel: 'SPARA',
+      onSubmit: handleFormSubmit,
+      successMessage: 'Inställningar sparade!',
+      showSuccessMessage: true,
+    };
+  }, [user, handleFormSubmit]);
 
   const tabs = [
     { id: 'personal' as TabType, label: 'PERSONLIGT' },
     { id: 'business' as TabType, label: 'VERKSAMHET' },
     { id: 'account' as TabType, label: 'KONTO' },
-  ];
-
-  const genderOptions = [
-    { value: 'man', label: 'Man' },
-    { value: 'kvinna', label: 'Kvinna' },
-    { value: 'icke-binär', label: 'Icke-binär' },
-    { value: 'vill-ej-uppge', label: 'Vill ej uppge' },
-    { value: 'övrigt', label: 'Övrigt' },
-  ];
-
-  const locationOptions = [
-    { value: 'stockholm', label: 'Stockholm' },
-    { value: 'goteborg', label: 'Göteborg' },
-    { value: 'malmo', label: 'Malmö' },
-    { value: 'uppsala', label: 'Uppsala' },
-    { value: 'linkoping', label: 'Linköping' },
-    { value: 'örebro', label: 'Örebro' },
-    { value: 'annat', label: 'Annat' },
   ];
 
   if (sessionLoading || loading) {
@@ -184,18 +219,18 @@ export default function SettingsPage() {
           {/* Tab Content */}
           {activeTab === 'personal' && (
             <div className="space-y-8">
-              <h2 className="text-lg font-medium mb-6">Personuppgifter</h2>
-
               {/* Profile Picture */}
               <div className="space-y-4">
                 <label className="block text-sm font-medium">Profilbild</label>
                 <div className="flex items-start gap-4">
-                  <div className="w-24 h-24 rounded-lg bg-text/10 dark:bg-dark-text/10 flex items-center justify-center overflow-hidden">
-                    {formData.profileImage ? (
-                      <img
-                        src={formData.profileImage}
+                  <div className="relative w-24 h-24 rounded-lg bg-text/10 dark:bg-dark-text/10 flex items-center justify-center overflow-hidden">
+                    {profileImage ? (
+                      <Image
+                        src={profileImage}
                         alt="Profile"
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        unoptimized
                       />
                     ) : (
                       <div className="w-full h-full bg-text/5 dark:bg-dark-text/5" />
@@ -222,150 +257,8 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* Name */}
-              <div className="space-y-2">
-                <label htmlFor="name" className="block text-sm font-medium">
-                  Namn
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  value={formData.name}
-                  onChange={e => handleInputChange('name', e.target.value)}
-                  placeholder="För- och efternamn"
-                  className="w-full px-4 py-3 bg-transparent border border-text/30 dark:border-dark-text/30 rounded-md focus:outline-none focus:border-text dark:focus:border-dark-text transition-colors"
-                />
-                <p className="text-xs text-text/60 dark:text-dark-text/60">
-                  Detta är ditt offentliga visningsnamn.
-                </p>
-              </div>
-
-              {/* Email */}
-              <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  value={formData.email}
-                  onChange={e => handleInputChange('email', e.target.value)}
-                  placeholder="Din e-postadress"
-                  className="w-full px-4 py-3 bg-transparent border border-text/30 dark:border-dark-text/30 rounded-md focus:outline-none focus:border-text dark:focus:border-dark-text transition-colors"
-                />
-              </div>
-
-              {/* Mobile Number */}
-              <div className="space-y-2">
-                <label htmlFor="phone" className="block text-sm font-medium">
-                  Mobilnummer
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={formData.phone}
-                  onChange={e => handleInputChange('phone', e.target.value)}
-                  placeholder="Ditt mobilnummer"
-                  className="w-full px-4 py-3 bg-transparent border border-text/30 dark:border-dark-text/30 rounded-md focus:outline-none focus:border-text dark:focus:border-dark-text transition-colors"
-                />
-              </div>
-
-              {/* Date of Birth */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="dateOfBirth"
-                  className="block text-sm font-medium"
-                >
-                  Födelsedatum
-                </label>
-                <input
-                  type="text"
-                  id="dateOfBirth"
-                  value={formData.dateOfBirth}
-                  onChange={e =>
-                    handleInputChange('dateOfBirth', e.target.value)
-                  }
-                  placeholder="MM/DD/AAAA"
-                  className="w-full px-4 py-3 bg-transparent border border-text/30 dark:border-dark-text/30 rounded-md focus:outline-none focus:border-text dark:focus:border-dark-text transition-colors"
-                />
-              </div>
-
-              {/* Location */}
-              <div className="space-y-2">
-                <label htmlFor="location" className="block text-sm font-medium">
-                  Vart är du baserad?
-                </label>
-                <select
-                  id="location"
-                  value={formData.location}
-                  onChange={e => handleInputChange('location', e.target.value)}
-                  className="w-full px-4 py-3 bg-transparent border border-text/30 dark:border-dark-text/30 rounded-md focus:outline-none focus:border-text dark:focus:border-dark-text transition-colors"
-                >
-                  <option value="">Välj</option>
-                  {locationOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Gender */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium">
-                  Vilket kön identifierar du dig som?
-                </label>
-                <div className="space-y-2">
-                  {genderOptions.map(option => (
-                    <label
-                      key={option.value}
-                      className="flex items-center gap-3 cursor-pointer group"
-                    >
-                      <div className="relative flex items-center justify-center">
-                        <input
-                          type="radio"
-                          name="gender"
-                          value={option.value}
-                          checked={formData.gender === option.value}
-                          onChange={e =>
-                            handleInputChange('gender', e.target.value)
-                          }
-                          className="sr-only"
-                        />
-                        <div
-                          className={clsx(
-                            'w-4 h-4 rounded-full border-2 transition-all flex items-center justify-center',
-                            formData.gender === option.value
-                              ? 'border-text dark:border-dark-text'
-                              : 'border-text/30 dark:border-dark-text/30 group-hover:border-text/50 dark:group-hover:border-dark-text/50'
-                          )}
-                        >
-                          {formData.gender === option.value && (
-                            <div className="w-2 h-2 rounded-full bg-text dark:bg-dark-text" />
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-sm">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <div className="pt-4">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className={clsx(
-                    'w-full px-6 py-4 bg-text dark:bg-dark-text text-bg dark:text-dark-bg rounded-md font-medium uppercase transition-opacity',
-                    saving
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:opacity-90'
-                  )}
-                >
-                  {saving ? 'SPARAR...' : 'SPARA'}
-                </button>
-              </div>
+              {/* Form */}
+              <FormRenderer config={personalFormConfig} />
             </div>
           )}
 
