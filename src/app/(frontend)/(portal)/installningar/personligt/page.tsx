@@ -8,10 +8,7 @@ import { createPersonalFormConfig } from '@/utils/settings/formConfigs';
 import { handlePersonalFormSubmit } from '@/utils/settings/handlers';
 import { PersonalTab } from '@/components/portal/settings/components/TabContent';
 
-/**
- * Shows personligt content directly on /installningar
- */
-export default function SettingsPage() {
+export default function PersonalSettingsPage() {
   const { user, loading: sessionLoading } = useSession();
   const [, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
