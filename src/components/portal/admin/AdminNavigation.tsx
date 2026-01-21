@@ -53,7 +53,7 @@ export function AdminNavigation() {
             >
               {isTriangle && (
                 <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  className="absolute inset-0 w-full h-full pointer-events-none scale-[1.08] origin-center"
                   viewBox="0 0 100 100"
                   aria-hidden="true"
                 >
