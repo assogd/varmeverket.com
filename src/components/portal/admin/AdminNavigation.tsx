@@ -15,10 +15,7 @@ export function AdminNavigation() {
 
   // Determine active item - check if pathname matches or is the base /portal/admin
   const getActiveItem = () => {
-    if (
-      pathname === '/portal/admin' ||
-      pathname === '/portal/admin/'
-    ) {
+    if (pathname === '/portal/admin' || pathname === '/portal/admin/') {
       return '/portal/admin';
     }
     return pathname;
@@ -28,40 +25,46 @@ export function AdminNavigation() {
 
   return (
     <div className="p-2">
-      <div className="flex w-full max-w-2xl mx-auto gap-4 mb-8">
-        {adminNavItems.map((item, index) => {
+      <div className="flex w-full gap-4 mb-8">
+        {adminNavItems.map(item => {
           // For base route, only match exactly
           // For other routes, match exactly or if pathname starts with the href
           const isActive =
             item.href === '/portal/admin'
               ? activeHref === '/portal/admin'
-              : activeHref === item.href || pathname?.startsWith(`${item.href}/`);
-          const shapeClass =
-            item.shape === 'circle'
-              ? 'rounded-full'
-              : item.shape === 'triangle'
-                ? ''
-                : '';
-          const shapeStyle =
-            item.shape === 'triangle'
-              ? { clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }
-              : undefined;
+              : activeHref === item.href ||
+                pathname?.startsWith(`${item.href}/`);
+          const isTriangle = item.shape === 'triangle';
+          const shapeClass = item.shape === 'circle' ? 'rounded-full' : '';
 
           return (
             <Link
               key={item.href}
               href={item.href}
               className={clsx(
-                'flex items-center justify-center uppercase',
-                'border border-text dark:border-dark-text',
+                'relative flex items-center justify-center uppercase',
+                !isTriangle && 'border border-text dark:border-dark-text',
                 'w-1/4 aspect-square',
                 shapeClass,
                 isActive
                   ? 'text-text dark:text-dark-text underline'
                   : 'text-text dark:text-dark-text'
               )}
-              style={shapeStyle}
             >
+              {isTriangle && (
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 100 100"
+                  aria-hidden="true"
+                >
+                  <polygon
+                    points="50,4 4,96 96,96"
+                    fill="transparent"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                </svg>
+              )}
               {item.label}
             </Link>
           );
