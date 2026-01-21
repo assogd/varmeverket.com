@@ -19,6 +19,7 @@ const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Bokningar', href: '/bokningar' },
   { label: 'Inställningar', href: '/installningar' },
+  { label: 'Admin', href: '/portal/admin' },
 ];
 
 export const MemberNavigation: React.FC = () => {
@@ -57,47 +58,44 @@ export const MemberNavigation: React.FC = () => {
       className="fixed bottom-0 left-0 right-0 z-50 px-2 py-3"
       as="nav"
     >
-      <div className="max-w-sm mx-auto">
-        <div className="relative flex items-center justify-around h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg overflow-hidden">
-          {/* Animated background that moves between items */}
-          {backgroundIndex >= 0 && (
-            <motion.div
-              layoutId="activeNavBackground"
-              className="absolute inset-y-0 bg-[#212121] bg-opacity-50 rounded-lg"
-              initial={false}
-              transition={{
-                type: 'tween',
-                duration: 0.2, // 300ms
-                ease: 'easeInOut', // Smooth start och slut
-              }}
-              style={{
-                left: `${(backgroundIndex / navItems.length) * 100}%`,
-                width: `${100 / navItems.length}%`,
-              }}
-            />
-          )}
+      <div className="mx-auto">
+        <div className="relative h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg overflow-x-auto">
+          <div className="relative flex items-center h-full w-max min-w-full justify-center gap-2 px-2">
+            {navItems.map((item, index) => {
+              const isActive = index === activeIndex;
+              const isHovered = index === hoveredIndex;
+              const isBackgroundVisible = index === backgroundIndex;
 
-          {navItems.map((item, index) => {
-            const isActive = index === activeIndex;
-            const isHovered = index === hoveredIndex;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={clsx(
-                  'relative flex-1 flex items-center justify-center h-full font-medium transition-colors z-10',
-                  isActive || isHovered
-                    ? 'text-text dark:text-dark-text'
-                    : 'text-text/70 dark:text-dark-text/70'
-                )}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-              >
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={clsx(
+                    'relative flex items-center justify-center h-full px-4 font-medium transition-colors whitespace-nowrap',
+                    isActive || isHovered
+                      ? 'text-text dark:text-dark-text'
+                      : 'text-text/70 dark:text-dark-text/70'
+                  )}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  {isBackgroundVisible && (
+                    <motion.div
+                      layoutId="activeNavBackground"
+                      className="absolute inset-1 bg-[#212121] bg-opacity-50 rounded-lg"
+                      initial={false}
+                      transition={{
+                        type: 'tween',
+                        duration: 0.2,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  )}
+                  <span className="relative z-10">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
     </FadeIn>
