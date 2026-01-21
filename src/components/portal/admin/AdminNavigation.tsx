@@ -46,7 +46,7 @@ export function AdminNavigation() {
               className={clsx(
                 'relative flex items-center justify-center uppercase',
                 !isPolygon && 'border border-text dark:border-dark-text',
-                'w-1/4 aspect-square',
+                'flex-1 aspect-square',
                 shapeClass,
                 isActive
                   ? 'text-text dark:text-dark-text underline'
