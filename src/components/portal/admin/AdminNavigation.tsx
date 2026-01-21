@@ -35,7 +35,14 @@ export function AdminNavigation() {
               : activeHref === item.href ||
                 pathname?.startsWith(`${item.href}/`);
           const isTriangle = item.shape === 'triangle';
+          const isSquare = item.shape === 'square';
           const shapeClass = item.shape === 'circle' ? 'rounded-full' : '';
+          const shapeStyle = isSquare
+            ? {
+                clipPath:
+                  'polygon(8% 0, 92% 0, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0 92%, 0 8%)',
+              }
+            : undefined;
 
           return (
             <Link
@@ -50,6 +57,7 @@ export function AdminNavigation() {
                   ? 'text-text dark:text-dark-text underline'
                   : 'text-text dark:text-dark-text'
               )}
+              style={shapeStyle}
             >
               {isTriangle && (
                 <svg
