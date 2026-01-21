@@ -60,7 +60,7 @@ export function AdminNavigation() {
                   aria-hidden="true"
                 >
                   <polygon
-                    points="22,0.5 78,0.5 99.5,22 99.5,78 78,99.5 22,99.5 0.5,78 0.5,22"
+                    points="28,0.5 72,0.5 99.5,28 99.5,72 72,99.5 28,99.5 0.5,72 0.5,28"
                     fill="transparent"
                     stroke="currentColor"
                     strokeWidth="1"
