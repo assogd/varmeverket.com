@@ -82,7 +82,7 @@ export const MemberNavigation: React.FC = () => {
                   {isBackgroundVisible && (
                     <motion.div
                       layoutId="activeNavBackground"
-                      className="absolute inset-1 bg-[#212121] bg-opacity-50 rounded-lg"
+                      className="absolute inset-0 bg-[#212121] bg-opacity-50 rounded-lg"
                       initial={false}
                       transition={{
                         type: 'tween',
