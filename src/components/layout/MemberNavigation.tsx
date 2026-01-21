@@ -58,7 +58,7 @@ export const MemberNavigation: React.FC = () => {
       className="fixed bottom-0 left-0 right-0 z-50 px-2 py-3"
       as="nav"
     >
-      <div className="mx-auto overflow-x-auto">
+      <div className="mx-auto overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="relative inline-flex items-center h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg">
           <div className="relative flex items-center h-full w-max">
             {navItems.map((item, index) => {
