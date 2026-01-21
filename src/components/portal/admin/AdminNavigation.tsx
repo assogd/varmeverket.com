@@ -60,12 +60,14 @@ export function AdminNavigation() {
                   aria-hidden="true"
                 >
                   <polygon
-                    points="16,0 84,0 100,16 100,84 84,100 16,100 0,84 0,16"
+                    points="22,0.5 78,0.5 99.5,22 99.5,78 78,99.5 22,99.5 0.5,78 0.5,22"
                     fill="transparent"
                     stroke="currentColor"
                     strokeWidth="1"
-                    strokeLinejoin="round"
+                    strokeLinecap="square"
+                    strokeLinejoin="bevel"
                     vectorEffect="non-scaling-stroke"
+                    shapeRendering="geometricPrecision"
                   />
                 </svg>
               )}
