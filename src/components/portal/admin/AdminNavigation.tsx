@@ -36,13 +36,8 @@ export function AdminNavigation() {
                 pathname?.startsWith(`${item.href}/`);
           const isTriangle = item.shape === 'triangle';
           const isSquare = item.shape === 'square';
+          const isPolygon = isTriangle || isSquare;
           const shapeClass = item.shape === 'circle' ? 'rounded-full' : '';
-          const shapeStyle = isSquare
-            ? {
-                clipPath:
-                  'polygon(8% 0, 92% 0, 100% 8%, 100% 92%, 92% 100%, 8% 100%, 0 92%, 0 8%)',
-              }
-            : undefined;
 
           return (
             <Link
@@ -50,15 +45,29 @@ export function AdminNavigation() {
               href={item.href}
               className={clsx(
                 'relative flex items-center justify-center uppercase',
-                !isTriangle && 'border border-text dark:border-dark-text',
+                !isPolygon && 'border border-text dark:border-dark-text',
                 'w-1/4 aspect-square',
                 shapeClass,
                 isActive
                   ? 'text-text dark:text-dark-text underline'
                   : 'text-text dark:text-dark-text'
               )}
-              style={shapeStyle}
             >
+              {isSquare && (
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 100 100"
+                  aria-hidden="true"
+                >
+                  <polygon
+                    points="8,0 92,0 100,8 100,92 92,100 8,100 0,92 0,8"
+                    fill="transparent"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+              )}
               {isTriangle && (
                 <svg
                   className="absolute inset-0 w-full h-full pointer-events-none scale-[1.08] origin-center"
