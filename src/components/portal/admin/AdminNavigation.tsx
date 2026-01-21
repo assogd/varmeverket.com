@@ -58,10 +58,11 @@ export function AdminNavigation() {
                   aria-hidden="true"
                 >
                   <polygon
-                    points="50,4 4,96 96,96"
+                    points="50,2 2,98 98,98"
                     fill="transparent"
                     stroke="currentColor"
-                    strokeWidth="2"
+                    strokeWidth="1"
+                    vectorEffect="non-scaling-stroke"
                   />
                 </svg>
               )}
