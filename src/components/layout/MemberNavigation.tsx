@@ -58,9 +58,9 @@ export const MemberNavigation: React.FC = () => {
       className="fixed bottom-0 left-0 right-0 z-50 px-2 py-3"
       as="nav"
     >
-      <div className="mx-auto">
-        <div className="relative h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg overflow-x-auto">
-          <div className="relative flex items-center h-full w-max min-w-full justify-center gap-2 px-2">
+      <div className="mx-auto overflow-x-auto">
+        <div className="relative inline-flex items-center h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg">
+          <div className="relative flex items-center h-full w-max">
             {navItems.map((item, index) => {
               const isActive = index === activeIndex;
               const isHovered = index === hoveredIndex;
