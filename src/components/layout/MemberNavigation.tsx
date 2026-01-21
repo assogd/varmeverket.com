@@ -60,7 +60,7 @@ export const MemberNavigation: React.FC = () => {
     >
       <div className="mx-auto w-fit max-w-full h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg overflow-hidden">
         <div className="h-full max-w-full overflow-x-auto overscroll-x-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="relative inline-flex items-center h-full w-max">
+          <div className="relative inline-flex items-center h-full w-max gap-x-1">
             {navItems.map((item, index) => {
               const isActive = index === activeIndex;
               const isHovered = index === hoveredIndex;
@@ -71,7 +71,7 @@ export const MemberNavigation: React.FC = () => {
                   key={item.href}
                   href={item.href}
                   className={clsx(
-                    'relative flex items-center justify-center h-full px-5 font-medium whitespace-nowrap',
+                    'relative flex items-center justify-center h-full px-6 font-medium whitespace-nowrap',
                     isActive || isHovered
                       ? 'text-text dark:text-dark-text'
                       : 'text-text/70 dark:text-dark-text/70'
