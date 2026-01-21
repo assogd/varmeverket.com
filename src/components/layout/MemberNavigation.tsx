@@ -59,42 +59,44 @@ export const MemberNavigation: React.FC = () => {
       as="nav"
     >
       <div className="mx-auto overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="relative inline-flex items-center h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg">
-          <div className="relative flex items-center h-full w-max">
-            {navItems.map((item, index) => {
-              const isActive = index === activeIndex;
-              const isHovered = index === hoveredIndex;
-              const isBackgroundVisible = index === backgroundIndex;
+        <div className="flex min-w-full justify-center px-2">
+          <div className="relative inline-flex items-center h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg">
+            <div className="relative flex items-center h-full w-max">
+              {navItems.map((item, index) => {
+                const isActive = index === activeIndex;
+                const isHovered = index === hoveredIndex;
+                const isBackgroundVisible = index === backgroundIndex;
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={clsx(
-                    'relative flex items-center justify-center h-full px-4 font-medium transition-colors whitespace-nowrap',
-                    isActive || isHovered
-                      ? 'text-text dark:text-dark-text'
-                      : 'text-text/70 dark:text-dark-text/70'
-                  )}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                >
-                  {isBackgroundVisible && (
-                    <motion.div
-                      layoutId="activeNavBackground"
-                      className="absolute inset-1 bg-[#212121] bg-opacity-50 rounded-lg"
-                      initial={false}
-                      transition={{
-                        type: 'tween',
-                        duration: 0.2,
-                        ease: 'easeInOut',
-                      }}
-                    />
-                  )}
-                  <span className="relative z-10">{item.label}</span>
-                </Link>
-              );
-            })}
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={clsx(
+                      'relative flex items-center justify-center h-full px-4 font-medium whitespace-nowrap',
+                      isActive || isHovered
+                        ? 'text-text dark:text-dark-text'
+                        : 'text-text/70 dark:text-dark-text/70'
+                    )}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                  >
+                    {isBackgroundVisible && (
+                      <motion.div
+                        layoutId="activeNavBackground"
+                        className="absolute inset-1 bg-[#212121] bg-opacity-50 rounded-lg"
+                        initial={false}
+                        transition={{
+                          type: 'tween',
+                          duration: 0.2,
+                          ease: 'easeInOut',
+                        }}
+                      />
+                    )}
+                    <span className="relative z-10">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
