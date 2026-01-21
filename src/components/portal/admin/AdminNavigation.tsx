@@ -25,7 +25,7 @@ export function AdminNavigation() {
 
   return (
     <div className="p-2">
-      <div className="flex w-full gap-4 mb-8">
+      <div className="flex justify-center w-full gap-4 mb-8">
         {adminNavItems.map(item => {
           // For base route, only match exactly
           // For other routes, match exactly or if pathname starts with the href
@@ -64,6 +64,7 @@ export function AdminNavigation() {
                     fill="transparent"
                     stroke="currentColor"
                     strokeWidth="1"
+                    strokeLinejoin="round"
                     vectorEffect="non-scaling-stroke"
                   />
                 </svg>
@@ -79,6 +80,7 @@ export function AdminNavigation() {
                     fill="transparent"
                     stroke="currentColor"
                     strokeWidth="1"
+                    strokeLinejoin="round"
                     vectorEffect="non-scaling-stroke"
                   />
                 </svg>
