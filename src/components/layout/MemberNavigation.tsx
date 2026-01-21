@@ -55,13 +55,13 @@ export const MemberNavigation: React.FC = () => {
         initial: { opacity: 0, y: 20 },
         animate: { opacity: 1, y: 0 },
       }}
-      className="fixed bottom-0 left-0 right-0 z-50 px-2 py-3"
+      className="fixed bottom-12 sm:bottom-0 left-0 right-0 z-50 px-2 py-3"
       as="nav"
     >
-      <div className="mx-auto overflow-x-auto px-2 overscroll-x-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex min-w-full justify-center">
-          <div className="relative inline-flex items-center h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg">
-            <div className="relative flex items-center h-full w-max">
+      <div className="mx-auto w-full max-w-full h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg overflow-hidden">
+        <div className="h-full overflow-x-auto overscroll-x-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-full justify-center px-2">
+            <div className="relative inline-flex items-center h-full w-max">
               {navItems.map((item, index) => {
                 const isActive = index === activeIndex;
                 const isHovered = index === hoveredIndex;
