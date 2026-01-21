@@ -71,7 +71,7 @@ export const MemberNavigation: React.FC = () => {
                   key={item.href}
                   href={item.href}
                   className={clsx(
-                    'relative flex items-center justify-center h-full px-4 font-medium whitespace-nowrap first:pl-6 first:pr-4 last:pl-4 last:pr-6',
+                    'relative flex items-center justify-center h-full px-3 font-medium whitespace-nowrap first:pl-5 first:pr-3 last:pl-3 last:pr-5',
                     isActive || isHovered
                       ? 'text-text dark:text-dark-text'
                       : 'text-text/70 dark:text-dark-text/70'
