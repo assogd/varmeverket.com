@@ -32,7 +32,8 @@ Behaviour:
 
 - Sends a magic link to the email
 - `redirectUrl` is where the user lands after clicking the link (e.g. your front-end app URL)
-- **Important**: Only users with `enabled=1` can sign in. If a user is not enabled, the endpoint will return an error indicating the address is not activated.
+- **Important**: Only users with `enabled=1` can sign in. If a user is not enabled, the endpoint will return a special response indicating the address is not activated
+- Previously open for both registrations and logins, but now only activated addresses (`enabled=1`) are processed
 
 Example (JS):
 
@@ -106,21 +107,79 @@ Base URL:
 
     /v2/users
 
+New user fields:
+
+- `phone`: text
+- `birthdate`: datetime
+- `address_street`: text
+- `address_code`: number
+- `address_city`: text
+- `profile`: JSON
+
 ### 3.1 Get user
 
     GET /v2/users/:email
 
 Returns user data for the specified email (if permitted).
 
+Example:
+
+    curl -X GET "https://$credentialsuser@api.varmeverket.com/v2/users/benji@superstition.io"
+
+Response:
+
+    [
+      {
+        "email": "benji@superstition.io",
+        "created": "Thu, 11 Jan 2024 12:48:46 GMT",
+        "updated": "Thu, 22 Jan 2026 13:29:32 GMT",
+        "idx": 308,
+        "name": "Benji",
+        "phone": null,
+        "birthdate": null,
+        "address_street": null,
+        "address_code": null,
+        "address_city": null,
+        "profile": null
+      }
+    ]
+
 ### 3.2 Update user (partial)
 
     PATCH /v2/users/:email
-    Body: { name?, password?, username?, email? }
+    Body: { name?, password?, username?, email?, phone?, birthdate?, address_street?, address_code?, address_city?, profile? }
 
 Notes:
 
 - Path `:email` should be the current identifier
 - Body may include a new email if user is changing address
+
+Use-case: Send a JSON payload with variable data (e.g. a profile object)
+
+Example:
+
+    curl -X PATCH "https://$credentialsuser@api.varmeverket.com/v2/users/benji@superstition.io" -d '{"profile": {"title": "developer", "organisation": "Värmeverket"}}'
+
+Response:
+
+    [
+      {
+        "email": "benji@superstition.io",
+        "created": "Thu, 11 Jan 2024 12:48:46 GMT",
+        "updated": "Thu, 22 Jan 2026 13:54:20 GMT",
+        "idx": 308,
+        "name": "Benji",
+        "phone": null,
+        "birthdate": null,
+        "address_street": null,
+        "address_code": null,
+        "address_city": null,
+        "profile": {
+          "title": "developer",
+          "organisation": "Värmeverket"
+        }
+      }
+    ]
 
 Example:
 
@@ -147,6 +206,83 @@ Example:
 Important:
 
 - All bookings tied to this user must be deleted first.
+
+---
+
+### 3.5 Aggregated user + bookings + form submissions
+
+Base URL:
+
+    /v3/users
+
+    GET /v3/users/:email
+
+Use this endpoint when you need to render user data combined with bookings or submissions. Aggregation happens directly in the DB and is faster than multiple calls.
+
+Notes:
+
+- Only upcoming or ongoing bookings are included
+- All submissions are currently included (including archived)
+
+Example:
+
+    curl -X GET "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io"
+
+Response:
+
+    [
+      {
+        "user_id": 308,
+        "email": "benji@superstition.io",
+        "created": "Thu, 11 Jan 2024 12:48:46 GMT",
+        "updated": "Thu, 22 Jan 2026 13:54:20 GMT",
+        "name": "Benji",
+        "phone": null,
+        "birthdate": null,
+        "address_street": null,
+        "address_code": null,
+        "address_city": null,
+        "profile": {
+          "title": "developer",
+          "organisation": "Värmeverket"
+        },
+        "bookings": [
+          {
+            "idx": 14407,
+            "space": "studio container black",
+            "start": "2026-01-22 15:15:00",
+            "end": "2026-01-22 15:30:00",
+            "email": "benji@superstition.io"
+          },
+          {
+            "idx": 14407,
+            "space": "studio container black",
+            "start": "2026-01-22 15:15:00",
+            "end": "2026-01-22 15:30:00",
+            "email": "benji@superstition.io"
+          }
+        ],
+        "form_submissions": [
+          {
+            "id": 1,
+            "form": "/membership/application",
+            "submission": {
+              "email": "benji@superstition.io"
+            }
+          },
+          {
+            "id": 18,
+            "form": "/membership/application",
+            "submission": {
+              "email": "benji@superstition.io",
+              "Name": "Benji"
+            }
+          }
+        ]
+      }
+    ]
+
+Note: The curl examples here use HTTP Basic credentials for terminal testing. In web context, authentication is via session cookie, so ignore the `$credentialsuser@` prefix in the URL.
 
 ---
 
@@ -380,6 +516,7 @@ Notes:
 - By default, only non-archived submissions are returned in queries
 - If a submission contains an `email` field, a `user_id` will be created or linked (not required for all forms)
 - Email address is required for submissions related to membership applications
+- In the future, approved and activated users will be able to list their own submissions
 
 ### 7.2 Get form submissions
 
@@ -470,6 +607,7 @@ Notes:
 - All new registrations are flagged as `enabled=0` by default
 - Submissions containing an `email` field will be registered in the email table
 - Users with `enabled=0` cannot sign in via `/session/sign-on`
+- The `/session/sign-on` endpoint will return a special response when an email address is not activated (enabled=0)
 
 ### 8.2 Activate a user
 
@@ -506,6 +644,8 @@ After activation, you can sign the user in programmatically:
 
 For server-side operations (e.g., managing submissions and user activations), an API key is available that has permissions for queries and changes related to users.
 
+**Note:** It would be possible to use session management to allow team members to manage submissions and activations, but this would require two-step logins when it comes to the `/admin` panel (one for `/admin` login, one for getting the user's session cookie for administrative requests). As an alternative, an API key was generated that is authorized to make queries and changes related to users. It is intended for use in server context only.
+
 Authentication is done via HTTP Basic Auth:
 
 Example credentials:
@@ -513,6 +653,17 @@ Example credentials:
     {
       "username": "a66d164d-fb7b-57b4-a1c7-b63c0f79703b",
       "password": "pC1J2b8bryDVh8IlVMFfMcI-5_uz2VLLWqHI1hCAkoM"
+    }
+
+Alternative format:
+
+    {
+      "username": "a66d164d-fb7b-57b4-a1c7-b63c0f79703b",
+      "http_basic_auth": {
+        "username": "a66d164d-fb7b-57b4-a1c7-b63c0f79703b",
+        "password": "pC1J2b8bryDVh8IlVMFfMcI-5_uz2VLLWqHI1hCAkoM"
+      },
+      "header": "Authorization: Basic YTY2ZDE2NGQtZmI3Yi01N2I0LWExYzctYjYzYzBmNzk3MDNiOnBDMUoyYjhicnlEVmg4SWxWTUZmTWNJLTVfdXoyVkxMV3FISTFoQ0Frb00="
     }
 
 Using in curl:
