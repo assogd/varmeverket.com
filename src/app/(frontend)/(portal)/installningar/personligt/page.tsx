@@ -7,6 +7,7 @@ import type { FormConfig } from '@/components/forms';
 import { createPersonalFormConfig } from '@/utils/settings/formConfigs';
 import { handlePersonalFormSubmit } from '@/utils/settings/handlers';
 import { PersonalTab } from '@/components/portal/settings/components/TabContent';
+import { SkeletonBox, SkeletonText } from '@/components/ui';
 
 export default function PersonalSettingsPage() {
   const { user, loading: sessionLoading } = useSession();
@@ -56,7 +57,23 @@ export default function PersonalSettingsPage() {
   );
 
   if (sessionLoading || loading) {
-    return null;
+    return (
+      <div className="max-w-2xl mx-auto border-r border-l border-text p-12">
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <SkeletonBox className="h-24 w-full" />
+            <SkeletonText width="w-40" />
+          </div>
+          <div className="grid gap-6">
+            <SkeletonBox className="h-12 w-full" />
+            <SkeletonBox className="h-12 w-full" />
+            <SkeletonBox className="h-12 w-full" />
+            <SkeletonBox className="h-12 w-full" />
+          </div>
+          <SkeletonBox className="h-12 w-full" />
+        </div>
+      </div>
+    );
   }
 
   return (
