@@ -66,8 +66,8 @@ export default async function LoginPage({
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-      <div className="w-full max-w-sm space-y-8">
-        <Heading variant="section" as="h2" center className="pb-4">
+      <div className="w-full max-w-xs space-y-6">
+        <Heading variant="section" as="h2" center className="pb-8">
           Logga in
         </Heading>
 
@@ -104,13 +104,17 @@ export default async function LoginPage({
                 En inloggningslänk kommer att skickas till dig.
               </p>
             </div>
-            <Button type="submit" className="w-full" variant="primary">
-              <span className="text-bg">Gå vidare</span>
+            <Button
+              type="submit"
+              className="w-full mix-blend-normal text-[#e68456]"
+              variant="primary"
+            >
+              Gå vidare
             </Button>
           </form>
         )}
 
-        <p className="text-sm text-text/70 dark:text-dark-text/70">
+        <p className="text-center">
           Inte medlem?{' '}
           <Link className="underline" href="/membership/application">
             Ansök om medlemskap här.
@@ -119,7 +123,7 @@ export default async function LoginPage({
       </div>
 
       <div className="mt-16 text-text">
-        <VarmeverketIcon size={72} className="mx-auto" />
+        <VarmeverketIcon size={112} className="mx-auto" />
       </div>
     </div>
   );
