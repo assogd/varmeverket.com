@@ -90,8 +90,40 @@ export function createBusinessFormConfig(
 ): FormConfig {
   return {
     content: [
-      createSectionBlock('Verksamhetsinformation', [
-        // Add business fields here using createFieldBlock
+      createSectionBlock('', [
+        createFieldBlock('occupation', 'Sysselsättning', 'text', {
+          required: false,
+          placeholder: 'Vad jobbar du med...',
+        }),
+        createFieldBlock(
+          'creativeField',
+          'Inom vilket område verkar du inom?',
+          'select',
+          {
+            required: false,
+            placeholder: 'Välj',
+            options: [
+              { label: 'Visuell konst', value: 'visuell-konst' },
+              { label: 'Scenkonst', value: 'scenkonst' },
+              { label: 'Musik', value: 'musik' },
+              { label: 'Litteratur och skrivande', value: 'litteratur' },
+              { label: 'Övrigt', value: 'ovrigt' },
+            ],
+          }
+        ),
+        createFieldBlock('creativeFieldOther', 'Vänligen specificera', 'text', {
+          required: false,
+          placeholder: 'Övrigt',
+        }),
+        createFieldBlock(
+          'membershipMotivation',
+          'Berätta med egna ord varför du söker medlemskap i Värmeverket och vad du hoppas kunna bidra med till vår community',
+          'textarea',
+          {
+            required: false,
+            placeholder: 'Skriv här',
+          }
+        ),
       ]),
     ],
     submitButtonLabel: 'SPARA',

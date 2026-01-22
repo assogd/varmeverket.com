@@ -31,5 +31,5 @@ export default function AccountSettingsPage() {
     [user, handleAccountSubmit]
   );
 
-  return <AccountTab formConfig={accountFormConfig} />;
+  return <AccountTab formConfig={accountFormConfig} user={user} />;
 }

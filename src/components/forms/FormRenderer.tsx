@@ -318,82 +318,124 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       )}
 
       {(!submitStatus || submitStatus.type === 'error') && (
-        <form onSubmit={handleSubmit} className="space-y-6 px-2">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 p-2 border-b border-text"
+        >
           {convertedConfig.sections ? (
             // Render with sections
             <div className="space-y-8">
               {convertedConfig.sections.map((section, sectionIndex) => (
                 <div key={section.id || sectionIndex} className="space-y-2">
                   {/* Section header with divider */}
-                  <div className="space-y-2">
-                    <div className="border-b border-text/20 pt-4 pb-8">
-                      <Heading
-                        variant="section"
-                        as="h2"
-                        className="text-center"
-                      >
-                        {section.title}
-                      </Heading>
+                  {!!section.title?.trim() && (
+                    <div className="space-y-2">
+                      <div className="border-b border-text pt-4 pb-8">
+                        <Heading
+                          variant="section"
+                          as="h2"
+                          className="text-center"
+                        >
+                          {section.title}
+                        </Heading>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Section fields */}
-                  <div className="grid gap-6 max-w-2xl mx-auto border-r border-l border-text p-12">
-                    {/* Inject custom first field if provided and this is the first section */}
-                    {sectionIndex === 0 && convertedConfig.customFirstField && (
-                      <div>{convertedConfig.customFirstField}</div>
-                    )}
-                    {section.fields.map(field => (
-                      <FormFieldComponent
-                        key={field.name}
-                        field={field}
-                        value={formValues[field.name]}
-                        error={errors[field.name]}
-                        onChange={value => handleInputChange(field.name, value)}
-                        disabled={isLoading}
-                      />
-                    ))}
+                  {/* Section fields and submit button container */}
+                  <div className="max-w-2xl mx-auto border-r border-l border-text p-12">
+                    <div className="grid gap-8">
+                      {/* Inject custom first field if provided and this is the first section */}
+                      {sectionIndex === 0 &&
+                        convertedConfig.customFirstField && (
+                          <div>{convertedConfig.customFirstField}</div>
+                        )}
+                      {section.fields.map(field => (
+                        <FormFieldComponent
+                          key={field.name}
+                          field={field}
+                          value={formValues[field.name]}
+                          error={errors[field.name]}
+                          onChange={value =>
+                            handleInputChange(field.name, value)
+                          }
+                          disabled={isLoading}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Submit button - only show for the last section */}
+                    {convertedConfig.sections &&
+                      sectionIndex === convertedConfig.sections.length - 1 && (
+                        <div className="mt-10">
+                          {convertedConfig.submitButtonVariant === 'marquee' ? (
+                            <MarqueeButton
+                              type="submit"
+                              disabled={isLoading}
+                              className="w-full"
+                            >
+                              {isLoading
+                                ? 'Submitting...'
+                                : convertedConfig.submitButtonLabel || 'Submit'}
+                            </MarqueeButton>
+                          ) : (
+                            <Button
+                              type="submit"
+                              disabled={isLoading}
+                              variant="primary"
+                              className="w-full"
+                            >
+                              {isLoading
+                                ? 'Submitting...'
+                                : convertedConfig.submitButtonLabel || 'Submit'}
+                            </Button>
+                          )}
+                        </div>
+                      )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             // Render flat fields (backward compatibility)
-            <div className="grid gap-6">
-              {(convertedConfig.fields || allFields).map(field => (
-                <FormFieldComponent
-                  key={field.name}
-                  field={field}
-                  value={formValues[field.name]}
-                  error={errors[field.name]}
-                  onChange={value => handleInputChange(field.name, value)}
-                  disabled={isLoading}
-                />
-              ))}
+            <div className="max-w-2xl mx-auto border-r border-l border-text p-12">
+              <div className="grid gap-6">
+                {(convertedConfig.fields || allFields).map(field => (
+                  <FormFieldComponent
+                    key={field.name}
+                    field={field}
+                    value={formValues[field.name]}
+                    error={errors[field.name]}
+                    onChange={value => handleInputChange(field.name, value)}
+                    disabled={isLoading}
+                  />
+                ))}
+              </div>
+              <div className="mt-6">
+                {convertedConfig.submitButtonVariant === 'marquee' ? (
+                  <MarqueeButton
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    {isLoading
+                      ? 'Submitting...'
+                      : convertedConfig.submitButtonLabel || 'Submit'}
+                  </MarqueeButton>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    variant="primary"
+                    className="w-full"
+                  >
+                    {isLoading
+                      ? 'Submitting...'
+                      : convertedConfig.submitButtonLabel || 'Submit'}
+                  </Button>
+                )}
+              </div>
             </div>
-          )}
-
-          {convertedConfig.submitButtonVariant === 'marquee' ? (
-            <MarqueeButton
-              type="submit"
-              disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading
-                ? 'Submitting...'
-                : convertedConfig.submitButtonLabel || 'Submit'}
-            </MarqueeButton>
-          ) : (
-            <Button
-              type="submit"
-              disabled={isLoading}
-              variant="primary"
-              className="w-full"
-            >
-              {isLoading
-                ? 'Submitting...'
-                : convertedConfig.submitButtonLabel || 'Submit'}
-            </Button>
           )}
         </form>
       )}
