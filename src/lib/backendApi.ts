@@ -27,9 +27,11 @@ export interface User {
   roles?: string[]; // e.g., ["member"]
   // Extended user profile fields (when backend supports them)
   phone?: string;
-  dateOfBirth?: string;
-  location?: string;
-  gender?: string;
+  birthdate?: string;
+  address_street?: string;
+  address_code?: number;
+  address_city?: string;
+  profile?: Record<string, unknown> | null;
   profileImage?: string;
 }
 
@@ -476,7 +478,7 @@ export class BackendAPI {
    * Update user (partial)
    * PATCH /v2/users/:email
    * Body may include: name, password, username, email (if changing address)
-   * Extended fields: phone, dateOfBirth, location, gender, profileImage (when backend supports them)
+   * Extended fields: phone, birthdate, address_street, address_code, address_city, profile, profileImage
    */
   static async updateUser(
     email: string,
@@ -485,11 +487,13 @@ export class BackendAPI {
       password?: string;
       username?: string;
       email?: string; // New email if changing address
-      // Extended profile fields (when backend supports them)
+      // Extended profile fields
       phone?: string;
-      dateOfBirth?: string;
-      location?: string;
-      gender?: string;
+      birthdate?: string;
+      address_street?: string;
+      address_code?: number;
+      address_city?: string;
+      profile?: Record<string, unknown> | null;
       profileImage?: string;
     }
   ): Promise<User> {
@@ -699,6 +703,48 @@ export class BackendAPI {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: formBody.toString(),
+    });
+  }
+
+  /**
+   * Get form submissions
+   * GET /v3/forms/<form>
+   * Returns all submissions for a given form
+   * Note: May require admin authentication (API key)
+   * 
+   * @param formId - Form slug or name (e.g., "test-11", "contact-form")
+   * @param includeArchived - Whether to include archived submissions (default: false)
+   * @returns Array of form submissions
+   */
+  static async getFormSubmissions(
+    formId: string,
+    includeArchived = false
+  ): Promise<
+    Array<{
+      id: number;
+      form: string;
+      submission: Record<string, unknown>;
+      user_id: number | null;
+      created_at: string;
+      archived: number;
+    }>
+  > {
+    const url = includeArchived
+      ? `/v3/forms/${formId}?archived=1`
+      : `/v3/forms/${formId}`;
+
+    return this.fetch<
+      Array<{
+        id: number;
+        form: string;
+        submission: Record<string, unknown>;
+        user_id: number | null;
+        created_at: string;
+        archived: number;
+      }>
+    >(url, {
+      method: 'GET',
+      requireAuth: true, // May require admin auth
     });
   }
 

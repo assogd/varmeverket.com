@@ -11,9 +11,11 @@ interface User {
   created?: string;
   updated?: string;
   phone?: string;
-  dateOfBirth?: string;
-  location?: string;
-  gender?: string;
+  birthdate?: string;
+  address_street?: string;
+  address_code?: number;
+  address_city?: string;
+  profile?: Record<string, unknown> | null;
   profileImage?: string;
 }
 
@@ -167,22 +169,37 @@ export function UsersList() {
                     {userData.user.phone}
                   </div>
                 )}
-                {userData.user.dateOfBirth && (
+                {userData.user.birthdate && (
                   <div>
-                    <span className="font-medium">Date of birth:</span>{' '}
-                    {userData.user.dateOfBirth}
+                    <span className="font-medium">Birthdate:</span>{' '}
+                    {userData.user.birthdate}
                   </div>
                 )}
-                {userData.user.location && (
+                {userData.user.address_street && (
                   <div>
-                    <span className="font-medium">Location:</span>{' '}
-                    {userData.user.location}
+                    <span className="font-medium">Address street:</span>{' '}
+                    {userData.user.address_street}
                   </div>
                 )}
-                {userData.user.gender && (
+                {userData.user.address_code !== undefined &&
+                  userData.user.address_code !== null && (
                   <div>
-                    <span className="font-medium">Gender:</span>{' '}
-                    {userData.user.gender}
+                    <span className="font-medium">Address code:</span>{' '}
+                    {userData.user.address_code}
+                  </div>
+                )}
+                {userData.user.address_city && (
+                  <div>
+                    <span className="font-medium">Address city:</span>{' '}
+                    {userData.user.address_city}
+                  </div>
+                )}
+                {userData.user.profile && (
+                  <div>
+                    <span className="font-medium">Profile:</span>{' '}
+                    <span className="break-all">
+                      {JSON.stringify(userData.user.profile)}
+                    </span>
                   </div>
                 )}
                 {userData.user.profileImage && (

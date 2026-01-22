@@ -10,20 +10,108 @@ import type { User } from '@/lib/backendApi';
 /**
  * Handles submission of personal information form
  * Uses service layer for consistent error handling
+ * 
+ * Note: Extended fields (phone, birthdate, address, profile) are only sent
+ * if they have values. Empty strings are filtered out to avoid sending unnecessary data.
  */
 export async function handlePersonalFormSubmit(
   userEmail: string,
   data: Record<string, unknown>
 ): Promise<User> {
-  const updatedUser = await updateUser(userEmail, {
+  // Build update payload - only include fields with actual values
+  const updateData: Parameters<typeof updateUser>[1] = {
     name: data.name as string,
     email: data.email as string,
-    // Extended fields - will be saved when backend API supports them
-    phone: data.phone as string,
-    dateOfBirth: data.dateOfBirth as string,
-    location: data.location as string,
-    gender: data.gender as string,
+  };
+
+  // Only include extended fields if they have values (not empty strings)
+  // This prevents sending empty data to backend that may not support these fields yet
+  if (data.phone && typeof data.phone === 'string' && data.phone.trim()) {
+    updateData.phone = data.phone.trim();
+  }
+  if (data.birthdate && typeof data.birthdate === 'string' && data.birthdate.trim()) {
+    updateData.birthdate = data.birthdate.trim();
+  }
+  if (
+    data.address_street &&
+    typeof data.address_street === 'string' &&
+    data.address_street.trim()
+  ) {
+    updateData.address_street = data.address_street.trim();
+  }
+  if (
+    data.address_code !== undefined &&
+    data.address_code !== null &&
+    String(data.address_code).trim()
+  ) {
+    const code = String(data.address_code).trim();
+    const parsedCode = Number(code);
+    if (!Number.isNaN(parsedCode)) {
+      updateData.address_code = parsedCode;
+    }
+  }
+  if (
+    data.address_city &&
+    typeof data.address_city === 'string' &&
+    data.address_city.trim()
+  ) {
+    updateData.address_city = data.address_city.trim();
+  }
+  if (data.profile && typeof data.profile === 'string' && data.profile.trim()) {
+    try {
+      updateData.profile = JSON.parse(data.profile);
+    } catch (error) {
+      console.error('❌ Invalid profile JSON:', error);
+      throw new Error('Profilfältet måste innehålla giltig JSON.');
+    }
+  }
+
+  console.log('📤 Updating user with data:', updateData);
+
+  const updatedUser = await updateUser(userEmail, updateData);
+
+  console.log('✅ User updated, response:', {
+    name: updatedUser.name,
+    email: updatedUser.email,
+    phone: updatedUser.phone,
+    birthdate: updatedUser.birthdate,
+    address_street: updatedUser.address_street,
+    address_code: updatedUser.address_code,
+    address_city: updatedUser.address_city,
+    profile: updatedUser.profile,
   });
+
+  // Check if extended fields were sent but not saved (backend doesn't support them yet)
+  const sentExtendedFields = {
+    phone: updateData.phone,
+    birthdate: updateData.birthdate,
+    address_street: updateData.address_street,
+    address_code: updateData.address_code,
+    address_city: updateData.address_city,
+    profile: updateData.profile,
+  };
+  const receivedExtendedFields = {
+    phone: updatedUser.phone,
+    birthdate: updatedUser.birthdate,
+    address_street: updatedUser.address_street,
+    address_code: updatedUser.address_code,
+    address_city: updatedUser.address_city,
+    profile: updatedUser.profile,
+  };
+
+  const hasUnsupportedFields = Object.keys(sentExtendedFields).some(
+    key => sentExtendedFields[key as keyof typeof sentExtendedFields] && !receivedExtendedFields[key as keyof typeof receivedExtendedFields]
+  );
+
+  if (hasUnsupportedFields) {
+    console.warn(
+      '⚠️ Some extended fields were sent but not returned by backend. Backend may not support these fields yet:',
+      {
+        sent: sentExtendedFields,
+        received: receivedExtendedFields,
+      }
+    );
+  }
 
   // Clear cache to ensure fresh data on next fetch
   clearUserCache(userEmail);

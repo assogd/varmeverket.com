@@ -12,9 +12,11 @@ export interface UpdateUserData {
   name?: string;
   email?: string;
   phone?: string;
-  dateOfBirth?: string;
-  location?: string;
-  gender?: string;
+  birthdate?: string;
+  address_street?: string;
+  address_code?: number;
+  address_city?: string;
+  profile?: Record<string, unknown> | null;
   profileImage?: string;
 }
 

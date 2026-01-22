@@ -11,7 +11,6 @@ import {
 } from '@/components/forms';
 import type { FormConfig } from '@/components/forms';
 import type { User } from '@/lib/backendApi';
-import { LOCATION_OPTIONS, GENDER_OPTIONS } from '@/utils/settings/constants';
 
 /**
  * Creates the personal information form configuration
@@ -27,9 +26,14 @@ export function createPersonalFormConfig(
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    dateOfBirth: user?.dateOfBirth || '',
-    location: user?.location || '',
-    gender: user?.gender || '',
+    birthdate: user?.birthdate || '',
+    address_street: user?.address_street || '',
+    address_code: user?.address_code ?? '',
+    address_city: user?.address_city || '',
+    profile:
+      user?.profile && Object.keys(user.profile).length > 0
+        ? JSON.stringify(user.profile, null, 2)
+        : '',
   };
 
   return {
@@ -54,21 +58,32 @@ export function createPersonalFormConfig(
           placeholder: 'Ditt mobilnummer',
           defaultValue: defaults.phone,
         }),
-        createFieldBlock('dateOfBirth', 'Födelsedatum', 'date', {
+        createFieldBlock('birthdate', 'Födelsedatum', 'date', {
           required: false,
-          placeholder: 'MM/DD/AAAA',
-          defaultValue: defaults.dateOfBirth,
+          placeholder: 'YYYY-MM-DD',
+          defaultValue: defaults.birthdate,
         }),
-        createFieldBlock('location', 'Vart är du baserad?', 'select', {
+        createFieldBlock('address_street', 'Adress', 'text', {
           required: false,
-          placeholder: 'Välj',
-          defaultValue: defaults.location,
-          options: LOCATION_OPTIONS,
+          placeholder: 'Gata och nummer',
+          defaultValue: defaults.address_street,
         }),
-        createFieldBlock('gender', 'Vilket kön identifierar du dig som?', 'select', {
+        createFieldBlock('address_code', 'Postnummer', 'text', {
           required: false,
-          defaultValue: defaults.gender,
-          options: GENDER_OPTIONS,
+          placeholder: 'Postnummer',
+          defaultValue: defaults.address_code,
+        }),
+        createFieldBlock('address_city', 'Stad', 'text', {
+          required: false,
+          placeholder: 'Stad',
+          defaultValue: defaults.address_city,
+        }),
+        createFieldBlock('profile', 'Profil (JSON)', 'textarea', {
+          required: false,
+          placeholder: '{ "title": "developer", "organisation": "Värmeverket" }',
+          helpText:
+            'Skriv in giltig JSON. Lämna tomt om du inte vill spara profilmetadata.',
+          defaultValue: defaults.profile,
         }),
       ]),
     ],
