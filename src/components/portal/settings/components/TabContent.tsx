@@ -102,49 +102,49 @@ export function AccountTab({ formConfig, user }: AccountTabProps) {
   };
 
   return (
-    <div className="space-y-12">
-      <div className="text-center space-y-3">
-        <div className="border-b border-text pt-4 pb-8">
+    <div className="">
+      <div className="border-b border-text">
+        <div className="border-b border-text pt-4 pb-8 text-center">
           <h2 className="text-lg font-medium">Din access</h2>
-          <p className="text-sm text-text/70 dark:text-dark-text/70">
+          <p className="font-mono mt-4">
             Vill du uppgradera din access? Ansök via detta formulär.
           </p>
         </div>
-      </div>
 
-      <div className="max-w-2xl mx-auto border-r border-l border-text px-10 py-8">
-        <p className="text-xs uppercase tracking-wide text-text/70 dark:text-dark-text/70">
-          Din aktuella access
-        </p>
-        <div className="mt-4 space-y-3">
-          {accessOptions.map(option => {
-            const isSelected = option.value === selectedAccess;
-            return (
-              <label
-                key={option.value}
-                className={clsx(
-                  'flex items-center justify-between border border-text rounded-md px-4 py-3 cursor-pointer',
-                  isSelected && 'bg-text/10 dark:bg-dark-text/10'
-                )}
-              >
-                <span className="text-sm">{option.label}</span>
-                <span
+        <div className="max-w-2xl mx-auto border-r border-l border-text p-12 my-2">
+          <p className="">Din aktuella access</p>
+          <div className="mt-2 space-y-2 select-none">
+            {accessOptions.map(option => {
+              const isSelected = option.value === selectedAccess;
+              return (
+                <label
+                  key={option.value}
                   className={clsx(
-                    'h-3.5 w-3.5 rounded-full border border-text flex items-center justify-center',
-                    isSelected && 'bg-text'
+                    'flex items-center justify-between border border-text rounded-sm px-4 py-3 cursor-pointer',
+                    isSelected && 'bg-text/10 dark:bg-dark-text/10',
+                    !isSelected && 'opacity-50'
                   )}
-                />
-                <input
-                  type="radio"
-                  name="access"
-                  value={option.value}
-                  checked={isSelected}
-                  onChange={() => setSelectedAccess(option.value)}
-                  className="sr-only"
-                />
-              </label>
-            );
-          })}
+                >
+                  <span className="">{option.label}</span>
+                  <span
+                    className={clsx(
+                      'h-3.5 w-3.5 rounded-full border border-text flex items-center justify-center',
+                      isSelected && 'bg-text'
+                    )}
+                  />
+                  <input
+                    type="radio"
+                    name="access"
+                    value={option.value}
+                    checked={isSelected}
+                    onChange={() => setSelectedAccess(option.value)}
+                    className="sr-only"
+                    disabled={!isSelected}
+                  />
+                </label>
+              );
+            })}
+          </div>
         </div>
       </div>
 
