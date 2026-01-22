@@ -106,10 +106,10 @@ export default async function LoginPage({
             </div>
             <Button
               type="submit"
-              className="w-full mix-blend-normal"
-              variant="primary"
+              className="w-full bg-text text-[color:var(--color-bg)] hover:bg-text/90"
+              variant="outline"
             >
-              <span className="text-[color:var(--color-bg)]">Gå vidare</span>
+              Gå vidare
             </Button>
           </form>
         )}
