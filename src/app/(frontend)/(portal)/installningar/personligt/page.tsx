@@ -55,7 +55,7 @@ export default function PersonalSettingsPage() {
     [user, handlePersonalSubmit]
   );
 
-  if (sessionLoading || loading) {
+  if (sessionLoading) {
     return null;
   }
 
