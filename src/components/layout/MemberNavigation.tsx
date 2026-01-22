@@ -32,6 +32,10 @@ export const MemberNavigation: React.FC = () => {
     return null;
   }
 
+  if (pathname?.startsWith('/login')) {
+    return null;
+  }
+
   // Only show on portal routes
   if (!isPortalRoute(pathname)) {
     return null;
@@ -55,7 +59,7 @@ export const MemberNavigation: React.FC = () => {
         initial: { opacity: 0, y: 20 },
         animate: { opacity: 1, y: 0 },
       }}
-      className="fixed bottom-10 sm:bottom-0 left-0 right-0 z-50 px-2 py-3"
+      className="fixed bottom-9 md:bottom-0 left-0 right-0 z-50 px-2 py-3"
       as="nav"
     >
       <div className="mx-auto w-fit max-w-full h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg overflow-hidden">
@@ -71,7 +75,7 @@ export const MemberNavigation: React.FC = () => {
                   key={item.href}
                   href={item.href}
                   className={clsx(
-                    'relative flex items-center justify-center h-full px-3 font-medium whitespace-nowrap first:pl-5 first:pr-3 last:pl-3 last:pr-5',
+                    'relative flex items-center justify-center h-full px-4 font-medium whitespace-nowrap first:pl-5 first:pr-4 last:pl-4 last:pr-5 min-w-24',
                     isActive || isHovered
                       ? 'text-text dark:text-dark-text'
                       : 'text-text/70 dark:text-dark-text/70'
