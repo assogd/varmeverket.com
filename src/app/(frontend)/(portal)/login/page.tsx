@@ -1,9 +1,11 @@
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import Link from 'next/link';
 import { BACKEND_API_URL } from '@/lib/backendApi';
 import { getInputClasses } from '@/components/forms/fields/shared/inputStyles';
 import { fetchServerSession } from '@/lib/serverSession';
 import { VarmeverketIcon } from '@/components/icons';
+import { Heading } from '@/components/headings';
 
 async function signOnAction(formData: FormData) {
   'use server';
@@ -12,7 +14,8 @@ async function signOnAction(formData: FormData) {
     redirect('/login?error=' + encodeURIComponent('Email är obligatorisk.'));
   }
 
-  const origin = headers().get('origin');
+  const headerList = await headers();
+  const origin = headerList.get('origin');
   const redirectUrl = origin
     ? `${origin}/dashboard`
     : 'https://www.varmeverket.com/dashboard';
@@ -47,7 +50,8 @@ export default async function LoginPage({
 }: {
   searchParams?: { sent?: string; error?: string };
 }) {
-  const headerCookie = headers().get('cookie') || '';
+  const headerList = await headers();
+  const headerCookie = headerList.get('cookie') || '';
   const session = await fetchServerSession(headerCookie);
   if (session?.user) {
     redirect('/dashboard');
@@ -63,10 +67,9 @@ export default async function LoginPage({
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center">
       <div className="w-full max-w-sm space-y-8">
         <div className="space-y-3">
-          <h1 className="text-xl font-medium">Logga in</h1>
-          <p className="text-sm text-text/70 dark:text-dark-text/70">
-            Ange din epostadress så skickar vi en inloggningslänk.
-          </p>
+          <Heading variant="section" as="h2" center>
+            Logga in
+          </Heading>
         </div>
 
         {errorMessage && (
@@ -116,9 +119,9 @@ export default async function LoginPage({
 
         <p className="text-sm text-text/70 dark:text-dark-text/70">
           Inte medlem?{' '}
-          <a className="underline" href="/membership/application">
+          <Link className="underline" href="/membership/application">
             Ansök om medlemskap här.
-          </a>
+          </Link>
         </p>
       </div>
 
