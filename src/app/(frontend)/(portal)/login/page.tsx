@@ -1,8 +1,24 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { LoginForm } from '@/components/forms/LoginForm';
+import { useSession } from '@/hooks/useSession';
 
 export default function LoginPage() {
+  const { user, loading } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.replace('/dashboard');
+    }
+  }, [loading, router, user]);
+
+  if (loading || user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
