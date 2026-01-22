@@ -44,15 +44,7 @@ interface BusinessTabProps {
 }
 
 export function BusinessTab({ formConfig }: BusinessTabProps) {
-  return (
-    <SectionFrame
-      title="Uppgifter om din kreativa verksamhet"
-      withBodyFrame={false}
-      headerInnerClassName="pt-4 pb-8 text-center"
-    >
-      <FormRenderer config={formConfig} />
-    </SectionFrame>
-  );
+  return <FormRenderer config={formConfig} />;
 }
 
 interface AccountTabProps {
@@ -103,11 +95,11 @@ export function AccountTab({ formConfig, user }: AccountTabProps) {
     <div className="">
       <SectionFrame
         title="Din access"
-        description="Vill du uppgradera din access? Ansök via detta formulär."
-        descriptionClassName="font-mono mt-4"
-        headerInnerClassName="pt-4 pb-8 text-center"
-        className="border-b border-text"
-        bodyClassName="max-w-2xl mx-auto border-r border-l border-text p-12 my-2"
+        description={
+          <p className="font-mono mt-4">
+            Vill du uppgradera din access? Ansök via detta formulär.
+          </p>
+        }
       >
         <p className="">Din aktuella access</p>
         <div className="mt-2 space-y-2 select-none">
@@ -144,11 +136,7 @@ export function AccountTab({ formConfig, user }: AccountTabProps) {
         </div>
       </SectionFrame>
 
-      <SectionFrame
-        title="Logga ut"
-        headerInnerClassName="pt-4 pb-8 text-center"
-        bodyClassName="max-w-2xl mx-auto border-r border-l border-text px-10 py-8"
-      >
+      <SectionFrame title="Logga ut" variant="compact">
         <Button
           onClick={handleLogout}
           disabled={loggingOut}
@@ -161,10 +149,12 @@ export function AccountTab({ formConfig, user }: AccountTabProps) {
 
       <SectionFrame
         title="Ta bort konto"
-        description="Kontakta oss om du vill ta bort ditt konto."
-        descriptionClassName="text-sm text-text/70 dark:text-dark-text/70"
-        headerInnerClassName="pt-4 pb-8 text-center"
-        bodyClassName="max-w-2xl mx-auto border-r border-l border-text px-10 py-8"
+        description={
+          <p className="text-sm text-text/70 dark:text-dark-text/70">
+            Kontakta oss om du vill ta bort ditt konto.
+          </p>
+        }
+        variant="compact"
       >
         <AppLink
           link={{ type: 'external', url: 'benji@varmeverket.com' }}

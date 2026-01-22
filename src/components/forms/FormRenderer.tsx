@@ -319,10 +319,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       )}
 
       {(!submitStatus || submitStatus.type === 'error') && (
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 p-2 border-b border-text"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6 p-2">
           {convertedConfig.sections ? (
             // Render with sections
             <div className="space-y-8">
@@ -342,9 +339,6 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                         </Heading>
                       ) : undefined
                     }
-                    className="space-y-2"
-                    headerInnerClassName="pt-4 pb-8"
-                    bodyClassName="max-w-2xl mx-auto border-r border-l border-text p-12"
                   >
                     <div className="grid gap-8">
                       {/* Inject custom first field if provided and this is the first section */}

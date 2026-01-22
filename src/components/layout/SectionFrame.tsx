@@ -5,70 +5,52 @@ interface SectionFrameProps {
   title?: React.ReactNode;
   description?: React.ReactNode;
   children?: React.ReactNode;
-  className?: string;
-  headerClassName?: string;
-  headerInnerClassName?: string;
-  titleClassName?: string;
-  descriptionClassName?: string;
-  bodyClassName?: string;
-  withBodyFrame?: boolean;
+  variant?: 'default' | 'compact';
 }
 
 export const SectionFrame: React.FC<SectionFrameProps> = ({
   title,
   description,
   children,
-  className,
-  headerClassName,
-  headerInnerClassName,
-  titleClassName,
-  descriptionClassName,
-  bodyClassName,
-  withBodyFrame = true,
+  variant = 'default',
 }) => {
   const hasHeader = !!title || !!description;
+  const bodyClasses =
+    variant === 'compact'
+      ? 'max-w-2xl mx-auto border-r border-l border-text px-10 py-8'
+      : 'max-w-2xl mx-auto border-r border-l border-text p-12 my-2';
 
   const renderTitle = () => {
     if (!title) return null;
     if (typeof title === 'string' || typeof title === 'number') {
-      return (
-        <h2 className={clsx('text-lg font-medium', titleClassName)}>{title}</h2>
-      );
+      return <h2 className={clsx('text-lg font-medium')}>{title}</h2>;
     }
-    return <div className={titleClassName}>{title}</div>;
+    return title;
   };
 
   const renderDescription = () => {
     if (!description) return null;
     if (typeof description === 'string' || typeof description === 'number') {
-      return <p className={descriptionClassName}>{description}</p>;
+      return <div className={clsx('font-mono mt-4')}>{description}</div>;
     }
-    return <div className={descriptionClassName}>{description}</div>;
+    return description;
   };
 
   return (
-    <section className={clsx('space-y-3', className)}>
+    <section
+      className={clsx(
+        'space-y-3 border-b pb-2 border-text mt-16 first:mt-0'
+      )}
+    >
       {hasHeader && (
-        <div className={clsx('border-b border-text', headerClassName)}>
-          <div className={clsx('pt-4 pb-8 text-center', headerInnerClassName)}>
+        <div className={clsx('border-b border-text')}>
+          <div className={clsx('pt-4 pb-8 text-center')}>
             {renderTitle()}
             {renderDescription()}
           </div>
         </div>
       )}
-      {children &&
-        (withBodyFrame ? (
-          <div
-            className={clsx(
-              'max-w-2xl mx-auto border-r border-l border-text p-12',
-              bodyClassName
-            )}
-          >
-            {children}
-          </div>
-        ) : (
-          children
-        ))}
+      <div className={clsx(bodyClasses)}>{children}</div>
     </section>
   );
 };

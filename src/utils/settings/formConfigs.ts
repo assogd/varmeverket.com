@@ -90,7 +90,7 @@ export function createBusinessFormConfig(
 ): FormConfig {
   return {
     content: [
-      createSectionBlock('', [
+      createSectionBlock('Uppgifter om din kreativa verksamhet', [
         createFieldBlock('occupation', 'Sysselsättning', 'text', {
           required: false,
           placeholder: 'Vad jobbar du med...',
