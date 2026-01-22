@@ -8,7 +8,6 @@
 import { createFieldBlock, createSectionBlock } from '@/components/forms';
 import type { FormConfig } from '@/components/forms';
 import type { User } from '@/lib/backendApi';
-import { LOCATION_OPTIONS } from '@/utils/settings/constants';
 
 /**
  * Creates the personal information form configuration
@@ -82,11 +81,10 @@ export function createPersonalFormConfig(
             return true;
           },
         }),
-        createFieldBlock('address_city', 'Ort', 'select', {
+        createFieldBlock('address_city', 'Ort', 'text', {
           required: false,
-          placeholder: 'Välj ort',
+          placeholder: 'Ort',
           defaultValue: defaults.address_city,
-          options: LOCATION_OPTIONS,
         }),
       ]),
     ],
