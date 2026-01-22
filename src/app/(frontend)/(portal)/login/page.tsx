@@ -67,7 +67,7 @@ export default async function LoginPage({
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-xs space-y-6">
-        <Heading variant="section" as="h2" center className="pb-8">
+        <Heading variant="section" as="h2" center className="pb-10">
           Logga in
         </Heading>
 
@@ -106,10 +106,10 @@ export default async function LoginPage({
             </div>
             <Button
               type="submit"
-              className="w-full mix-blend-normal text-[#e68456]"
+              className="w-full mix-blend-normal"
               variant="primary"
             >
-              Gå vidare
+              <span className="text-[color:var(--color-bg)]">Gå vidare</span>
             </Button>
           </form>
         )}
@@ -122,9 +122,9 @@ export default async function LoginPage({
         </p>
       </div>
 
-      <div className="mt-16 text-text">
+      <Link href="/" className="mt-16">
         <VarmeverketIcon size={112} className="mx-auto" />
-      </div>
+      </Link>
     </div>
   );
 }
