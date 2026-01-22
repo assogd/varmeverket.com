@@ -32,8 +32,15 @@ export async function handlePersonalFormSubmit(
   // Build update payload - only include fields with actual values
   const updateData: Parameters<typeof updateUser>[1] = {
     name: data.name as string,
-    email: data.email as string,
   };
+  if (
+    data.email &&
+    typeof data.email === 'string' &&
+    data.email.trim() &&
+    data.email.trim() !== userEmail
+  ) {
+    updateData.email = data.email.trim();
+  }
 
   // Only include extended fields if they have values (not empty strings)
   // This prevents sending empty data to backend that may not support these fields yet
