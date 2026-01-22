@@ -70,9 +70,13 @@ export function createPersonalFormConfig(
           placeholder: '123 45',
           helpText: 'Fem siffror.',
           defaultValue: defaults.address_code,
+          inputMode: 'numeric',
+          pattern: '^\\d{3}\\s?\\d{2}$',
+          maxLength: 6,
           validation: value => {
             if (value === undefined || value === null || value === '') return true;
             const normalized = String(value).replace(/\s+/g, '');
+            if (normalized.length < 5) return true;
             if (!/^\d{5}$/.test(normalized)) {
               return 'Postnummer måste bestå av 5 siffror.';
             }

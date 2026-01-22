@@ -115,6 +115,9 @@ export const createFieldBlock = (
     options: options?.options,
     minYear: options?.minYear,
     maxYear: options?.maxYear,
+    inputMode: options?.inputMode,
+    pattern: options?.pattern,
+    maxLength: options?.maxLength,
   };
 };
 

@@ -40,6 +40,9 @@ export interface FormField {
   helpText?: string;
   minYear?: number; // For date fields: minimum year
   maxYear?: number; // For date fields: maximum year
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+  pattern?: string;
+  maxLength?: number;
 }
 
 export interface FormSection {
@@ -63,6 +66,9 @@ export interface FormFieldBlock {
   options?: FormFieldOption[]; // For select fields
   minYear?: number; // For date fields
   maxYear?: number; // For date fields
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
+  pattern?: string;
+  maxLength?: number;
   [key: string]: unknown; // Allow additional block-specific properties
 }
 

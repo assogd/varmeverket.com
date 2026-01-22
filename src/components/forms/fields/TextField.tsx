@@ -38,11 +38,20 @@ export const TextField: React.FC<TextFieldProps> = ({
         name={field.name}
         required={field.required}
         value={displayValue}
-        onChange={e => onChange(e.target.value)}
+        onChange={e => {
+          const nextValue =
+            field.inputMode === 'numeric'
+              ? e.target.value.replace(/[^\d\s]/g, '')
+              : e.target.value;
+          onChange(nextValue);
+        }}
         onFocus={onFocus}
         onBlur={onBlur}
         placeholder={field.placeholder}
         disabled={disabled}
+        inputMode={field.inputMode}
+        pattern={field.pattern}
+        maxLength={field.maxLength}
         className={getInputClasses(error)}
       />
     </FieldWrapper>

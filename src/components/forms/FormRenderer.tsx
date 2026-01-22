@@ -66,6 +66,9 @@ const convertFormFieldBlockToFormField = (
     options: block.options,
     minYear: block.minYear,
     maxYear: block.maxYear,
+    inputMode: block.inputMode,
+    pattern: block.pattern,
+    maxLength: block.maxLength,
   };
 };
 
@@ -226,8 +229,13 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       [fieldName]: value,
     }));
 
-    // Clear error for this field when user starts typing
-    if (errors[fieldName]) {
+    const fieldError = validateField(fieldName, value);
+    if (fieldError) {
+      setErrors(prev => ({
+        ...prev,
+        [fieldName]: fieldError,
+      }));
+    } else if (errors[fieldName]) {
       setErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[fieldName];

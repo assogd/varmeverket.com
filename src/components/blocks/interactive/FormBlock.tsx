@@ -46,6 +46,7 @@ interface CMSFormSection {
 interface CMSFormData {
   id: string;
   title?: string;
+  slug?: string; // Slug for backend API connection
   content?: FormContentBlock[]; // New blocks-based structure
   fields?: CMSFormField[]; // Old structure (backward compatibility)
   sections?: CMSFormSection[]; // Old structure (backward compatibility)
@@ -116,6 +117,9 @@ const convertFormFieldBlockToFormField = (
     options: block.options,
     minYear: block.minYear,
     maxYear: block.maxYear,
+    inputMode: block.inputMode,
+    pattern: block.pattern,
+    maxLength: block.maxLength,
   };
 };
 
@@ -251,16 +255,20 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
   }
 
   // Convert CMS form to FormRenderer config
+  // Use slug for backend API submission, fallback to id if slug not available
+  const formSlug = actualForm.slug || actualForm.id;
+  
   let formConfig: FormConfig = {
     id: actualForm.id,
     title: actualForm.title,
     submitButtonLabel: actualForm.submitButtonLabel || 'Submit',
     onSubmit: async formData => {
-      if (!formId) {
-        throw new Error('Form ID is missing');
+      if (!formSlug) {
+        throw new Error('Form slug is missing');
       }
       // Use form service for consistent error handling
-      await submitForm(formId, formData);
+      // Backend API expects slug: POST /v3/forms/<slug>
+      await submitForm(formSlug, formData);
     },
     onSuccess: () => {
       // Handle redirect if needed
