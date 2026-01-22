@@ -469,7 +469,7 @@ export class BackendAPI {
    * GET /v2/users/:email
    */
   static async getUserByEmail(email: string): Promise<User> {
-    return this.fetch<User>(`/v2/users/${email}`);
+    return this.fetch<User>(`/v2/users/${encodeURIComponent(email)}`);
   }
 
   /**
@@ -493,7 +493,7 @@ export class BackendAPI {
       profileImage?: string;
     }
   ): Promise<User> {
-    return this.fetch<User>(`/v2/users/${email}`, {
+    return this.fetch<User>(`/v2/users/${encodeURIComponent(email)}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
@@ -521,7 +521,7 @@ export class BackendAPI {
    * Important: All bookings tied to this user must be deleted first
    */
   static async deleteUser(email: string): Promise<void> {
-    await this.fetch(`/v2/users/${email}`, {
+    await this.fetch(`/v2/users/${encodeURIComponent(email)}`, {
       method: 'DELETE',
     });
   }
