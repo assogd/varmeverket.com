@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { BACKEND_API_URL } from '@/lib/backendApi';
 import { getInputClasses } from '@/components/forms/fields/shared/inputStyles';
 import { fetchServerSession } from '@/lib/serverSession';
+import { VarmeverketIcon } from '@/components/icons';
 
 async function signOnAction(formData: FormData) {
   'use server';
@@ -59,65 +60,70 @@ export default async function LoginPage({
   const sent = searchParams?.sent === '1';
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-surface p-8 rounded-lg">
-          <h1 className="text-2xl font-bold mb-2">Sign In</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-            Enter your email address and we&apos;ll send you a magic link to
-            sign in.
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center">
+      <div className="w-full max-w-sm space-y-8">
+        <div className="space-y-3">
+          <h1 className="text-xl font-medium">Logga in</h1>
+          <p className="text-sm text-text/70 dark:text-dark-text/70">
+            Ange din epostadress så skickar vi en inloggningslänk.
           </p>
+        </div>
 
-          {errorMessage && (
-            <div className="mb-6 p-4 rounded border bg-red-50 border-red-500 text-red-800">
-              <p className="font-mono text-sm">{errorMessage}</p>
-            </div>
-          )}
+        {errorMessage && (
+          <div className="p-4 rounded border bg-red-50 border-red-500 text-red-800">
+            <p className="font-mono text-sm">{errorMessage}</p>
+          </div>
+        )}
 
-          {sent && (
-            <div className="mb-6 p-4 rounded border bg-green-50 border-green-500 text-green-800">
-              <p className="font-mono text-sm">
-                Check your inbox for a magic link to sign in. Click the link to
-                complete your sign-in.
-              </p>
-            </div>
-          )}
+        {sent && (
+          <div className="p-4 rounded border bg-green-50 border-green-500 text-green-800">
+            <p className="font-mono text-sm">
+              Kolla din inkorg. Vi har skickat en temporär inloggningslänk till
+              dig.
+            </p>
+          </div>
+        )}
 
+        {!sent && (
           <form action={signOnAction} className="space-y-6">
             <div>
               <label
                 htmlFor="login-email"
                 className="block text-sm font-medium mb-2"
               >
-                Email Address <span aria-hidden="true">*</span>
+                Din epostadress <span aria-hidden="true">*</span>
               </label>
               <input
                 id="login-email"
                 name="email"
                 type="email"
                 required
-                placeholder="user@example.com"
+                placeholder="Din epostadress"
                 className={getInputClasses()}
               />
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                We&apos;ll send you a magic link to sign in
+              <p className="text-xs text-text/70 dark:text-dark-text/70 mt-2">
+                En inloggningslänk kommer att skickas till dig.
               </p>
             </div>
             <button
               type="submit"
               className="uppercase bg-text text-bg mix-blend-multiply rounded-md block text-center w-full px-4 py-3.5 transition-transform duration-75 ease-out active:scale-[0.99] hover:bg-opacity-90"
             >
-              Send Magic Link
+              GÅ VIDARE
             </button>
           </form>
+        )}
 
-          <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            <p>
-              After clicking the link in your email, you&apos;ll be
-              automatically signed in.
-            </p>
-          </div>
-        </div>
+        <p className="text-sm text-text/70 dark:text-dark-text/70">
+          Inte medlem?{' '}
+          <a className="underline" href="/membership/application">
+            Ansök om medlemskap här.
+          </a>
+        </p>
+      </div>
+
+      <div className="mt-16 text-text">
+        <VarmeverketIcon size={72} className="mx-auto" />
       </div>
     </div>
   );

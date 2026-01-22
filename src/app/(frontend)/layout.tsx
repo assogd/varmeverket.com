@@ -1,12 +1,12 @@
 import React from 'react';
 import localFont from 'next/font/local';
 import './globals.css';
-import Navigation, {
-  NavigationData,
-  Footer,
+import {
+  type NavigationData,
   UrlBasedTheme,
   BackgroundLoader,
 } from '@/components/layout';
+import Chrome from '@/components/layout/Chrome';
 import { ThemeProvider } from 'next-themes';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { NotificationContainer } from '@/components/notifications';
@@ -157,11 +157,13 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           <NotificationProvider>
             <UrlBasedTheme>
               <BackgroundLoader>
-                {navigation && <Navigation navigation={navigation} />}
-                <main className={mainClassName}>
+                <Chrome
+                  navigation={navigation}
+                  footerLinks={footer?.links}
+                  mainClassName={mainClassName}
+                >
                   {children}
-                  <Footer links={footer?.links} />
-                </main>
+                </Chrome>
                 <AdminContainer>
                   <RevalidateButton />
                   <ExitPreviewButton />
