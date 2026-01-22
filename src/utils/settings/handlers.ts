@@ -59,7 +59,8 @@ export async function handlePersonalFormSubmit(
   }
   if (data.profile && typeof data.profile === 'string' && data.profile.trim()) {
     try {
-      updateData.profile = JSON.parse(data.profile);
+      const parsedProfile = JSON.parse(data.profile);
+      updateData.profile = parsedProfile === null ? null : parsedProfile;
     } catch (error) {
       console.error('❌ Invalid profile JSON:', error);
       throw new Error('Profilfältet måste innehålla giltig JSON.');
