@@ -1,4 +1,5 @@
 import React from 'react';
+import clsx from 'clsx';
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { FadeInUp } from '@/components/ui';
@@ -12,17 +13,19 @@ interface PageHeaderTextOnlyProps {
   text: any;
   label?: string;
   link?: LinkGroup;
+  className?: string;
 }
 
 export default function PageHeaderTextOnly({
   text,
   label,
   link,
+  className,
 }: PageHeaderTextOnlyProps) {
   const linkResult = link ? routeLink(link) : null;
 
   return (
-    <div className="px-4 text-center relative pt-36">
+    <div className={clsx('px-4 text-center relative pt-36', className)}>
       <DevIndicator componentName="PageHeaderTextOnly" position="top-right" />
       <FadeInUp as="div" timing="fast" className="grid gap-6">
         {label && <PageHeaderLabel>{label}</PageHeaderLabel>}

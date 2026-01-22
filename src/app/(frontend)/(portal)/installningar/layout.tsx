@@ -44,6 +44,7 @@ export default function SettingsLayout({
               version: 1,
             },
           }}
+          className="min-h-[12rem]"
         />
         <SettingsNavigation />
         {children}
