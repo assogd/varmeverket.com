@@ -95,11 +95,7 @@ export function AccountTab({ formConfig, user }: AccountTabProps) {
     <div className="">
       <SectionFrame
         title="Din access"
-        description={
-          <p className="font-mono mt-4">
-            Vill du uppgradera din access? Ansök via detta formulär.
-          </p>
-        }
+        description={'Vill du uppgradera din access? Ansök via detta formulär.'}
       >
         <p className="">Din aktuella access</p>
         <div className="mt-2 space-y-2 select-none">
@@ -149,12 +145,7 @@ export function AccountTab({ formConfig, user }: AccountTabProps) {
 
       <SectionFrame
         title="Ta bort konto"
-        description={
-          <p className="text-sm text-text/70 dark:text-dark-text/70">
-            Kontakta oss om du vill ta bort ditt konto.
-          </p>
-        }
-        variant="compact"
+        description={'Kontakta oss om du vill ta bort ditt konto.'}
       >
         <AppLink
           link={{ type: 'external', url: 'benji@varmeverket.com' }}
