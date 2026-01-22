@@ -12,6 +12,7 @@ import BackendAPI, { type User } from '@/lib/backendApi';
 import { FormRenderer } from '@/components/forms';
 import type { FormConfig } from '@/components/forms';
 import { AppLink, Button } from '@/components/ui';
+import { SectionFrame } from '@/components/layout/SectionFrame';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 
 interface PersonalTabProps {
@@ -44,16 +45,13 @@ interface BusinessTabProps {
 
 export function BusinessTab({ formConfig }: BusinessTabProps) {
   return (
-    <div className="space-y-8">
-      <div className="text-center space-y-3">
-        <div className="border-b border-text pt-4 pb-8">
-          <h2 className="text-lg font-medium">
-            Uppgifter om din kreativa verksamhet
-          </h2>
-        </div>
-      </div>
+    <SectionFrame
+      title="Uppgifter om din kreativa verksamhet"
+      withBodyFrame={false}
+      headerInnerClassName="pt-4 pb-8 text-center"
+    >
       <FormRenderer config={formConfig} />
-    </div>
+    </SectionFrame>
   );
 }
 
@@ -103,83 +101,78 @@ export function AccountTab({ formConfig, user }: AccountTabProps) {
 
   return (
     <div className="">
-      <div className="border-b border-text">
-        <div className="border-b border-text pt-4 pb-8 text-center">
-          <h2 className="text-lg font-medium">Din access</h2>
-          <p className="font-mono mt-4">
-            Vill du uppgradera din access? Ansök via detta formulär.
-          </p>
-        </div>
-
-        <div className="max-w-2xl mx-auto border-r border-l border-text p-12 my-2">
-          <p className="">Din aktuella access</p>
-          <div className="mt-2 space-y-2 select-none">
-            {accessOptions.map(option => {
-              const isSelected = option.value === selectedAccess;
-              return (
-                <label
-                  key={option.value}
+      <SectionFrame
+        title="Din access"
+        description="Vill du uppgradera din access? Ansök via detta formulär."
+        descriptionClassName="font-mono mt-4"
+        headerInnerClassName="pt-4 pb-8 text-center"
+        className="border-b border-text"
+        bodyClassName="max-w-2xl mx-auto border-r border-l border-text p-12 my-2"
+      >
+        <p className="">Din aktuella access</p>
+        <div className="mt-2 space-y-2 select-none">
+          {accessOptions.map(option => {
+            const isSelected = option.value === selectedAccess;
+            return (
+              <label
+                key={option.value}
+                className={clsx(
+                  'flex items-center justify-between border border-text rounded-sm px-4 py-3 cursor-pointer',
+                  isSelected && 'bg-text/10 dark:bg-dark-text/10',
+                  !isSelected && 'opacity-50'
+                )}
+              >
+                <span className="">{option.label}</span>
+                <span
                   className={clsx(
-                    'flex items-center justify-between border border-text rounded-sm px-4 py-3 cursor-pointer',
-                    isSelected && 'bg-text/10 dark:bg-dark-text/10',
-                    !isSelected && 'opacity-50'
+                    'h-3.5 w-3.5 rounded-full border border-text flex items-center justify-center',
+                    isSelected && 'bg-text'
                   )}
-                >
-                  <span className="">{option.label}</span>
-                  <span
-                    className={clsx(
-                      'h-3.5 w-3.5 rounded-full border border-text flex items-center justify-center',
-                      isSelected && 'bg-text'
-                    )}
-                  />
-                  <input
-                    type="radio"
-                    name="access"
-                    value={option.value}
-                    checked={isSelected}
-                    onChange={() => setSelectedAccess(option.value)}
-                    className="sr-only"
-                    disabled={!isSelected}
-                  />
-                </label>
-              );
-            })}
-          </div>
+                />
+                <input
+                  type="radio"
+                  name="access"
+                  value={option.value}
+                  checked={isSelected}
+                  onChange={() => setSelectedAccess(option.value)}
+                  className="sr-only"
+                  disabled={!isSelected}
+                />
+              </label>
+            );
+          })}
         </div>
-      </div>
+      </SectionFrame>
 
-      <div className="text-center space-y-3">
-        <div className="border-b border-text pt-4 pb-8">
-          <h2 className="text-lg font-medium">Logga ut</h2>
-        </div>
-        <div className="max-w-2xl mx-auto border-r border-l border-text px-10 py-8">
-          <Button
-            onClick={handleLogout}
-            disabled={loggingOut}
-            variant="outline"
-            className="w-full"
-          >
-            {loggingOut ? 'Loggar ut...' : 'Logga ut'}
-          </Button>
-        </div>
-      </div>
+      <SectionFrame
+        title="Logga ut"
+        headerInnerClassName="pt-4 pb-8 text-center"
+        bodyClassName="max-w-2xl mx-auto border-r border-l border-text px-10 py-8"
+      >
+        <Button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          variant="outline"
+          className="w-full"
+        >
+          {loggingOut ? 'Loggar ut...' : 'Logga ut'}
+        </Button>
+      </SectionFrame>
 
-      <div className="text-center space-y-3">
-        <div className="border-b border-text pt-4 pb-8">
-          <h2 className="text-lg font-medium">Ta bort konto</h2>
-          <p className="text-sm text-text/70 dark:text-dark-text/70">
-            Kontakta oss om du vill ta bort ditt konto.
-          </p>
-        </div>
-        <div className="max-w-2xl mx-auto border-r border-l border-text px-10 py-8">
-          <AppLink
-            link={{ type: 'external', url: 'benji@varmeverket.com' }}
-            className="uppercase border border-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none px-4 py-3.5 w-full"
-          >
-            benji@varmeverket.com
-          </AppLink>
-        </div>
-      </div>
+      <SectionFrame
+        title="Ta bort konto"
+        description="Kontakta oss om du vill ta bort ditt konto."
+        descriptionClassName="text-sm text-text/70 dark:text-dark-text/70"
+        headerInnerClassName="pt-4 pb-8 text-center"
+        bodyClassName="max-w-2xl mx-auto border-r border-l border-text px-10 py-8"
+      >
+        <AppLink
+          link={{ type: 'external', url: 'benji@varmeverket.com' }}
+          className="uppercase border border-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none px-4 py-3.5 w-full"
+        >
+          benji@varmeverket.com
+        </AppLink>
+      </SectionFrame>
 
       {formConfig && formConfig.fields && formConfig.fields.length > 0 && (
         <FormRenderer config={formConfig} />

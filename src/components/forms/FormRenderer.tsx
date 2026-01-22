@@ -14,6 +14,7 @@ import type {
 } from './types';
 import { validateRequired, validateEmail } from '@/utils/validation';
 import { Heading } from '@/components/headings';
+import { SectionFrame } from '@/components/layout/SectionFrame';
 import { MarqueeButton, Button } from '@/components/ui';
 import clsx from 'clsx';
 
@@ -325,12 +326,13 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
           {convertedConfig.sections ? (
             // Render with sections
             <div className="space-y-8">
-              {convertedConfig.sections.map((section, sectionIndex) => (
-                <div key={section.id || sectionIndex} className="space-y-2">
-                  {/* Section header with divider */}
-                  {!!section.title?.trim() && (
-                    <div className="space-y-2">
-                      <div className="border-b border-text pt-4 pb-8">
+              {convertedConfig.sections.map((section, sectionIndex) => {
+                const title = section.title?.trim();
+                return (
+                  <SectionFrame
+                    key={section.id || sectionIndex}
+                    title={
+                      title ? (
                         <Heading
                           variant="section"
                           as="h2"
@@ -338,12 +340,12 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                         >
                           {section.title}
                         </Heading>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Section fields and submit button container */}
-                  <div className="max-w-2xl mx-auto border-r border-l border-text p-12">
+                      ) : undefined
+                    }
+                    className="space-y-2"
+                    headerInnerClassName="pt-4 pb-8"
+                    bodyClassName="max-w-2xl mx-auto border-r border-l border-text p-12"
+                  >
                     <div className="grid gap-8">
                       {/* Inject custom first field if provided and this is the first section */}
                       {sectionIndex === 0 &&
@@ -392,9 +394,9 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                           )}
                         </div>
                       )}
-                  </div>
-                </div>
-              ))}
+                  </SectionFrame>
+                );
+              })}
             </div>
           ) : (
             // Render flat fields (backward compatibility)
