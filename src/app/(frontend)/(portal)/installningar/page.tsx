@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSession } from '@/hooks/useSession';
-import BackendAPI, { type User } from '@/lib/backendApi';
 import type { FormConfig } from '@/components/forms';
 import { createPersonalFormConfig } from '@/utils/settings/formConfigs';
 import { handlePersonalFormSubmit } from '@/utils/settings/handlers';
@@ -13,29 +12,13 @@ import { PersonalTab } from '@/components/portal/settings/components/TabContent'
  */
 export default function SettingsPage() {
   const { user, loading: sessionLoading } = useSession();
-  const [, setUserData] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState<string | undefined>();
 
-  // Load user data
   useEffect(() => {
-    if (user?.email) {
-      setLoading(true);
-      BackendAPI.getUserByEmail(user.email)
-        .then(data => {
-          setUserData(data);
-          if (data.profileImage) {
-            setProfileImage(data.profileImage);
-          }
-        })
-        .catch(error => {
-          console.error('Failed to load user data:', error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+    if (user?.profileImage) {
+      setProfileImage(user.profileImage);
     }
-  }, [user]);
+  }, [user?.profileImage]);
 
   // Form submission handler
   const handlePersonalSubmit = useCallback(
@@ -58,7 +41,7 @@ export default function SettingsPage() {
     [user, handlePersonalSubmit]
   );
 
-  if (sessionLoading || loading) {
+  if (sessionLoading) {
     return (
       <div>
         <p className="text-text/70 dark:text-dark-text/70">Laddar...</p>
