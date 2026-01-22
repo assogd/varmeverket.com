@@ -14,9 +14,20 @@ import type { User } from '@/lib/backendApi';
  * Note: Extended fields (phone, birthdate, address, profile) are only sent
  * if they have values. Empty strings are filtered out to avoid sending unnecessary data.
  */
+const KNOWN_USER_FIELDS = new Set([
+  'name',
+  'email',
+  'phone',
+  'birthdate',
+  'address_street',
+  'address_code',
+  'address_city',
+]);
+
 export async function handlePersonalFormSubmit(
   userEmail: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
+  existingProfile?: User['profile'] | null
 ): Promise<User> {
   // Build update payload - only include fields with actual values
   const updateData: Parameters<typeof updateUser>[1] = {
@@ -57,14 +68,40 @@ export async function handlePersonalFormSubmit(
   ) {
     updateData.address_city = data.address_city.trim();
   }
-  if (data.profile && typeof data.profile === 'string' && data.profile.trim()) {
-    try {
-      const parsedProfile = JSON.parse(data.profile);
-      updateData.profile = parsedProfile === null ? null : parsedProfile;
-    } catch (error) {
-      console.error('❌ Invalid profile JSON:', error);
-      throw new Error('Profilfältet måste innehålla giltig JSON.');
-    }
+  const profileBase =
+    existingProfile && typeof existingProfile === 'object'
+      ? existingProfile
+      : {};
+  const extraProfileData = Object.entries(data).reduce<Record<string, unknown>>(
+    (acc, [key, value]) => {
+      if (KNOWN_USER_FIELDS.has(key)) return acc;
+      if (value === null || value === undefined) return acc;
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!trimmed) return acc;
+        acc[key] = trimmed;
+        return acc;
+      }
+      if (typeof value === 'number') {
+        if (Number.isNaN(value)) return acc;
+        acc[key] = value;
+        return acc;
+      }
+      if (typeof value === 'boolean') {
+        acc[key] = value;
+        return acc;
+      }
+      acc[key] = value;
+      return acc;
+    },
+    {}
+  );
+
+  if (Object.keys(extraProfileData).length > 0) {
+    updateData.profile = {
+      ...(profileBase as Record<string, unknown>),
+      ...extraProfileData,
+    };
   }
 
   console.log('📤 Updating user with data:', updateData);

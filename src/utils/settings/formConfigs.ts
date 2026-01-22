@@ -22,30 +22,6 @@ export function createPersonalFormConfig(
   onSubmit: (data: Record<string, unknown>) => Promise<void>
 ): FormConfig {
   // Get default values from user data
-  const profileDefaultValue = (() => {
-    const profileValue = user?.profile;
-    if (profileValue === null || profileValue === undefined) return '';
-    if (typeof profileValue === 'string') {
-      const trimmed = profileValue.trim();
-      if (!trimmed || trimmed === 'null') return '';
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (parsed === null) return '';
-        return JSON.stringify(parsed, null, 2);
-      } catch {
-        return trimmed;
-      }
-    }
-    if (typeof profileValue === 'object') {
-      if (Array.isArray(profileValue)) {
-        return JSON.stringify(profileValue, null, 2);
-      }
-      if (Object.keys(profileValue).length === 0) return '';
-      return JSON.stringify(profileValue, null, 2);
-    }
-    return String(profileValue);
-  })();
-
   const defaults = {
     name: user?.name || '',
     email: user?.email || '',
@@ -54,7 +30,6 @@ export function createPersonalFormConfig(
     address_street: user?.address_street || '',
     address_code: user?.address_code ?? '',
     address_city: user?.address_city || '',
-    profile: profileDefaultValue,
   };
 
   return {
@@ -98,13 +73,6 @@ export function createPersonalFormConfig(
           required: false,
           placeholder: 'Stad',
           defaultValue: defaults.address_city,
-        }),
-        createFieldBlock('profile', 'Profil (JSON)', 'textarea', {
-          required: false,
-          placeholder: '{ "title": "developer", "organisation": "Värmeverket" }',
-          helpText:
-            'Skriv in giltig JSON. Lämna tomt om du inte vill spara profilmetadata.',
-          defaultValue: defaults.profile,
         }),
       ]),
     ],

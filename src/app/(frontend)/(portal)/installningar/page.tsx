@@ -42,7 +42,7 @@ export default function SettingsPage() {
     async (data: Record<string, unknown>) => {
       if (!user?.email) return;
       try {
-        await handlePersonalFormSubmit(user.email, data);
+        await handlePersonalFormSubmit(user.email, data, user?.profile);
         alert('Inställningar sparade!');
       } catch (error) {
         console.error('Failed to save settings:', error);
