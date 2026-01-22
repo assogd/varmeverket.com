@@ -55,11 +55,11 @@ export async function handlePersonalFormSubmit(
     data.address_code !== null &&
     String(data.address_code).trim()
   ) {
-    const code = String(data.address_code).trim();
-    const parsedCode = Number(code);
-    if (!Number.isNaN(parsedCode)) {
-      updateData.address_code = parsedCode;
+    const code = String(data.address_code).replace(/\s+/g, '');
+    if (!/^\d{5}$/.test(code)) {
+      throw new Error('Postnummer måste bestå av 5 siffror.');
     }
+    updateData.address_code = Number(code);
   }
   if (
     data.address_city &&

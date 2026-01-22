@@ -5,12 +5,10 @@
  * Uses the new blocks-based form system for consistency with Payload CMS forms
  */
 
-import {
-  createFieldBlock,
-  createSectionBlock,
-} from '@/components/forms';
+import { createFieldBlock, createSectionBlock } from '@/components/forms';
 import type { FormConfig } from '@/components/forms';
 import type { User } from '@/lib/backendApi';
+import { LOCATION_OPTIONS } from '@/utils/settings/constants';
 
 /**
  * Creates the personal information form configuration
@@ -28,7 +26,10 @@ export function createPersonalFormConfig(
     phone: user?.phone || '',
     birthdate: user?.birthdate || '',
     address_street: user?.address_street || '',
-    address_code: user?.address_code ?? '',
+    address_code:
+      user?.address_code !== undefined && user?.address_code !== null
+        ? String(user.address_code)
+        : '',
     address_city: user?.address_city || '',
   };
 
@@ -66,13 +67,23 @@ export function createPersonalFormConfig(
         }),
         createFieldBlock('address_code', 'Postnummer', 'text', {
           required: false,
-          placeholder: 'Postnummer',
+          placeholder: '123 45',
+          helpText: 'Fem siffror.',
           defaultValue: defaults.address_code,
+          validation: value => {
+            if (value === undefined || value === null || value === '') return true;
+            const normalized = String(value).replace(/\s+/g, '');
+            if (!/^\d{5}$/.test(normalized)) {
+              return 'Postnummer måste bestå av 5 siffror.';
+            }
+            return true;
+          },
         }),
-        createFieldBlock('address_city', 'Stad', 'text', {
+        createFieldBlock('address_city', 'Ort', 'select', {
           required: false,
-          placeholder: 'Stad',
+          placeholder: 'Välj ort',
           defaultValue: defaults.address_city,
+          options: LOCATION_OPTIONS,
         }),
       ]),
     ],

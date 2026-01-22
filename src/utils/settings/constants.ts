@@ -12,13 +12,13 @@ export const TABS: Array<{ id: TabType; label: string }> = [
 ];
 
 export const LOCATION_OPTIONS = [
-  { label: 'Stockholm', value: 'stockholm' },
-  { label: 'Göteborg', value: 'goteborg' },
-  { label: 'Malmö', value: 'malmo' },
-  { label: 'Uppsala', value: 'uppsala' },
-  { label: 'Linköping', value: 'linkoping' },
-  { label: 'Örebro', value: 'örebro' },
-  { label: 'Annat', value: 'annat' },
+  { label: 'Stockholm', value: 'Stockholm' },
+  { label: 'Göteborg', value: 'Göteborg' },
+  { label: 'Malmö', value: 'Malmö' },
+  { label: 'Uppsala', value: 'Uppsala' },
+  { label: 'Linköping', value: 'Linköping' },
+  { label: 'Örebro', value: 'Örebro' },
+  { label: 'Annat', value: 'Annat' },
 ];
 
 export const GENDER_OPTIONS = [
