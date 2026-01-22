@@ -6,9 +6,11 @@ import type { FormConfig } from '@/components/forms';
 import { createPersonalFormConfig } from '@/utils/settings/formConfigs';
 import { handlePersonalFormSubmit } from '@/utils/settings/handlers';
 import { PersonalTab } from '@/components/portal/settings/components/TabContent';
+import { useNotification } from '@/hooks/useNotification';
 
 export default function PersonalSettingsPage() {
   const { user, loading: sessionLoading } = useSession();
+  const { showSuccess, showError } = useNotification();
   const [profileImage, setProfileImage] = useState<string | undefined>();
 
   useEffect(() => {
@@ -23,13 +25,14 @@ export default function PersonalSettingsPage() {
       if (!user?.email) return;
       try {
         await handlePersonalFormSubmit(user.email, data, user?.profile);
-        alert('Inställningar sparade!');
+        showSuccess('Inställningar sparade!');
       } catch (error) {
         console.error('Failed to save settings:', error);
+        showError('Kunde inte spara inställningar. Försök igen.');
         throw new Error('Kunde inte spara inställningar. Försök igen.');
       }
     },
-    [user?.email]
+    [showError, showSuccess, user?.email, user?.profile]
   );
 
   // Form configuration

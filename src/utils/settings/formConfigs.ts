@@ -90,8 +90,7 @@ export function createPersonalFormConfig(
     ],
     submitButtonLabel: 'SPARA',
     onSubmit,
-    successMessage: 'Inställningar sparade!',
-    showSuccessMessage: true,
+    showSuccessMessage: false,
   };
 }
 
