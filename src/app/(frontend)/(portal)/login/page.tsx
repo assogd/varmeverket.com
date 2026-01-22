@@ -6,6 +6,7 @@ import { getInputClasses } from '@/components/forms/fields/shared/inputStyles';
 import { fetchServerSession } from '@/lib/serverSession';
 import { VarmeverketIcon } from '@/components/icons';
 import { Heading } from '@/components/headings';
+import { Button } from '@/components/ui';
 
 async function signOnAction(formData: FormData) {
   'use server';
@@ -64,13 +65,11 @@ export default async function LoginPage({
   const sent = searchParams?.sent === '1';
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm space-y-8">
-        <div className="space-y-3">
-          <Heading variant="section" as="h2" center>
-            Logga in
-          </Heading>
-        </div>
+        <Heading variant="section" as="h2" center className="pb-4">
+          Logga in
+        </Heading>
 
         {errorMessage && (
           <div className="p-4 rounded border bg-red-50 border-red-500 text-red-800">
@@ -90,11 +89,8 @@ export default async function LoginPage({
         {!sent && (
           <form action={signOnAction} className="space-y-6">
             <div>
-              <label
-                htmlFor="login-email"
-                className="block text-sm font-medium mb-2"
-              >
-                Din epostadress <span aria-hidden="true">*</span>
+              <label htmlFor="login-email" className="hidden mb-2">
+                Din epostadress
               </label>
               <input
                 id="login-email"
@@ -104,16 +100,13 @@ export default async function LoginPage({
                 placeholder="Din epostadress"
                 className={getInputClasses()}
               />
-              <p className="text-xs text-text/70 dark:text-dark-text/70 mt-2">
+              <p className="text-sm mt-2">
                 En inloggningslänk kommer att skickas till dig.
               </p>
             </div>
-            <button
-              type="submit"
-              className="uppercase bg-text text-bg mix-blend-multiply rounded-md block text-center w-full px-4 py-3.5 transition-transform duration-75 ease-out active:scale-[0.99] hover:bg-opacity-90"
-            >
-              GÅ VIDARE
-            </button>
+            <Button type="submit" className="w-full" variant="primary">
+              Gå vidare
+            </Button>
           </form>
         )}
 
