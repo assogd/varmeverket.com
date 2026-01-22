@@ -104,8 +104,12 @@ export default async function LoginPage({
                 En inloggningslänk kommer att skickas till dig.
               </p>
             </div>
-            <Button type="submit" className="w-full" variant="primary">
-              Gå vidare
+            <Button
+              type="submit"
+              className="w-full mix-blend-normal"
+              variant="primary"
+            >
+              <span className="mix-blend-multiply text-bg">Gå vidare</span>
             </Button>
           </form>
         )}
