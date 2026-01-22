@@ -68,7 +68,6 @@ export function createPersonalFormConfig(
         createFieldBlock('address_code', 'Postnummer', 'text', {
           required: false,
           placeholder: '123 45',
-          helpText: 'Fem siffror.',
           defaultValue: defaults.address_code,
           inputMode: 'numeric',
           pattern: '^\\d{3}\\s?\\d{2}$',
