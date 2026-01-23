@@ -24,7 +24,15 @@ export const LoginNotifications = ({ errorMessage }: LoginNotificationsProps) =>
     if (normalized.includes('email är obligatorisk') || normalized.includes('email is required')) {
       return 'Fyll i din epostadress.';
     }
-    return 'Fel, försök igen om en stund.';
+    if (
+      normalized.includes('network') ||
+      normalized.includes('fetch') ||
+      normalized.includes('ssl') ||
+      normalized.includes('connection')
+    ) {
+      return 'Fel, försök igen om en stund.';
+    }
+    return message;
   };
 
   useEffect(() => {
