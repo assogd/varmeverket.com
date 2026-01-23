@@ -14,6 +14,7 @@ import type { FormConfig } from '@/components/forms';
 import { AppLink, Button } from '@/components/ui';
 import { SectionFrame } from '@/components/layout/SectionFrame';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
+import { useNotification } from '@/hooks/useNotification';
 
 interface PersonalTabProps {
   formConfig: FormConfig;
@@ -67,6 +68,7 @@ const getDefaultAccess = (user?: User | null) => {
 
 export function AccountTab({ formConfig, user }: AccountTabProps) {
   const router = useRouter();
+  const { showError } = useNotification();
   const [selectedAccess, setSelectedAccess] = useState(() =>
     getDefaultAccess(user)
   );
@@ -84,6 +86,7 @@ export function AccountTab({ formConfig, user }: AccountTabProps) {
       router.refresh();
     } catch (error) {
       console.error('Logout failed:', error);
+      showError('Kunde inte logga ut. Försök igen.');
       router.push('/login');
       router.refresh();
     } finally {

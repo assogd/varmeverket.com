@@ -7,6 +7,7 @@ import { fetchServerSession } from '@/lib/serverSession';
 import { VarmeverketIcon } from '@/components/icons';
 import { Heading } from '@/components/headings';
 import { Button } from '@/components/ui';
+import { LoginNotifications } from '@/components/auth/LoginNotifications';
 
 async function signOnAction(formData: FormData) {
   'use server';
@@ -65,26 +66,13 @@ export default async function LoginPage({
   const sent = searchParams?.sent === '1';
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6 pt-12">
       <div className="w-full max-w-xs space-y-6">
         <Heading variant="section" as="h2" center className="pb-10">
           Logga in
         </Heading>
 
-        {errorMessage && (
-          <div className="p-4 rounded border bg-red-50 border-red-500 text-red-800">
-            <p className="font-mono text-sm">{errorMessage}</p>
-          </div>
-        )}
-
-        {sent && (
-          <div className="p-4 rounded border bg-green-50 border-green-500 text-green-800">
-            <p className="font-mono text-sm">
-              Kolla din inkorg. Vi har skickat en temporär inloggningslänk till
-              dig.
-            </p>
-          </div>
-        )}
+        <LoginNotifications errorMessage={errorMessage} sent={sent} />
 
         {!sent && (
           <form action={signOnAction} className="space-y-6">
@@ -117,8 +105,9 @@ export default async function LoginPage({
         <p className="text-center">
           Inte medlem?{' '}
           <Link className="underline" href="/membership/application">
-            Ansök om medlemskap här.
+            Ansök om medlemskap här
           </Link>
+          .
         </p>
       </div>
 

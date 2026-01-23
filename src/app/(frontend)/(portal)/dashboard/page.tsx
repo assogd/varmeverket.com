@@ -13,9 +13,11 @@ import PageLayout from '@/components/layout/PageLayout';
 import { BookingsList, type Booking } from '@/components/ui';
 import { isAdmin, getUserRoles } from '@/utils/adminAuth';
 import Link from 'next/link';
+import { useNotification } from '@/hooks/useNotification';
 
 export default function DashboardPage() {
   const { user, loading, error } = useSession();
+  const { showError } = useNotification();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
   const [bookingsError, setBookingsError] = useState<string | null>(null);
@@ -42,6 +44,23 @@ export default function DashboardPage() {
       console.log('💡 This suggests a backend configuration issue.');
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (
+      error &&
+      !error.includes('401') &&
+      !error.includes('400') &&
+      !error.includes('Not authenticated')
+    ) {
+      showError(`Authentication Error: ${error}`);
+    }
+  }, [error, showError]);
+
+  useEffect(() => {
+    if (bookingsError) {
+      showError(bookingsError);
+    }
+  }, [bookingsError, showError]);
 
   useEffect(() => {
     if (user?.email) {
@@ -192,104 +211,37 @@ export default function DashboardPage() {
         <div className="max-w-4xl mx-auto px-8 pb-8">
           {loading ? (
             <p>Loading...</p>
-          ) : error &&
-            !error.includes('401') &&
-            !error.includes('400') &&
-            !error.includes('Not authenticated') ? (
-            <div>Authentication Error: {error}</div>
           ) : (
             <div className="space-y-6">
-              {/* User Role Info */}
-              {user && (
-                <div className="p-6 bg-bg dark:bg-dark-bg border border-text/20 dark:border-dark-text/20 rounded-lg">
-                  <h2 className="text-lg font-semibold mb-4">Account Information</h2>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-sm font-medium text-text/70 dark:text-dark-text/70">Email:</span>{' '}
-                      <span className="text-sm text-text dark:text-dark-text">{user.email}</span>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-text/70 dark:text-dark-text/70">Name:</span>{' '}
-                      <span className="text-sm text-text dark:text-dark-text">{user.name || 'Not set'}</span>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-text/70 dark:text-dark-text/70">Roles:</span>{' '}
-                      <span className="text-sm text-text dark:text-dark-text font-mono">
-                        {getUserRoles(user)}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-text/70 dark:text-dark-text/70">Admin Status:</span>{' '}
-                      <span
-                        className={`text-sm font-semibold ${
-                          isAdmin(user)
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}
-                      >
-                        {isAdmin(user) ? '✓ Yes - You have admin access' : '✗ No - You do not have admin access'}
-                      </span>
-                    </div>
-                    {isAdmin(user) && (
-                      <div className="pt-3 border-t border-text/20 dark:border-dark-text/20">
-                        <Link
-                          href="/portal/admin"
-                          className="inline-block px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm font-medium"
-                        >
-                          Go to Admin Panel →
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Debug: Show full user object */}
-                  <details className="mt-4 pt-4 border-t border-text/10 dark:border-dark-text/10">
-                    <summary className="text-xs text-text/60 dark:text-dark-text/60 cursor-pointer hover:text-text/80 dark:hover:text-dark-text/80">
-                      Debug: View full user data
-                    </summary>
-                    <pre className="mt-2 text-xs overflow-auto p-4 bg-text/5 dark:bg-dark-text/5 rounded">
-                      {JSON.stringify(user, null, 2)}
-                    </pre>
-                  </details>
-                </div>
+              {bookingsError && (
+                <button
+                  onClick={() => {
+                    if (user?.email) {
+                      setBookingsLoading(true);
+                      setBookingsError(null);
+                      BackendAPI.getBookings(user.email)
+                        .then((data: BackendBooking[]) => {
+                          setBookings(data as unknown as Booking[]);
+                          setBookingsError(null);
+                        })
+                        .catch(error => {
+                          const errorMessage =
+                            error instanceof Error
+                              ? error.message
+                              : 'Failed to load bookings. Please try again later.';
+                          setBookingsError(errorMessage);
+                        })
+                        .finally(() => {
+                          setBookingsLoading(false);
+                        });
+                    }
+                  }}
+                  className="mt-3 px-4 py-2 bg-text text-bg rounded hover:bg-text/90 transition-colors"
+                >
+                  Försök igen
+                </button>
               )}
-
-              {bookingsError ? (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                  <p className="text-red-800 dark:text-red-200 font-semibold mb-2">
-                    Error loading bookings
-                  </p>
-                  <p className="text-red-700 dark:text-red-300 text-sm">
-                    {bookingsError}
-                  </p>
-                  <button
-                    onClick={() => {
-                      if (user?.email) {
-                        setBookingsLoading(true);
-                        setBookingsError(null);
-                        BackendAPI.getBookings(user.email)
-                          .then((data: BackendBooking[]) => {
-                            setBookings(data as unknown as Booking[]);
-                            setBookingsError(null);
-                          })
-                          .catch(error => {
-                            const errorMessage =
-                              error instanceof Error
-                                ? error.message
-                                : 'Failed to load bookings. Please try again later.';
-                            setBookingsError(errorMessage);
-                          })
-                          .finally(() => {
-                            setBookingsLoading(false);
-                          });
-                      }
-                    }}
-                    className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                  >
-                    Retry
-                  </button>
-                </div>
-              ) : (
+              {!bookingsError && (
                 <BookingsList
                   bookings={bookings}
                   loading={bookingsLoading}

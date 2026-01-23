@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useNotification } from '@/hooks/useNotification';
 
 interface User {
   email: string;
@@ -40,16 +41,15 @@ export function UsersList() {
   const [email, setEmail] = useState('');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { showError, showWarning } = useNotification();
 
   const handleSearch = async () => {
     if (!email.trim()) {
-      setError('Please enter an email address');
+      showError('Please enter an email address');
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const response = await fetch(
@@ -62,7 +62,7 @@ export function UsersList() {
         // If it's a 404, still set the data to show warnings if available
         if (response.status === 404 && data.warnings) {
           setUserData(data);
-          setError(data.message || 'User not found');
+          showWarning(data.message || 'User not found');
         } else {
           throw new Error(data.message || 'Failed to fetch user data');
         }
@@ -70,7 +70,7 @@ export function UsersList() {
         setUserData(data);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      showError(err instanceof Error ? err.message : 'Unknown error');
       setUserData(null);
     } finally {
       setLoading(false);
@@ -112,15 +112,6 @@ export function UsersList() {
       {loading && (
         <div className="p-8 text-center text-text/70 dark:text-dark-text/70">
           Loading user data...
-        </div>
-      )}
-
-      {error && (
-        <div className="p-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-red-800 dark:text-red-200 font-semibold mb-2">
-            Error loading user data
-          </p>
-          <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
         </div>
       )}
 
@@ -256,23 +247,6 @@ export function UsersList() {
             </div>
           )}
 
-          {userData.warnings && (
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-              <p className="text-yellow-800 dark:text-yellow-200 text-sm font-semibold mb-2">
-                Warnings:
-              </p>
-              {userData.warnings.userError && (
-                <p className="text-yellow-700 dark:text-yellow-300 text-sm">
-                  User endpoint: {userData.warnings.userError}
-                </p>
-              )}
-              {userData.warnings.emailError && (
-                <p className="text-yellow-700 dark:text-yellow-300 text-sm">
-                  Email endpoint: {userData.warnings.emailError}
-                </p>
-              )}
-            </div>
-          )}
         </div>
       )}
     </div>

@@ -17,6 +17,7 @@ import { Heading } from '@/components/headings';
 import { SectionFrame } from '@/components/layout/SectionFrame';
 import { MarqueeButton, Button } from '@/components/ui';
 import clsx from 'clsx';
+import { useNotification } from '@/hooks/useNotification';
 
 interface FormRendererProps {
   config: FormConfig;
@@ -168,10 +169,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<{
-    type: 'success' | 'error';
-    message: string;
-  } | null>(null);
+  const { showSuccess, showError } = useNotification();
 
   const validateField = (fieldName: string, value: unknown): string | null => {
     const field = allFields.find(f => f.name === fieldName);
@@ -243,16 +241,10 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       });
     }
 
-    // Clear submit status when user starts typing
-    if (submitStatus) {
-      setSubmitStatus(null);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitStatus(null);
-
     if (!validateForm()) {
       return;
     }
@@ -272,11 +264,9 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
       // Show success message if enabled
       if (convertedConfig.showSuccessMessage !== false) {
-        setSubmitStatus({
-          type: 'success',
-          message:
-            convertedConfig.successMessage || 'Form submitted successfully!',
-        });
+        showSuccess(
+          convertedConfig.successMessage || 'Form submitted successfully!'
+        );
       }
 
       // Reset form if no custom handlers
@@ -289,10 +279,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
           ? error.message
           : 'Failed to submit form. Please try again.';
 
-      setSubmitStatus({
-        type: 'error',
-        message: errorMessage,
-      });
+      showError(errorMessage);
 
       // Call onError callback if provided
       if (convertedConfig.onError) {
@@ -311,19 +298,6 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
         <Heading variant="page-header" as="h1" className="mb-6 text-center">
           {convertedConfig.title}
         </Heading>
-      )}
-
-      {submitStatus && (
-        <div
-          className={clsx(
-            'mb-6 p-4 rounded border',
-            submitStatus.type === 'success'
-              ? 'bg-green-50 border-green-500 text-green-800'
-              : 'bg-red-50 border-red-500 text-red-800'
-          )}
-        >
-          <p className="font-mono text-sm">{submitStatus.message}</p>
-        </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6 p-2">
