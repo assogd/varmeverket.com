@@ -30,7 +30,7 @@ export const LoginNotifications = ({ errorMessage }: LoginNotificationsProps) =>
   useEffect(() => {
     if (hasNotified.current) return;
     if (errorMessage) {
-      showError(getReadableError(errorMessage), { duration: 10000 });
+      showError(getReadableError(errorMessage), { duration: 20000 });
       hasNotified.current = true;
     }
   }, [errorMessage, showError]);
