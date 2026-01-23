@@ -14,7 +14,7 @@ export const LoginNotifications = ({ errorMessage }: LoginNotificationsProps) =>
   useEffect(() => {
     if (hasNotified.current) return;
     if (errorMessage) {
-      showError('Error, try again in a minute', { duration: 10000 });
+      showError('Fel, försök igen om en stund.', { duration: 10000 });
       hasNotified.current = true;
     }
   }, [errorMessage, showError]);
