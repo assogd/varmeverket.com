@@ -17,7 +17,7 @@ export const LoginNotifications = ({ errorMessage }: LoginNotificationsProps) =>
       showError('Error, try again in a minute', { duration: 10000 });
       hasNotified.current = true;
     }
-  }, [errorMessage, showError, showSuccess]);
+  }, [errorMessage, showError]);
 
   return null;
 };
