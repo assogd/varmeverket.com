@@ -72,7 +72,18 @@ export default async function LoginPage({
           Logga in
         </Heading>
 
-        <LoginNotifications errorMessage={errorMessage} sent={sent} />
+        <LoginNotifications errorMessage={errorMessage} />
+
+        {sent && (
+          <div className="space-y-2 text-center">
+            <Heading variant="section" as="h2" center className="pb-2">
+              Kolla din inkorg
+            </Heading>
+            <p className="text-sm">
+              Vi har skickat en temporär inloggningslänk till dig.
+            </p>
+          </div>
+        )}
 
         {!sent && (
           <form action={signOnAction} className="space-y-6">

@@ -5,30 +5,19 @@ import { useNotification } from '@/hooks/useNotification';
 
 interface LoginNotificationsProps {
   errorMessage?: string | null;
-  sent?: boolean;
 }
 
-export const LoginNotifications = ({
-  errorMessage,
-  sent,
-}: LoginNotificationsProps) => {
-  const { showError, showSuccess } = useNotification();
+export const LoginNotifications = ({ errorMessage }: LoginNotificationsProps) => {
+  const { showError } = useNotification();
   const hasNotified = useRef(false);
 
   useEffect(() => {
     if (hasNotified.current) return;
     if (errorMessage) {
-      showError(errorMessage);
-      hasNotified.current = true;
-      return;
-    }
-    if (sent) {
-      showSuccess(
-        'Kolla din inkorg. Vi har skickat en temporär inloggningslänk till dig.'
-      );
+      showError('Error, try again in a minute', { duration: 10000 });
       hasNotified.current = true;
     }
-  }, [errorMessage, sent, showError, showSuccess]);
+  }, [errorMessage, showError, showSuccess]);
 
   return null;
 };
