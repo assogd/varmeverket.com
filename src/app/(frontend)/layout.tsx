@@ -3,11 +3,10 @@ import localFont from 'next/font/local';
 import './globals.css';
 import {
   type NavigationData,
-  UrlBasedTheme,
   BackgroundLoader,
 } from '@/components/layout';
 import Chrome from '@/components/layout/Chrome';
-import { ThemeProvider } from 'next-themes';
+import { PathBasedThemeProvider } from '@/components/layout/PathBasedThemeProvider';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { NotificationContainer } from '@/components/notifications';
 import {
@@ -116,10 +115,9 @@ async function getNavigation() {
 
 async function getFooter() {
   try {
-    const footer = await PayloadAPI.getGlobal<{ links?: Array<{ link: unknown }> }>(
-      'footer',
-      3
-    );
+    const footer = await PayloadAPI.getGlobal<{
+      links?: Array<{ link: unknown }>;
+    }>('footer', 3);
     return footer;
   } catch (error) {
     console.error('Failed to fetch footer in layout:', error);
@@ -139,24 +137,18 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
     ? `${sans.variable} ${mono.variable} ${display.variable} ${ballPill.variable} font-sans bg-bg dark:bg-dark-bg text-text dark:text-dark-text`
     : '';
 
-  // Get pathname from headers to determine if we're on homepage
-  // const headersList = await import('next/headers').then(m => m.headers());
-  // const pathname = headersList.get('x-pathname') || '/';
+  const headersList = await import('next/headers').then(m => m.headers());
+  const themeFromHeader = headersList.get('x-portal-theme') ?? 'light';
 
+  const finalHtmlClass = `${htmlClass} ${themeFromHeader}`.trim();
   const mainClassName = 'min-h-screen';
 
   return (
-    <html lang="sv" className={htmlClass} suppressHydrationWarning>
+    <html lang="sv" className={finalHtmlClass} suppressHydrationWarning>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          storageKey={null}
-        >
+        <PathBasedThemeProvider initialThemeFromHeader={themeFromHeader as 'light' | 'dark' | 'orange'}>
           <NotificationProvider>
-            <UrlBasedTheme>
-              <BackgroundLoader>
+            <BackgroundLoader>
                 <Chrome
                   navigation={navigation}
                   footerLinks={footer?.links}
@@ -170,9 +162,8 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
                 </AdminContainer>
                 <NotificationContainer />
               </BackgroundLoader>
-            </UrlBasedTheme>
           </NotificationProvider>
-        </ThemeProvider>
+        </PathBasedThemeProvider>
       </body>
     </html>
   );

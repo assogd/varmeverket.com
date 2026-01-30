@@ -90,6 +90,12 @@ export interface FormConfig {
   sections?: FormSection[]; // Array of sections, each containing fields (deprecated, use content)
   submitButtonLabel?: string;
   submitButtonVariant?: 'marquee' | 'solid';
+  /** When using sections: optional title for the separate submit section (e.g. "Har du fyllt i alla uppgifter?") */
+  submitSectionTitle?: string;
+  /** Optional className for the submit button (e.g. text color to match page bg on orange theme) */
+  submitButtonClassName?: string;
+  /** Marquee submit button size: default (2.333em) or lg (2.5em) */
+  submitButtonSize?: 'default' | 'lg';
   onSubmit?: (data: Record<string, unknown>) => Promise<void> | void;
   onSuccess?: (data: Record<string, unknown>) => void;
   onError?: (error: Error) => void;

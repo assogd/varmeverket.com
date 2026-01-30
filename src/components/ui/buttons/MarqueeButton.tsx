@@ -13,6 +13,7 @@ interface MarqueeButtonProps {
   disabled?: boolean;
   className?: string;
   speed?: number;
+  size?: 'default' | 'lg';
 }
 
 export const MarqueeButton: React.FC<MarqueeButtonProps> = ({
@@ -22,6 +23,7 @@ export const MarqueeButton: React.FC<MarqueeButtonProps> = ({
   disabled = false,
   className = '',
   speed = 50,
+  size = 'default',
 }) => {
   const isDark = useIsDark();
 
@@ -31,8 +33,13 @@ export const MarqueeButton: React.FC<MarqueeButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       className={clsx(
-        'w-full h-[2.333em] px-0 uppercase border border-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none transition-transform duration-75 ease-out active:scale-[0.99]',
-        isDark ? 'border border-text' : 'bg-text text-bg mix-blend-multiply',
+        'w-full px-0 uppercase border border-text rounded-sm inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none transition-transform duration-75 ease-out active:scale-[0.99]',
+        size === 'lg' ? 'h-[2.75em]' : 'h-[2.333em]',
+        isDark
+          ? 'border border-text'
+          : className
+            ? 'bg-text'
+            : 'bg-text text-bg mix-blend-multiply',
         disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-90',
         className
       )}
