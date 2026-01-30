@@ -19,12 +19,7 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
   className = '',
 }) => {
   const labelClasses = clsx(
-    'relative block mb-2 mx-1 font-sans transition-colors',
-    {
-      'text-red-500': error,
-      'text-text': !error && focused,
-      '': !error && !focused,
-    },
+    'relative block mb-2 mx-1 font-sans transition-colors text-text',
     className
   );
 

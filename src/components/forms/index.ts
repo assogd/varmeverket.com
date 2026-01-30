@@ -73,7 +73,41 @@ export type {
   FormFieldBlock,
   FormSectionBlock,
   FormContentBlock,
+  FieldCondition,
 } from './types';
+
+/**
+ * Convert a FieldCondition (JSON-serializable) to a showIf function
+ * Used for CMS forms where conditions are stored as JSON
+ */
+export function conditionToShowIf(
+  condition: FieldCondition
+): (formValues: FormValues) => boolean {
+  const { field, value, operator = 'equals' } = condition;
+  return (formValues: FormValues) => {
+    const fieldValue = formValues[field];
+    switch (operator) {
+      case 'equals':
+        return fieldValue === value;
+      case 'notEquals':
+        return fieldValue !== value;
+      case 'contains':
+        return (
+          typeof fieldValue === 'string' &&
+          typeof value === 'string' &&
+          fieldValue.includes(value)
+        );
+      case 'notContains':
+        return !(
+          typeof fieldValue === 'string' &&
+          typeof value === 'string' &&
+          fieldValue.includes(value)
+        );
+      default:
+        return fieldValue === value;
+    }
+  };
+}
 
 /**
  * Helper function to create form field blocks easily

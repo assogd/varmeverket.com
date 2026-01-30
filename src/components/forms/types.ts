@@ -27,6 +27,19 @@ export interface FormFieldOption {
   value: string;
 }
 
+/**
+ * JSON-serializable condition for conditional field visibility (CMS-friendly)
+ * Converts to a showIf function at runtime
+ */
+export interface FieldCondition {
+  /** Field name to check */
+  field: string;
+  /** Value to compare against */
+  value: string | number | boolean;
+  /** Comparison operator (default: 'equals') */
+  operator?: 'equals' | 'notEquals' | 'contains' | 'notContains';
+}
+
 export interface FormField {
   name: string;
   label: string;
@@ -43,6 +56,8 @@ export interface FormField {
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
   pattern?: string;
   maxLength?: number;
+  /** Conditionally show field based on form values. Return true to show, false to hide. */
+  showIf?: (formValues: FormValues) => boolean;
 }
 
 export interface FormSection {
@@ -69,6 +84,10 @@ export interface FormFieldBlock {
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
   pattern?: string;
   maxLength?: number;
+  /** Conditionally show field based on form values. Return true to show, false to hide. */
+  showIf?: (formValues: FormValues) => boolean;
+  /** JSON-serializable condition for CMS (converted to showIf at runtime) */
+  conditionalField?: FieldCondition;
   [key: string]: unknown; // Allow additional block-specific properties
 }
 

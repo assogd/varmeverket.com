@@ -28,7 +28,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     onSubmit: async (data) => {
       const email = data.email as string;
       if (!email) {
-        throw new Error('Email is required');
+        throw new Error('E-postadress är obligatorisk');
       }
       await BackendAPI.signOn(email, redirectUrl);
     },

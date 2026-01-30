@@ -9,6 +9,7 @@ interface CheckboxFieldProps {
   value: unknown;
   error?: string;
   onChange: (value: boolean) => void;
+  onBlur?: () => void;
   disabled?: boolean;
 }
 
@@ -17,9 +18,10 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({
   value,
   error,
   onChange,
+  onBlur: onBlurCallback,
   disabled = false,
 }) => {
-  const { focused, onFocus, onBlur } = useFieldFocus();
+  const { focused, onFocus, onBlur } = useFieldFocus(onBlurCallback);
   const fieldId = `field-${field.name}`;
 
   // Ensure checkbox always gets a proper boolean value

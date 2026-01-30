@@ -40,10 +40,8 @@ export const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
         className={clsx(
           'relative flex items-center justify-center w-5 h-5 rounded border-2 cursor-pointer transition-all duration-200',
           {
-            'bg-bg border-text hover:border-text/80': !checked && !error,
-            'bg-text border-text': checked && !error,
-            'bg-red-500 border-red-500': error && checked,
-            'border-red-500': error && !checked,
+            'bg-bg border-text hover:border-text/80': !checked,
+            'bg-text border-text': checked,
             'opacity-50 cursor-not-allowed': disabled,
             'focus-within:ring-2 focus-within:ring-text focus-within:ring-offset-2':
               !disabled,

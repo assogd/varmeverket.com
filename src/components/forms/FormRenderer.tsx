@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FormFieldComponent } from './FormField';
 import type {
   FormConfig,
@@ -56,6 +56,13 @@ const convertFormFieldBlockToFormField = (
     return null;
   }
 
+  // Convert conditionalField (CMS JSON) to showIf function if present
+  let showIf = block.showIf;
+  if (!showIf && block.conditionalField) {
+    const { conditionToShowIf } = require('./index');
+    showIf = conditionToShowIf(block.conditionalField);
+  }
+
   return {
     name: block.name,
     label: block.label,
@@ -70,6 +77,7 @@ const convertFormFieldBlockToFormField = (
     inputMode: block.inputMode,
     pattern: block.pattern,
     maxLength: block.maxLength,
+    showIf,
   };
 };
 
@@ -168,6 +176,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     return defaults;
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
   const { showSuccess, showError } = useNotification();
 
@@ -207,6 +216,11 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     let isValid = true;
 
     allFields.forEach(field => {
+      // Skip validation for fields that are hidden (conditional fields)
+      if (field.showIf && !field.showIf(formValues)) {
+        return;
+      }
+
       const error = validateField(field.name, formValues[field.name]);
       if (error) {
         newErrors[field.name] = error;
@@ -227,6 +241,28 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       [fieldName]: value,
     }));
 
+    // Only validate if field has been touched (blurred)
+    if (touched[fieldName]) {
+      const fieldError = validateField(fieldName, value);
+      if (fieldError) {
+        setErrors(prev => ({
+          ...prev,
+          [fieldName]: fieldError,
+        }));
+      } else if (errors[fieldName]) {
+        setErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[fieldName];
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const handleFieldBlur = (fieldName: string) => {
+    setTouched(prev => ({ ...prev, [fieldName]: true }));
+    // Validate on blur (may run with stale formValues if blur fires same tick as onChange, e.g. select)
+    const value = formValues[fieldName];
     const fieldError = validateField(fieldName, value);
     if (fieldError) {
       setErrors(prev => ({
@@ -241,6 +277,61 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       });
     }
   };
+
+  // Re-validate touched fields when formValues change (fixes select: onChange then onBlur same tick = stale value)
+  useEffect(() => {
+    setErrors(prev => {
+      const next = { ...prev };
+      allFields.forEach(field => {
+        if (!touched[field.name]) return;
+        if (field.showIf && !field.showIf(formValues)) return;
+        const value = formValues[field.name];
+        const fieldError = validateField(field.name, value);
+        if (fieldError) {
+          next[field.name] = fieldError;
+        } else {
+          delete next[field.name];
+        }
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formValues]);
+
+  // Clear values and errors for conditional fields that are now hidden
+  useEffect(() => {
+    allFields.forEach(field => {
+      if (field.showIf) {
+        const shouldShow = field.showIf(formValues);
+        if (!shouldShow) {
+          // Field should be hidden - clear its value and error
+          if (formValues[field.name] !== undefined) {
+            setFormValues(prev => {
+              const next = { ...prev };
+              delete next[field.name];
+              return next;
+            });
+          }
+          if (errors[field.name]) {
+            setErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors[field.name];
+              return newErrors;
+            });
+          }
+          if (touched[field.name]) {
+            setTouched(prev => {
+              const next = { ...prev };
+              delete next[field.name];
+              return next;
+            });
+          }
+        }
+      }
+    });
+    // Only run when formValues change (when user interacts with form)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formValues]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -318,16 +409,19 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                   {sectionIndex === 0 && convertedConfig.customFirstField && (
                     <div>{convertedConfig.customFirstField}</div>
                   )}
-                  {section.fields.map(field => (
-                    <FormFieldComponent
-                      key={field.name}
-                      field={field}
-                      value={formValues[field.name]}
-                      error={errors[field.name]}
-                      onChange={value => handleInputChange(field.name, value)}
-                      disabled={isLoading}
-                    />
-                  ))}
+                  {section.fields
+                    .filter(field => !field.showIf || field.showIf(formValues))
+                    .map(field => (
+                      <FormFieldComponent
+                        key={field.name}
+                        field={field}
+                        value={formValues[field.name]}
+                        error={touched[field.name] ? errors[field.name] : undefined}
+                        onChange={value => handleInputChange(field.name, value)}
+                        onBlur={() => handleFieldBlur(field.name)}
+                        disabled={isLoading}
+                      />
+                    ))}
                 </div>
               </SectionFrame>
             ))}
@@ -375,16 +469,19 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
           // Render flat fields (backward compatibility)
           <div className="max-w-2xl mx-auto border-r border-l border-text p-12">
             <div className="grid gap-6">
-              {(convertedConfig.fields || allFields).map(field => (
-                <FormFieldComponent
-                  key={field.name}
-                  field={field}
-                  value={formValues[field.name]}
-                  error={errors[field.name]}
-                  onChange={value => handleInputChange(field.name, value)}
-                  disabled={isLoading}
-                />
-              ))}
+              {(convertedConfig.fields || allFields)
+                .filter(field => !field.showIf || field.showIf(formValues))
+                .map(field => (
+                  <FormFieldComponent
+                    key={field.name}
+                    field={field}
+                    value={formValues[field.name]}
+                    error={touched[field.name] ? errors[field.name] : undefined}
+                    onChange={value => handleInputChange(field.name, value)}
+                    onBlur={() => handleFieldBlur(field.name)}
+                    disabled={isLoading}
+                  />
+                ))}
             </div>
             <div className="mt-6">
               {convertedConfig.submitButtonVariant === 'marquee' ? (

@@ -37,8 +37,7 @@ export const FieldWrapper: React.FC<FieldWrapperProps> = ({
             error={error}
             focused={focused}
           />
-          <FieldHelpText helpText={field.helpText} />
-          <FieldError error={error} />
+          {error ? <FieldError error={error} /> : <FieldHelpText helpText={field.helpText} />}
         </div>
       </div>
     );
@@ -54,8 +53,7 @@ export const FieldWrapper: React.FC<FieldWrapperProps> = ({
         focused={focused}
       />
       {children}
-      <FieldHelpText helpText={field.helpText} />
-      <FieldError error={error} />
+      {error ? <FieldError error={error} /> : <FieldHelpText helpText={field.helpText} />}
     </div>
   );
 };

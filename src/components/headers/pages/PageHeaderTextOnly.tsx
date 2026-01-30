@@ -28,7 +28,7 @@ export default function PageHeaderTextOnly({
         {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
         <RichText
           data={text}
-          className="grid gap-3 justify-center"
+          className="flex flex-col gap-3 justify-center items-center"
           converters={jsxConverter}
         />
         {linkResult?.href && link?.text && (

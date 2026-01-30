@@ -282,8 +282,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           className={clsx(
             'w-full px-4 py-4 border bg-bg text-text font-sans rounded focus:outline-none focus:border-1 transition-all text-left flex items-center justify-between',
             {
-              'border-red-500 focus:border-red-500': error,
-              'border-text focus:border-text': !error,
+              'border-text focus:border-text': true,
               'opacity-50 cursor-not-allowed': isSelectDisabled,
             }
           )}

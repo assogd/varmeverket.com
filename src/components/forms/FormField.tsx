@@ -23,6 +23,7 @@ interface FormFieldProps {
   value: unknown;
   error?: string;
   onChange: (value: string | number | boolean) => void;
+  onBlur?: () => void;
   disabled?: boolean;
 }
 
@@ -35,6 +36,7 @@ export const FormFieldComponent: React.FC<FormFieldProps> = ({
   value,
   error,
   onChange,
+  onBlur,
   disabled = false,
 }) => {
   // Type-safe onChange handlers
@@ -46,6 +48,7 @@ export const FormFieldComponent: React.FC<FormFieldProps> = ({
     field,
     value,
     error,
+    onBlur,
     disabled,
   };
 

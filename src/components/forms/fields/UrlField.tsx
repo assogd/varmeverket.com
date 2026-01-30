@@ -9,6 +9,7 @@ interface UrlFieldProps {
   value: unknown;
   error?: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   disabled?: boolean;
 }
 
@@ -17,9 +18,10 @@ export const UrlField: React.FC<UrlFieldProps> = ({
   value,
   error,
   onChange,
+  onBlur: onBlurCallback,
   disabled = false,
 }) => {
-  const { focused, onFocus, onBlur } = useFieldFocus();
+  const { focused, onFocus, onBlur } = useFieldFocus(onBlurCallback);
   const fieldId = `field-${field.name}`;
   const displayValue =
     (value !== undefined && value !== null ? String(value) : '') ||

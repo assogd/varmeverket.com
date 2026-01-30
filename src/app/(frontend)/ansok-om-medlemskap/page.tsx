@@ -70,6 +70,11 @@ export default function AnsokOmMedlemskapPage() {
     () => ({
       sections: [
         createSection('Personuppgifter', [
+          createField('email', 'E-postadress', 'email', {
+            required: true,
+            placeholder: 'din@epost.se',
+            helpText: 'Obligatoriskt för medlemsansökan.',
+          }),
           createField('name', 'För- och efternamn', 'text', {
             required: true,
             placeholder: 'Ditt offentliga visningsnamn',
@@ -138,9 +143,9 @@ export default function AnsokOmMedlemskapPage() {
             }
           ),
           createField('creativeFieldOther', 'Vänligen specificera', 'text', {
-            required: false,
-            placeholder: 'Om du valde Övrigt ovan',
-            helpText: 'Om du valde Övrigt ovan, specificera här.',
+            required: true,
+            placeholder: 'Skriv här',
+            showIf: (formValues) => formValues.creativeField === 'other',
           }),
           createField(
             'membershipMotivation',

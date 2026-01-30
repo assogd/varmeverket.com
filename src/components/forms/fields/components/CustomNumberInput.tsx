@@ -219,8 +219,7 @@ export const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
         className={clsx(
           'flex items-center border rounded focus-within:border-1 transition-all',
           {
-            'border-red-500 focus-within:border-red-500': error,
-            'border-text focus-within:border-text': !error,
+            'border-text focus-within:border-text': true,
           }
         )}
       >
