@@ -158,12 +158,13 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   }, [config, customFirstField]);
 
   // Get all fields from sections or flat fields array (for backward compatibility)
+  // Use convertedConfig (single ref) so dependency array size stays constant and React doesn't warn
   const allFields = useMemo<FormField[]>(() => {
     if (convertedConfig.sections) {
       return convertedConfig.sections.flatMap(section => section.fields);
     }
     return convertedConfig.fields || [];
-  }, [convertedConfig.sections, convertedConfig.fields]);
+  }, [convertedConfig]);
 
   const [formValues, setFormValues] = useState<FormValues>(() => {
     // Initialize with default values

@@ -260,6 +260,13 @@ export class PayloadAPI {
     user_id: number | null;
     created_at: string;
     archived: number;
+    status_history?: Array<{
+      id: number;
+      submission_id: number;
+      status: string;
+      note: string | null;
+      created_at: string;
+    }>;
   }> {
     // Import BackendAPI to use its submitForm method
     // This ensures we use the correct endpoint and authentication
@@ -283,6 +290,7 @@ export class PayloadAPI {
       Object.entries(formData).forEach(([key, value]) => {
         formBody.append(key, String(value));
       });
+      const bodyStr = formBody.toString();
 
       const response = await fetch(url, {
         method: 'POST',
@@ -290,11 +298,17 @@ export class PayloadAPI {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: formBody.toString(),
+        body: bodyStr,
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const rawText = await response.text();
+        let errorData: { message?: string } = {};
+        try {
+          errorData = JSON.parse(rawText) as { message?: string };
+        } catch {
+          errorData = {};
+        }
         throw new Error(
           errorData.message ||
             `Form submission failed: ${response.status} ${response.statusText}`
