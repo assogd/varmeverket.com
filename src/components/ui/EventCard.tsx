@@ -54,16 +54,16 @@ export function EventCard({
 
   return (
     <div className={clsx('flex items-start gap-4', className)}>
-      <div className="flex-shrink-0 w-24 flex items-center font-mono mt-6">
+      <div className="flex-shrink-0 w-24 flex items-center font-mono mt-8">
         {time}
       </div>
       <div
         className={clsx(
-          'flex-1 min-w-0 flex items-center justify-between gap-4 rounded-lg border border-text p-5'
+          'flex-1 min-w-0 flex items-center justify-between gap-4 rounded-xl border border-text px-6 py-5'
         )}
       >
         <div className="flex-1 min-w-0">
-          <h4 className="mb-4 text-md">{title}</h4>
+          <h4 className="mb-2 text-md">{title}</h4>
           {hasTagsOrActions && (
             <div className="flex flex-wrap items-center gap-1">
               {tags}

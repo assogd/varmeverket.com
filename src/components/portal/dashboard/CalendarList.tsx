@@ -43,7 +43,7 @@ interface CalendarDaySectionProps {
 
 function CalendarDaySection({ dayGroup }: CalendarDaySectionProps) {
   return (
-    <div className="space-y-4 pt-4 first:pt-0">
+    <div className="space-y-6 pt-4 first:pt-0">
       <h3 className="font-mono uppercase">
         {dayGroup.label.split('\n').map((line, i) => (
           <span key={i} className="block">

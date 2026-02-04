@@ -6,7 +6,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { PageHeaderTextOnly } from '@/components/headers/pages';
 import PageLayout from '@/components/layout/PageLayout';
 import { SectionFrame } from '@/components/layout/SectionFrame';
-import { type Booking } from '@/components/ui';
+import { type Booking, RoundButton } from '@/components/ui';
 import { useNotification } from '@/hooks/useNotification';
 import { PlusIcon } from '@/components/icons';
 import BackendAPI from '@/lib/backendApi';
@@ -168,6 +168,19 @@ export default function BookingsPage() {
             </>
           )}
         </SectionFrame>
+        <div className="mb-24 flex flex-col items-center gap-12 text-center">
+          <p className="font-sans text-lg">
+            Behöver du hantera dina bokningar?
+          </p>
+          <RoundButton
+            href={process.env.NEXT_PUBLIC_SKEDDA_BOOKING_URL ?? '#'}
+            spin
+            size="18rem"
+            className="text-lg"
+          >
+            Skedda
+          </RoundButton>
+        </div>
       </PageLayout>
     </ProtectedRoute>
   );
