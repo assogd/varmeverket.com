@@ -1,17 +1,23 @@
 import React from 'react';
-import Image from 'next/image';
 import clsx from 'clsx';
 import type { CalendarDayGroup, CalendarItem } from '@/lib/calendar';
 import { formatSingleTime } from '@/utils/dateFormatting';
-import { Tag } from '@/components/ui';
+import { EventCard, Tag } from '@/components/ui';
 
 interface CalendarListProps {
   dayGroups: CalendarDayGroup[];
   className?: string;
+  /** When false, empty list is not shown (avoids flash before load). Default true. */
+  emptyStateKnown?: boolean;
 }
 
-export function CalendarList({ dayGroups, className }: CalendarListProps) {
+export function CalendarList({
+  dayGroups,
+  className,
+  emptyStateKnown = true,
+}: CalendarListProps) {
   if (dayGroups.length === 0) {
+    if (!emptyStateKnown) return null;
     return (
       <div className={clsx('text-center font-mono', className)}>
         Inga kommande bokningar eller evenemang.
@@ -58,41 +64,32 @@ interface CalendarItemCardProps {
   item: CalendarItem;
 }
 
+const ICAL_LOCATION = 'Värmeverket, Bredängsvägen 203, 127 34 Skärholmen';
+
 function CalendarItemCard({ item }: CalendarItemCardProps) {
   const time = formatSingleTime(item.startsAt.toISOString());
+  const tags = (
+    <>
+      {item.type && <Tag name={getTypeLabel(item.type)} size="md" />}
+      {item.status && <Tag name={getStatusLabel(item.status)} size="md" />}
+    </>
+  );
 
   return (
-    <div className="flex items-start gap-4">
-      <div className="flex-shrink-0 w-24 flex items-center font-mono mt-6">
-        {time}
-      </div>
-      <div
-        className={clsx(
-          'flex-1 min-w-0 flex items-center justify-between gap-4 rounded-lg border border-text p-5'
-        )}
-      >
-        <div className="flex-1 min-w-0">
-          <h4 className="mb-3 text-md">{item.title}</h4>
-          <div className="flex flex-wrap gap-2">
-            {item.type && <Tag name={getTypeLabel(item.type)} size="md" />}
-            {item.status && (
-              <Tag name={getStatusLabel(item.status)} size="md" />
-            )}
-          </div>
-        </div>
-        {item.image && (
-          <div className="relative flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-text">
-            <Image
-              src={item.image}
-              alt={item.title}
-              fill
-              sizes="48px"
-              className="object-cover"
-            />
-          </div>
-        )}
-      </div>
-    </div>
+    <EventCard
+      time={time}
+      title={item.title}
+      tags={tags}
+      showIcalButton
+      icalEvent={{
+        id: item.id,
+        title: item.title,
+        startDate: item.startsAt.toISOString(),
+        endDate: item.endsAt.toISOString(),
+        location: ICAL_LOCATION,
+      }}
+      image={item.image ? { src: item.image, alt: item.title } : undefined}
+    />
   );
 }
 
