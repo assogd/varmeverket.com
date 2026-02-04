@@ -44,13 +44,14 @@ export function EventCard({
       <button
         type="button"
         onClick={() => downloadICS(icalEvent)}
-        className="rounded-sm border border-current leading-4 text-sm px-1 pt-0.5 pb-[.15em] font-sans uppercase"
+        className="rounded-sm border border-current leading-4 text-sm px-1 pt-[.1em] pb-[.1em] font-sans uppercase"
       >
         ICAL
       </button>
     ) : null;
   const hasTagsOrActions =
     tags != null || actions != null || icalButton != null;
+
   return (
     <div className={clsx('flex items-start gap-4', className)}>
       <div className="flex-shrink-0 w-24 flex items-center font-mono mt-6">
@@ -62,7 +63,7 @@ export function EventCard({
         )}
       >
         <div className="flex-1 min-w-0">
-          <h4 className="mb-3 text-md">{title}</h4>
+          <h4 className="mb-4 text-md">{title}</h4>
           {hasTagsOrActions && (
             <div className="flex flex-wrap items-center gap-1">
               {tags}

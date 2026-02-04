@@ -69,10 +69,7 @@ const ICAL_LOCATION = 'Värmeverket, Bredängsvägen 203, 127 34 Skärholmen';
 function CalendarItemCard({ item }: CalendarItemCardProps) {
   const time = formatSingleTime(item.startsAt.toISOString());
   const tags = (
-    <>
-      {item.type && <Tag name={getTypeLabel(item.type)} size="md" />}
-      {item.status && <Tag name={getStatusLabel(item.status)} size="md" />}
-    </>
+    <>{item.type && <Tag name={getTypeLabel(item.type)} size="md" />}</>
   );
 
   return (
