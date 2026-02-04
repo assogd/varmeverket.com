@@ -12,6 +12,7 @@ import type {
   FormContentBlock,
   FormFieldBlock,
   FormSectionBlock,
+  FormValues,
 } from '@/components/forms';
 import clsx from 'clsx';
 
@@ -106,6 +107,13 @@ const convertFormFieldBlockToFormField = (
     return null;
   }
 
+  // Convert conditionalField (CMS JSON) to showIf function if present
+  let showIf: ((formValues: FormValues) => boolean) | undefined = block.showIf;
+  if (!showIf && block.conditionalField) {
+    const { conditionToShowIf } = require('@/components/forms');
+    showIf = conditionToShowIf(block.conditionalField);
+  }
+
   return {
     name: block.name,
     label: block.label,
@@ -120,6 +128,7 @@ const convertFormFieldBlockToFormField = (
     inputMode: block.inputMode,
     pattern: block.pattern,
     maxLength: block.maxLength,
+    showIf,
   };
 };
 

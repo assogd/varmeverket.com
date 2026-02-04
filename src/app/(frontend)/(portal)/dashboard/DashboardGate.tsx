@@ -24,9 +24,28 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
     setBookingsLoading(true);
     BackendAPI.getBookings(user.email)
       .then(data => {
-        if (!cancelled) setBookings((data as unknown) as Booking[]);
+        if (!cancelled) setBookings(data as unknown as Booking[]);
       })
-      .catch(() => {
+      .catch(err => {
+        // #region agent log
+        fetch(
+          'http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              location: 'DashboardGate.tsx:getBookings:catch',
+              message: 'Bookings fetch failed',
+              data: {
+                message: err instanceof Error ? err.message : String(err),
+              },
+              timestamp: Date.now(),
+              sessionId: 'debug-session',
+              hypothesisId: 'E',
+            }),
+          }
+        ).catch(() => {});
+        // #endregion
         if (!cancelled) setBookings([]);
       })
       .finally(() => {
@@ -46,7 +65,7 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
 
   if (loading) {
     return (
-      <div className="min-h-[40vh] flex items-center justify-center text-text/70">
+      <div className="min-h-[40vh] flex items-center justify-center">
         Laddar...
       </div>
     );

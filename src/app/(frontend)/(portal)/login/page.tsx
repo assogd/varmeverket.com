@@ -8,6 +8,7 @@ import { VarmeverketIcon } from '@/components/icons';
 import { Heading } from '@/components/headings';
 import { Button } from '@/components/ui';
 import { LoginNotifications } from '@/components/auth/LoginNotifications';
+import clsx from 'clsx';
 
 async function signOnAction(formData: FormData) {
   'use server';
@@ -55,6 +56,7 @@ export default async function LoginPage({
   const headerList = await headers();
   const headerCookie = headerList.get('cookie') || '';
   const session = await fetchServerSession(headerCookie);
+
   if (session?.user) {
     redirect('/dashboard');
   }
@@ -67,19 +69,21 @@ export default async function LoginPage({
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6 pt-12">
-      <div className="w-full max-w-xs space-y-6">
-        <Heading variant="section" as="h2" center className="pb-10">
-          Logga in
-        </Heading>
+      <div className={clsx('w-full space-y-6', sent ? '' : 'max-w-xs')}>
+        {!sent && (
+          <Heading variant="section" as="h2" center className="pb-10">
+            Logga in
+          </Heading>
+        )}
 
         <LoginNotifications errorMessage={errorMessage} />
 
         {sent && (
-          <div className="space-y-2 text-center">
+          <div className="space-y-2 text-center flex-1">
             <Heading variant="section" as="h2" center className="pb-2">
               Kolla din inkorg
             </Heading>
-            <p className="text-sm">
+            <p className="font-mono">
               Vi har skickat en temporär inloggningslänk till dig.
             </p>
           </div>
@@ -113,16 +117,18 @@ export default async function LoginPage({
           </form>
         )}
 
-        <p className="text-center">
-          Inte medlem?{' '}
-          <Link className="underline" href="/membership/application">
-            Ansök om medlemskap här
-          </Link>
-          .
-        </p>
+        {!sent && (
+          <p className="text-center">
+            Inte medlem?{' '}
+            <Link className="underline" href="/ansok-om-medlemskap">
+              Ansök om medlemskap här
+            </Link>
+            .
+          </p>
+        )}
       </div>
 
-      <Link href="/" className="mt-16">
+      <Link href="/" className={clsx(sent ? 'mt-8' : 'mt-16')}>
         <VarmeverketIcon size={112} className="mx-auto" />
       </Link>
     </div>

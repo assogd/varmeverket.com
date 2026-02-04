@@ -1,10 +1,20 @@
 'use client';
 
+import React, { createContext, useContext } from 'react';
 import { usePathname } from 'next/navigation';
 import { ThemeProvider } from 'next-themes';
 import { getPathTheme } from '@/config/portalTheme';
 
 const THEMES = ['light', 'dark', 'orange'] as const;
+
+/** Theme used for first paint (from server header). Used by error page to avoid flash. */
+export const InitialThemeContext = createContext<'light' | 'dark' | 'orange'>(
+  'light'
+);
+
+export function useInitialTheme(): 'light' | 'dark' | 'orange' {
+  return useContext(InitialThemeContext);
+}
 
 interface PathBasedThemeProviderProps {
   children: React.ReactNode;
@@ -25,18 +35,21 @@ export function PathBasedThemeProvider({
   const pathname = usePathname();
   const pathTheme = getPathTheme(pathname ?? null);
   const forcedTheme = pathname != null ? pathTheme : (initialThemeFromHeader ?? 'light');
+  const initialTheme = initialThemeFromHeader ?? 'light';
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
-      forcedTheme={forcedTheme}
-      themes={THEMES}
-      storageKey="varmeverket-path-theme"
-      enableColorScheme={false}
-    >
-      {children}
-    </ThemeProvider>
+    <InitialThemeContext.Provider value={initialTheme}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem={false}
+        forcedTheme={forcedTheme}
+        themes={THEMES}
+        storageKey="varmeverket-path-theme"
+        enableColorScheme={false}
+      >
+        {children}
+      </ThemeProvider>
+    </InitialThemeContext.Provider>
   );
 }

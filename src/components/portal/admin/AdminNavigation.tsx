@@ -25,7 +25,7 @@ export function AdminNavigation() {
 
   return (
     <div className="p-2">
-      <div className="flex items-start justify-center w-full gap-4 mb-8">
+      <div className="flex items-start justify-center w-full gap-2 mb-8">
         {adminNavItems.map(item => {
           // For base route, only match exactly
           // For other routes, match exactly or if pathname starts with the href
@@ -46,7 +46,7 @@ export function AdminNavigation() {
               className={clsx(
                 'relative flex items-center justify-center uppercase',
                 !isPolygon && 'border border-text dark:border-dark-text',
-                'flex-1 aspect-square',
+                'flex-1 aspect-square max-w-sm',
                 shapeClass,
                 isActive
                   ? 'text-text dark:text-dark-text underline'

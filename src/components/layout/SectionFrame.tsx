@@ -38,9 +38,7 @@ export const SectionFrame: React.FC<SectionFrameProps> = ({
 
   return (
     <section
-      className={clsx(
-        'space-y-3 border-b pb-2 border-text mt-16 first:mt-0'
-      )}
+      className={clsx('space-y-3 border-b last:border-b-0 pb-2 border-text')}
     >
       {hasHeader && (
         <div className={clsx('border-b border-text')}>

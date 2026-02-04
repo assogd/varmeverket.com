@@ -13,9 +13,12 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <html>
-      <body>
-        <div className="min-h-screen flex items-center justify-center px-4">
+    <html className="error-page-active" suppressHydrationWarning>
+      <body className="error-page-active">
+        <div
+          className="light min-h-screen flex items-center justify-center px-4 bg-bg text-text [transition:none]"
+          style={{ transition: 'none' }}
+        >
           <DevIndicator componentName="GlobalError" />
 
             <FadeInUp

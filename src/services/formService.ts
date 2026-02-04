@@ -8,6 +8,15 @@
 import PayloadAPI from '@/lib/api';
 import { handleAPIError, retryAPI } from '@/utils/apiErrorHandler';
 
+/** Single entry in submission status history (API 7.4) */
+export interface FormSubmissionStatusHistoryEntry {
+  id: number;
+  submission_id: number;
+  status: string;
+  note: string | null;
+  created_at: string;
+}
+
 export interface FormSubmissionResponse {
   id: number;
   form: string;
@@ -15,6 +24,8 @@ export interface FormSubmissionResponse {
   user_id: number | null;
   created_at: string;
   archived: number;
+  /** Status history (new submissions get status="new" if not specified) */
+  status_history?: FormSubmissionStatusHistoryEntry[];
 }
 
 /**

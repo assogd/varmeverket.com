@@ -57,6 +57,10 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     );
   }
 
+  // #region agent log
+  fetch('http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthButton.tsx:render',message:'Client shows avatar (logged in)',data:{hasUser:!!user},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
+
   // Logged in - show avatar
   return (
     <FadeIn

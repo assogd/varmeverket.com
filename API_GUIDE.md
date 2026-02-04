@@ -513,6 +513,7 @@ Response:
 Notes:
 
 - All submissions get `archived=0` by default
+- New submissions automatically get `status="new"` if no status is specified
 - By default, only non-archived submissions are returned in queries
 - If a submission contains an `email` field, a `user_id` will be created or linked (not required for all forms)
 - Email address is required for submissions related to membership applications
@@ -532,14 +533,23 @@ Response:
 
     [
       {
-        "id": 661,
-        "form": "test-11",
+        "id": 683,
+        "form": "test 10",
         "submission": {
-          "namn": "Förnamn Efternamn"
+          "email": "user@example.com"
         },
-        "user_id": null,
-        "created_at": "Wed, 10 Dec 2025 14:23:45 GMT",
-        "archived": 0
+        "user_id": 10262,
+        "created_at": "Wed, 28 Jan 2026 17:45:46 GMT",
+        "archived": 0,
+        "status_history": [
+          {
+            "id": 13,
+            "submission_id": 683,
+            "status": "new",
+            "note": null,
+            "created_at": "2026-01-28 17:45:46"
+          }
+        ]
       }
     ]
 
@@ -547,11 +557,13 @@ By default, only non-archived submissions are returned. To include archived subm
 
     GET /v3/forms/<form>?archived=1
 
-### 7.3 Archive a submission
+### 7.3 Update a submission
 
 Endpoint:
 
     PATCH /v3/forms/<submission_id>
+
+#### 7.3.1 Archive a submission
 
 Archive a submission when it's been handled and is no longer current. This is a separate step so that unapproved applications can be archived without activating a member.
 
@@ -571,6 +583,86 @@ Response:
       "created_at": "Wed, 10 Dec 2025 15:04:16 GMT",
       "archived": 1
     }
+
+#### 7.3.2 Update submission status
+
+Update the status of a submission to track its progress through a workflow.
+
+**Critical behavior:** When `status=<value>` is included in the PATCH payload, **only** a new status history entry is created. No other changes will be applied—not archiving, not submission field updates, nothing else. The API separates status updates from other modifications to ensure clear, predictable behavior.
+
+**Important:**
+
+- To update status: send a PATCH request with **only** `status=<value>` in the payload
+- To archive or update other submission data: send a PATCH request **without** `status` in the payload
+- These operations must be done in separate requests—they cannot be combined
+
+Example:
+
+    curl -X PATCH "https://$credentials@api.varmeverket.com/v3/forms/684" -d 'status=pending interview'
+
+Response:
+
+    {
+      "status_message": "Submission status updated"
+    }
+
+After updating status, a GET request will show the updated status history:
+
+    curl -X GET "https://$credentials@api.varmeverket.com/v3/forms/test%2010/684"
+
+Response:
+
+    [
+      {
+        "id": 684,
+        "form": "test 10",
+        "submission": {
+          "email": "user@example.com"
+        },
+        "user_id": 10262,
+        "created_at": "Wed, 28 Jan 2026 18:11:22 GMT",
+        "archived": 0,
+        "status_history": [
+          {
+            "id": 15,
+            "submission_id": 684,
+            "status": "new",
+            "note": null,
+            "created_at": "2026-01-28 18:11:22"
+          },
+          {
+            "id": 20,
+            "submission_id": 684,
+            "status": "pending interview",
+            "note": null,
+            "created_at": "2026-01-28 18:14:38"
+          }
+        ]
+      }
+    ]
+
+### 7.4 Status History and Workflow
+
+Form submissions now support status history tracking, allowing you to monitor the progress of submissions through various stages of processing. This is particularly useful for complex processes like membership applications that involve interviews, meet-and-greet sessions, and approval workflows.
+
+#### Status Workflow Examples
+
+Typical workflow paths:
+
+- **Approval path:** `new` → `pending interview` → `pending introduction` → `accepted`
+- **Rejection path:** `new` → `pending interview` → `denied`
+
+#### Status History Details
+
+- Each submission automatically gets `status="new"` when created (if no status is specified)
+- Status changes are logged to a separate audit log (`status_history`)
+- The `archived` field continues to work as before for filtering submissions before status history lookup
+- Status history entries include:
+  - `id`: unique identifier for the history entry
+  - `submission_id`: reference to the submission
+  - `status`: the status value
+  - `note`: optional note (currently null)
+  - `created_at`: timestamp when the status was set
 
 ---
 

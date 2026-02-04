@@ -76,7 +76,7 @@ export function DashboardClient({
   };
 
   return (
-    <PageLayout contentType="page">
+    <PageLayout contentType="page" className="px-2" paddingBottom={false}>
       <PageHeaderTextOnly
         text={{
           root: {
@@ -111,15 +111,12 @@ export function DashboardClient({
       />
       {/* Announcements Section */}
       {announcements.length > 0 && (
-        <SectionFrame
-          title={
-            <Heading variant="section" as="h2" center>
-              Meddelanden
-            </Heading>
-          }
-        >
+        <section className="grid gap-8">
+          <Heading variant="section" as="h2" center>
+            Meddelanden
+          </Heading>
           <AnnouncementsList announcements={announcements} />
-        </SectionFrame>
+        </section>
       )}
 
       {/* Calendar Section */}
@@ -129,18 +126,16 @@ export function DashboardClient({
             Kalender
           </Heading>
         }
-        description="Här kan du se dina kommande bokningar och sparade events. Evenemang markerade med en ⭐ visar våra publika events du kan delta i."
+        description="Här kan du se dina kommande bokningar och sparade events. Evenemang markerade med en [star] visar våra publika events du kan delta i."
       >
         {bookingsLoading ? (
-          <p className="text-text/70 dark:text-dark-text/70">
-            Laddar bokningar...
-          </p>
+          <p className="">Laddar bokningar...</p>
         ) : bookingsError ? (
           <div className="space-y-4">
-            <p className="text-red-600 dark:text-red-400">{bookingsError}</p>
+            <p className="">{bookingsError}</p>
             <button
               onClick={handleRetryBookings}
-              className="px-4 py-2 bg-text text-bg rounded hover:bg-text/90 transition-colors text-sm"
+              className="inline-flex items-center justify-center gap-2 uppercase underline"
             >
               Försök igen
             </button>

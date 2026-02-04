@@ -118,6 +118,12 @@ body {
     color var(--theme-transition-duration) var(--theme-transition-easing);
 }
 
+/* Error page: no theme transition so colors don’t flash/morph */
+html.error-page-active,
+body.error-page-active {
+  transition: none !important;
+}
+
 /*.uppercase {
   letter-spacing: 0.03em;
   text-transform: uppercase;

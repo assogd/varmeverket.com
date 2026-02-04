@@ -7,7 +7,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
   // Add padding-bottom to account for fixed bottom navigation (h-16 = 4rem = 64px)
   return (
     <>
-      <div className="pb-16">{children}</div>
+      <div className="">{children}</div>
       <MemberNavigation />
     </>
   );

@@ -47,6 +47,7 @@ Build a separate admin interface for portal/user management at `/portal/admin/*`
   - Associated bookings
   - Form submissions linked to user
   - Activation history
+  - Note: In the future, users will be able to list their own submissions
 
 ### 3. Form Submissions Management
 - **Submissions List**

@@ -6,6 +6,7 @@ export const PORTAL_ROUTES = [
   '/bokningar',
   '/installningar',
   '/login',
+  '/portal/admin',
 ] as const;
 
 /**

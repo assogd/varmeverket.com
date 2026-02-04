@@ -1,9 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AppAction } from '@/components/ui';
 import { DevIndicator } from '@/components/dev';
-import { FadeInUp } from '@/components/ui';
+import { useInitialTheme } from '@/components/layout/PathBasedThemeProvider';
+import clsx from 'clsx';
+
+/* Disable theme transition from first paint so we never see orange → other color */
+const ERROR_PAGE_STYLE =
+  'html, body { transition: none !important; }';
 
 export default function Error({
   error,
@@ -12,14 +17,31 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const themeClass = useInitialTheme();
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    html.classList.add('error-page-active');
+    body.classList.add('error-page-active');
+    return () => {
+      html.classList.remove('error-page-active');
+      body.classList.remove('error-page-active');
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div
+      className={clsx(
+        themeClass,
+        'min-h-screen flex items-center justify-center px-4 bg-bg text-text [transition:none]'
+      )}
+      style={{ transition: 'none' }}
+    >
+      <style dangerouslySetInnerHTML={{ __html: ERROR_PAGE_STYLE }} />
       <DevIndicator componentName="Error" />
 
-      <FadeInUp
-        className="text-center max-w-2xl mx-auto font-mono grid gap-4"
-        timing="normal"
-      >
+      <div className="text-center max-w-2xl mx-auto font-mono grid gap-4">
         <div className="">
           <h1 className="text-lg font-sans">Något gick fel</h1>
         </div>
@@ -52,7 +74,7 @@ export default function Error({
             </pre>
           </details>
         )}
-      </FadeInUp>
+      </div>
     </div>
   );
 }
