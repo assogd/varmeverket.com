@@ -31,7 +31,11 @@ export const SectionFrame: React.FC<SectionFrameProps> = ({
   const renderDescription = () => {
     if (!description) return null;
     if (typeof description === 'string' || typeof description === 'number') {
-      return <div className={clsx('font-mono mt-4')}>{description}</div>;
+      return (
+        <div className={clsx('font-mono mt-6 max-w-2xl mx-auto')}>
+          {description}
+        </div>
+      );
     }
     return description;
   };
@@ -41,7 +45,7 @@ export const SectionFrame: React.FC<SectionFrameProps> = ({
       className={clsx('space-y-3 border-b last:border-b-0 pb-2 border-text')}
     >
       {hasHeader && (
-        <div className={clsx('pb-8 text-center')}>
+        <div className={clsx('pb-6 text-center')}>
           {renderTitle()}
           {renderDescription()}
         </div>
