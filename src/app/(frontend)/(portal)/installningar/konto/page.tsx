@@ -60,7 +60,7 @@ export default function AccountSettingsPage() {
   };
 
   return (
-    <div className="">
+    <>
       <SectionFrame
         title="Din access"
         description="Vill du uppgradera din access? Ansök via detta formulär."
@@ -126,6 +126,6 @@ export default function AccountSettingsPage() {
       {accountFormConfig?.content?.length > 0 && (
         <FormRenderer config={accountFormConfig} />
       )}
-    </div>
+    </>
   );
 }

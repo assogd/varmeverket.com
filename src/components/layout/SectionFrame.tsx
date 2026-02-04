@@ -42,7 +42,7 @@ export const SectionFrame: React.FC<SectionFrameProps> = ({
     >
       {hasHeader && (
         <div className={clsx('border-b border-text')}>
-          <div className={clsx('pt-4 pb-8 text-center')}>
+          <div className={clsx('pb-8 text-center')}>
             {renderTitle()}
             {renderDescription()}
           </div>

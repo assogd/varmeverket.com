@@ -456,8 +456,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                         <Button
                           type="submit"
                           disabled={isLoading}
-                          variant="primary"
-                          className="w-full"
+                          variant="outline"
+                          className="w-full !border-[var(--color-text)] !text-[var(--color-text)]"
                         >
                           {isLoading
                             ? 'Submitting...'
@@ -504,8 +504,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  variant="primary"
-                  className="w-full"
+                  variant="outline"
+                  className="w-full !border-[var(--color-text)] !text-[var(--color-text)]"
                 >
                   {isLoading
                     ? 'Submitting...'

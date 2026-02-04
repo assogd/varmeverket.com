@@ -4,6 +4,12 @@ import { getPathTheme } from '@/config/portalTheme';
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  // Redirect /installningar to default tab before any page/layout runs
+  if (pathname === '/installningar' || pathname === '/installningar/') {
+    return NextResponse.redirect(new URL('/installningar/personligt', request.url), 307);
+  }
+
   const theme = getPathTheme(pathname);
 
   const requestHeaders = new Headers(request.headers);

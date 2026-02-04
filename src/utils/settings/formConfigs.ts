@@ -150,7 +150,7 @@ export function createBusinessFormConfig(
 
 /**
  * Creates the account settings form configuration
- * TODO: Add fields when ready
+ * TODO: Add fields when ready – then add a section via createSectionBlock and createFieldBlock
  * Uses the new blocks-based structure
  */
 export function createAccountFormConfig(
@@ -158,11 +158,7 @@ export function createAccountFormConfig(
   onSubmit: (data: Record<string, unknown>) => Promise<void>
 ): FormConfig {
   return {
-    content: [
-      createSectionBlock('Kontoinställningar', [
-        // Add account fields here using createFieldBlock
-      ]),
-    ],
+    content: [],
     submitButtonLabel: 'SPARA',
     onSubmit,
     successMessage: 'Inställningar sparade!',

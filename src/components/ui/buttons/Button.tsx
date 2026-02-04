@@ -27,12 +27,12 @@ export const Button: React.FC<ButtonProps> = ({
     switch (variant) {
       case 'primary':
         return isDark
-          ? 'uppercase border border-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none'
+          ? 'uppercase border border-text text-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none'
           : 'uppercase bg-text text-bg mix-blend-multiply rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none';
       case 'secondary':
         return 'uppercase bg-accent rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none';
       case 'outline':
-        return 'uppercase border border-text rounded-md inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none';
+        return 'uppercase border border-text text-text rounded-md inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none';
       default:
         return '';
     }

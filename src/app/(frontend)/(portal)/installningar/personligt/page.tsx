@@ -8,13 +8,12 @@ import { handlePersonalFormSubmit } from '@/utils/settings/handlers';
 import { useSettingsTab } from '@/utils/settings/useSettingsTab';
 
 export default function PersonalSettingsPage() {
-  const {
-    formConfig: personalFormConfig,
-    user,
-    loading: sessionLoading,
-  } = useSettingsTab(createPersonalFormConfig, async (user, data) => {
-    await handlePersonalFormSubmit(user!.email, data, user?.profile);
-  });
+  const { formConfig: personalFormConfig, user } = useSettingsTab(
+    createPersonalFormConfig,
+    async (user, data) => {
+      await handlePersonalFormSubmit(user!.email, data, user?.profile);
+    }
+  );
   const [profileImage, setProfileImage] = useState<string | undefined>();
 
   useEffect(() => {
@@ -22,14 +21,6 @@ export default function PersonalSettingsPage() {
       setProfileImage(user.profileImage);
     }
   }, [user?.profileImage]);
-
-  if (sessionLoading) {
-    return (
-      <div>
-        <p className="text-center font-mono">Laddar...</p>
-      </div>
-    );
-  }
 
   return (
     <FormRenderer
