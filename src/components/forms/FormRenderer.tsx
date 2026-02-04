@@ -391,80 +391,84 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
         </Heading>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 p-2">
+      <form onSubmit={handleSubmit} className="space-y-6 px-2">
         {convertedConfig.sections ? (
-          // Render with sections; submit in its own section when multiple sections
           <div className="space-y-16">
-            {convertedConfig.sections.map((section, sectionIndex) => (
-              <SectionFrame
-                key={section.id || sectionIndex}
-                title={
-                  section.title?.trim() ? (
-                    <Heading variant="section" as="h2" className="text-center">
-                      {section.title}
-                    </Heading>
-                  ) : undefined
-                }
-              >
-                <div className="grid gap-8">
-                  {sectionIndex === 0 && convertedConfig.customFirstField && (
-                    <div>{convertedConfig.customFirstField}</div>
-                  )}
-                  {section.fields
-                    .filter(field => !field.showIf || field.showIf(formValues))
-                    .map(field => (
-                      <FormFieldComponent
-                        key={field.name}
-                        field={field}
-                        value={formValues[field.name]}
-                        error={touched[field.name] ? errors[field.name] : undefined}
-                        onChange={value => handleInputChange(field.name, value)}
-                        onBlur={() => handleFieldBlur(field.name)}
-                        disabled={isLoading}
-                      />
-                    ))}
-                </div>
-              </SectionFrame>
-            ))}
-            {/* Submit in its own section so it's not grouped with the last field section */}
-            <SectionFrame
-              title={
-                convertedConfig.submitSectionTitle ? (
-                  <Heading variant="section" as="h2" className="text-center">
-                    {convertedConfig.submitSectionTitle}
-                  </Heading>
-                ) : undefined
-              }
-            >
-              <div className="mt-6 mb-6">
-                {convertedConfig.submitButtonVariant === 'marquee' ? (
-                  <MarqueeButton
-                    type="submit"
-                    disabled={isLoading}
-                    size={convertedConfig.submitButtonSize}
-                    className={clsx(
-                      'w-full',
-                      convertedConfig.submitButtonClassName
+            {convertedConfig.sections.map((section, sectionIndex) => {
+              const isLastSection =
+                sectionIndex === convertedConfig.sections!.length - 1;
+              return (
+                <SectionFrame
+                  key={section.id || sectionIndex}
+                  title={
+                    section.title?.trim() ? (
+                      <Heading
+                        variant="section"
+                        as="h2"
+                        className="text-center"
+                      >
+                        {section.title}
+                      </Heading>
+                    ) : undefined
+                  }
+                >
+                  <div className="grid gap-8">
+                    {sectionIndex === 0 && convertedConfig.customFirstField && (
+                      <div>{convertedConfig.customFirstField}</div>
                     )}
-                  >
-                    {isLoading
-                      ? 'Submitting...'
-                      : convertedConfig.submitButtonLabel || 'Submit'}
-                  </MarqueeButton>
-                ) : (
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    variant="primary"
-                    className="w-full"
-                  >
-                    {isLoading
-                      ? 'Submitting...'
-                      : convertedConfig.submitButtonLabel || 'Submit'}
-                  </Button>
-                )}
-              </div>
-            </SectionFrame>
+                    {section.fields
+                      .filter(
+                        field => !field.showIf || field.showIf(formValues)
+                      )
+                      .map(field => (
+                        <FormFieldComponent
+                          key={field.name}
+                          field={field}
+                          value={formValues[field.name]}
+                          error={
+                            touched[field.name] ? errors[field.name] : undefined
+                          }
+                          onChange={value =>
+                            handleInputChange(field.name, value)
+                          }
+                          onBlur={() => handleFieldBlur(field.name)}
+                          disabled={isLoading}
+                        />
+                      ))}
+                  </div>
+                  {isLastSection && (
+                    <div className="mt-8">
+                      {convertedConfig.submitButtonVariant === 'marquee' ? (
+                        <MarqueeButton
+                          type="submit"
+                          disabled={isLoading}
+                          size={convertedConfig.submitButtonSize}
+                          className={clsx(
+                            'w-full',
+                            convertedConfig.submitButtonClassName
+                          )}
+                        >
+                          {isLoading
+                            ? 'Submitting...'
+                            : convertedConfig.submitButtonLabel || 'Submit'}
+                        </MarqueeButton>
+                      ) : (
+                        <Button
+                          type="submit"
+                          disabled={isLoading}
+                          variant="primary"
+                          className="w-full"
+                        >
+                          {isLoading
+                            ? 'Submitting...'
+                            : convertedConfig.submitButtonLabel || 'Submit'}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </SectionFrame>
+              );
+            })}
           </div>
         ) : (
           // Render flat fields (backward compatibility)

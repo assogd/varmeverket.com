@@ -12,39 +12,8 @@ export default function SettingsLayout({
 }) {
   return (
     <ProtectedRoute>
-      <PageLayout contentType="page">
-        <PageHeaderTextOnly
-          text={{
-            root: {
-              children: [
-                {
-                  children: [
-                    {
-                      detail: 0,
-                      format: 0,
-                      mode: 'normal',
-                      style: '',
-                      text: 'Inställningar',
-                      type: 'text',
-                      version: 1,
-                    },
-                  ],
-                  direction: 'ltr',
-                  format: '',
-                  indent: 0,
-                  type: 'heading',
-                  tag: 'h1',
-                  version: 1,
-                },
-              ],
-              direction: 'ltr',
-              format: '',
-              indent: 0,
-              type: 'root',
-              version: 1,
-            },
-          }}
-        />
+      <PageLayout contentType="page" paddingBottom={false}>
+        <PageHeaderTextOnly title="Inställningar" />
         <SettingsNavigation />
         {children}
       </PageLayout>

@@ -13,24 +13,11 @@ const settingsNavItems = [
 export function SettingsNavigation() {
   const pathname = usePathname();
 
-  // Determine active item - check if pathname matches or is the base /installningar
-  const getActiveItem = () => {
-    if (
-      pathname === '/installningar' ||
-      pathname === '/installningar/personligt'
-    ) {
-      return '/installningar/personligt';
-    }
-    return pathname;
-  };
-
-  const activeHref = getActiveItem();
-
   return (
     <div className="p-2">
       <div className="flex mb-8 border border-text max-w-4xl mx-auto">
         {settingsNavItems.map((item, index) => {
-          const isActive = activeHref === item.href;
+          const isActive = pathname === item.href;
           const isLast = index === settingsNavItems.length - 1;
 
           return (

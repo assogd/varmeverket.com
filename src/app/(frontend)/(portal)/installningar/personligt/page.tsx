@@ -1,16 +1,20 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useSession } from '@/hooks/useSession';
-import type { FormConfig } from '@/components/forms';
+import { useState, useEffect } from 'react';
+import { FormRenderer } from '@/components/forms';
+import { ProfilePictureUpload } from '@/components/portal/settings/components/ProfilePictureUpload';
 import { createPersonalFormConfig } from '@/utils/settings/formConfigs';
 import { handlePersonalFormSubmit } from '@/utils/settings/handlers';
-import { PersonalTab } from '@/components/portal/settings/components/TabContent';
-import { useNotification } from '@/hooks/useNotification';
+import { useSettingsTab } from '@/utils/settings/useSettingsTab';
 
 export default function PersonalSettingsPage() {
-  const { user, loading: sessionLoading } = useSession();
-  const { showSuccess, showError } = useNotification();
+  const {
+    formConfig: personalFormConfig,
+    user,
+    loading: sessionLoading,
+  } = useSettingsTab(createPersonalFormConfig, async (user, data) => {
+    await handlePersonalFormSubmit(user!.email, data, user?.profile);
+  });
   const [profileImage, setProfileImage] = useState<string | undefined>();
 
   useEffect(() => {
@@ -19,37 +23,23 @@ export default function PersonalSettingsPage() {
     }
   }, [user?.profileImage]);
 
-  // Form submission handler
-  const handlePersonalSubmit = useCallback(
-    async (data: Record<string, unknown>) => {
-      if (!user?.email) return;
-      try {
-        await handlePersonalFormSubmit(user.email, data, user?.profile);
-        showSuccess('Inställningar sparade!');
-      } catch (error) {
-        console.error('Failed to save settings:', error);
-        showError('Kunde inte spara inställningar. Försök igen.');
-        throw new Error('Kunde inte spara inställningar. Försök igen.');
-      }
-    },
-    [showError, showSuccess, user?.email, user?.profile]
-  );
-
-  // Form configuration
-  const personalFormConfig: FormConfig = useMemo(
-    () => createPersonalFormConfig(user, handlePersonalSubmit),
-    [user, handlePersonalSubmit]
-  );
-
   if (sessionLoading) {
-    return null;
+    return (
+      <div>
+        <p className="text-center font-mono">Laddar...</p>
+      </div>
+    );
   }
 
   return (
-    <PersonalTab
-      formConfig={personalFormConfig}
-      profileImage={profileImage}
-      onProfileImageChange={setProfileImage}
+    <FormRenderer
+      config={personalFormConfig}
+      customFirstField={
+        <ProfilePictureUpload
+          currentImage={profileImage}
+          onImageChange={setProfileImage}
+        />
+      }
     />
   );
 }
