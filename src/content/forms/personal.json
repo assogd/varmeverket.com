@@ -1,0 +1,66 @@
+{
+  "submitButtonLabel": "SPARA",
+  "successMessage": "Inställningar sparade!",
+  "showSuccessMessage": true,
+  "sections": [
+    {
+      "title": "Personuppgifter",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Namn",
+          "fieldType": "text",
+          "required": true,
+          "placeholder": "För- och efternamn",
+          "helpText": "Detta är ditt offentliga visningsnamn."
+        },
+        {
+          "name": "email",
+          "label": "Email",
+          "fieldType": "email",
+          "required": true,
+          "placeholder": "Din e-postadress"
+        },
+        {
+          "name": "phone",
+          "label": "Mobilnummer",
+          "fieldType": "tel",
+          "required": false,
+          "placeholder": "Ditt mobilnummer"
+        },
+        {
+          "name": "birthdate",
+          "label": "Födelsedatum",
+          "fieldType": "date",
+          "required": false,
+          "placeholder": "YYYY-MM-DD"
+        },
+        {
+          "name": "address_street",
+          "label": "Adress",
+          "fieldType": "text",
+          "required": false,
+          "placeholder": "Gata och nummer"
+        },
+        {
+          "name": "address_code",
+          "label": "Postnummer",
+          "fieldType": "text",
+          "required": false,
+          "placeholder": "123 45",
+          "inputMode": "numeric",
+          "pattern": "^\\\\d{3}\\\\s?\\\\d{2}$",
+          "maxLength": 6,
+          "validation": "swedishPostcode"
+        },
+        {
+          "name": "address_city",
+          "label": "Ort",
+          "fieldType": "text",
+          "required": false,
+          "placeholder": "Ort"
+        }
+      ]
+    }
+  ]
+}

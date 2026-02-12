@@ -9,6 +9,7 @@ import { Heading } from '@/components/headings';
 import { type Booking } from '@/components/ui';
 import { useNotification } from '@/hooks/useNotification';
 import { PlusIcon } from '@/components/icons';
+import { NativeEmoji } from '@/components/ui';
 import { AnnouncementsList } from '@/components/portal/dashboard/AnnouncementsList';
 import { CalendarList } from '@/components/portal/dashboard/CalendarList';
 import type { Announcement } from '@/lib/announcements';
@@ -126,7 +127,13 @@ export function DashboardClient({
             Kalender
           </Heading>
         }
-        description="Här kan du se dina kommande bokningar och sparade events. Evenemang markerade med en [star] visar våra publika events du kan delta i."
+        description={
+          <div className="font-mono mt-6 max-w-2xl mx-auto">
+            Här kan du se dina kommande bokningar och sparade events. Evenemang
+            markerade med en <NativeEmoji emoji="🌟" size={14} /> visar våra
+            publika events du kan delta i.
+          </div>
+        }
       >
         {bookingsLoading ? (
           <p className="">Laddar bokningar...</p>

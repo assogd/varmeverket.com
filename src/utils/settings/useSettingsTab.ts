@@ -23,21 +23,37 @@ export function useSettingsTab(
   submitHandler: SettingsSubmitHandler
 ) {
   const { user, loading } = useSession();
-  const { showSuccess, showError } = useNotification();
+  const { showError } = useNotification();
 
   const handleSubmit = useCallback(
     async (data: Record<string, unknown>) => {
       if (!user?.email) return;
+      const TIMEOUT_MS = 15000;
       try {
-        await submitHandler(user, data);
-        showSuccess('Inställningar sparade!');
+        await new Promise<void>((resolve, reject) => {
+          const t = setTimeout(() => reject(new Error('timeout')), TIMEOUT_MS);
+          submitHandler(user, data)
+            .then(() => {
+              clearTimeout(t);
+              resolve();
+            })
+            .catch(err => {
+              clearTimeout(t);
+              reject(err);
+            });
+        });
+        // Success toast is shown by FormRenderer when showSuccessMessage is true
       } catch (error) {
         console.error('Failed to save settings:', error);
-        showError('Kunde inte spara inställningar. Försök igen.');
+        const message =
+          error instanceof Error && error.message === 'timeout'
+            ? 'Sparandet tog för lång tid. Kontrollera nätverket och försök igen.'
+            : 'Kunde inte spara inställningar. Försök igen.';
+        showError(message);
         throw error;
       }
     },
-    [user, submitHandler, showSuccess, showError]
+    [user, submitHandler, showError]
   );
 
   const formConfig = useMemo(

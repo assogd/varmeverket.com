@@ -141,15 +141,7 @@ export class BackendAPI {
       defaultHeaders['Content-Type'] = 'application/json';
     }
 
-    const isBookings = endpoint.includes('bookings');
-
     try {
-      // #region agent log
-      if (isBookings) {
-        fetch('http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'backendApi.ts:fetch:before',message:'Bookings request',data:{endpoint,method:fetchOptions.method||'GET'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-      }
-      // #endregion
-
       console.log(`🔵 Backend API request: ${url}`, {
         method: fetchOptions.method || 'GET',
         credentials: requireAuth ? 'include' : 'omit',
@@ -165,12 +157,6 @@ export class BackendAPI {
         },
       });
 
-      // #region agent log
-      if (isBookings) {
-        fetch('http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'backendApi.ts:fetch:after',message:'Bookings response',data:{status:response.status,ok:response.ok},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-      }
-      // #endregion
-
       // Log response headers to see if Set-Cookie is present
       const setCookieHeader = response.headers.get('Set-Cookie');
       console.log(`🔵 Backend API response: ${url}`, {
@@ -183,11 +169,6 @@ export class BackendAPI {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        // #region agent log
-        if (isBookings) {
-          fetch('http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'backendApi.ts:fetch:notOk',message:'Bookings error response',data:{status:response.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-        }
-        // #endregion
         console.error(`❌ Backend API error (${endpoint}):`, {
           status: response.status,
           data,
@@ -201,12 +182,6 @@ export class BackendAPI {
 
       return data as T;
     } catch (error) {
-      // #region agent log
-      if (isBookings) {
-        const isAPI = error instanceof BackendAPIError;
-        fetch('http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'backendApi.ts:fetch:catch',message:'Bookings fetch catch',data:{message:error instanceof Error?error.message:String(error),isBackendError:isAPI,status:isAPI?(error as BackendAPIError).status:undefined},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-      }
-      // #endregion
       if (error instanceof BackendAPIError) {
         throw error;
       }
@@ -467,8 +442,8 @@ export class BackendAPI {
           );
         }
 
-        const data = await response.json();
-        return data as SessionResponse;
+        const data = (await response.json()) as SessionResponse;
+        return data;
       } catch (error) {
         // Re-throw BackendAPIError as-is
         if (error instanceof BackendAPIError) {
@@ -504,6 +479,7 @@ export class BackendAPI {
    * PATCH /v2/users/:email
    * Body may include: name, password, username, email (if changing address)
    * Extended fields: phone, birthdate, address_street, address_code, address_city, profile, profileImage
+   * Note: Backend may return 403 "No permission" — see API_GUIDE or contact backend if this persists.
    */
   static async updateUser(
     email: string,

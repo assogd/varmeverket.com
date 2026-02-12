@@ -15,12 +15,6 @@ export const fetchServerSession = async (
   headerCookie?: string
 ): Promise<Record<string, unknown> | null> => {
   const combinedCookieHeader = buildCombinedCookieHeader(headerCookie);
-  const cookieNames = combinedCookieHeader ? combinedCookieHeader.split(';').map(s => s.trim().split('=')[0]).filter(Boolean) : [];
-
-  // #region agent log
-  await fetch('http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'serverSession.ts:fetchServerSession:before',message:'Server session check',data:{cookieHeaderLength:combinedCookieHeader?.length??0,cookieNames,hasHeaderCookie:!!headerCookie},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
-
   const response = await fetch(`${BACKEND_API_URL}/session`, {
     method: 'GET',
     headers: {
@@ -29,10 +23,6 @@ export const fetchServerSession = async (
     },
     cache: 'no-store',
   });
-
-  // #region agent log
-  await fetch('http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'serverSession.ts:fetchServerSession:after',message:'Backend session response',data:{ok:response.ok,status:response.status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
 
   if (!response.ok) {
     return null;

@@ -78,6 +78,7 @@ const convertFormFieldBlockToFormField = (
     pattern: block.pattern,
     maxLength: block.maxLength,
     showIf,
+    ...(typeof block.validation === 'function' && { validation: block.validation }),
   };
 };
 
@@ -212,7 +213,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     return null;
   };
 
-  const validateForm = (): boolean => {
+  const validateForm = (): { valid: boolean; errors: FormErrors } => {
     const newErrors: FormErrors = {};
     let isValid = true;
 
@@ -230,7 +231,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     });
 
     setErrors(newErrors);
-    return isValid;
+    return { valid: isValid, errors: newErrors };
   };
 
   const handleInputChange = (
@@ -299,6 +300,33 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formValues]);
 
+  // When config default values change (e.g. user loaded after initial render), backfill
+  // form state so required fields like email are not left empty and validation fails
+  useEffect(() => {
+    setFormValues(prev => {
+      let changed = false;
+      const next = { ...prev };
+      allFields.forEach(field => {
+        if (field.defaultValue === undefined) return;
+        const current = prev[field.name];
+        const def = field.defaultValue;
+        const isEmpty =
+          current === undefined ||
+          current === '' ||
+          (typeof current === 'string' && current.trim() === '');
+        const defaultNonEmpty =
+          def !== undefined &&
+          def !== '' &&
+          (typeof def !== 'string' || def.trim() !== '');
+        if (isEmpty && defaultNonEmpty) {
+          next[field.name] = def;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [allFields]);
+
   // Clear values and errors for conditional fields that are now hidden
   useEffect(() => {
     allFields.forEach(field => {
@@ -336,7 +364,14 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!validateForm()) {
+    const { valid, errors: validationErrors } = validateForm();
+    if (!valid) {
+      const firstError = Object.values(validationErrors)[0];
+      showError(
+        firstError
+          ? `Åtgärda felen i formuläret: ${firstError}`
+          : 'Åtgärda felen i formuläret.'
+      );
       return;
     }
 

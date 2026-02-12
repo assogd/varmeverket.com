@@ -30,21 +30,6 @@ const Navigation: React.FC<NavigationProps> = ({ navigation }) => {
     // Show nav content immediately so main nav is visible without a long blank period
     const t = Date.now();
     setFadeInStartTime(t);
-    // #region agent log
-    fetch('http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'Navigation.tsx:fadeInStart',
-        message: 'Nav fade-in started',
-        data: { fadeInStartTime: t, resolvedTheme },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        hypothesisId: 'navFadeIn',
-        runId: 'post-fix',
-      }),
-    }).catch(() => {});
-    // #endregion
   }, []);
 
   const handleToggleNav = () => {
@@ -54,23 +39,6 @@ const Navigation: React.FC<NavigationProps> = ({ navigation }) => {
   const handleLinkClick = () => {
     setIsOpen(false);
   };
-
-  // #region agent log
-  if (typeof window !== 'undefined' && fadeInStartTime === null && mounted) {
-    fetch('http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'Navigation.tsx:renderWaiting',
-        message: 'Nav mounted but content not yet shown (waiting 100ms)',
-        data: { mounted, fadeInStartTime },
-        timestamp: Date.now(),
-        sessionId: 'debug-session',
-        hypothesisId: 'navWaiting',
-      }),
-    }).catch(() => {});
-  }
-  // #endregion
 
   return (
     <>

@@ -15,7 +15,7 @@ A compact reference for front-end integration with the Värmeverket API.
   - Exceeding permissions → 409 Unauthorized
 
 Always include `credentials: "include"` for authenticated requests.  
-Use `contentType: "application/json"` for JSON requests.
+Use `Content-Type: "application/json"` for JSON requests (header name is case-insensitive; standard is `Content-Type`).
 
 ---
 
@@ -151,8 +151,9 @@ Response:
 
 Notes:
 
-- Path `:email` should be the current identifier
+- Path `:email` should be the current identifier (the logged-in user’s email)
 - Body may include a new email if user is changing address
+- If you get **403 "No permission"** with a valid session and path matching the current user, it is likely a backend permission/origin issue — contact the API maintainers
 
 Use-case: Send a JSON payload with variable data (e.g. a profile object)
 
@@ -796,7 +797,7 @@ Flow summary:
 ## 11. Front-End Integration Checklist
 
 - Use `credentials: "include"` for all authenticated calls
-- Set `contentType: "application/json"` header for JSON requests
+- Set `Content-Type: "application/json"` header for JSON requests
 - Use:
   - `/session/sign-on` for login/registration via magic link
   - `/session` to detect logged-in state

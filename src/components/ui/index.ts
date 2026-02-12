@@ -23,3 +23,5 @@ export { BookingsList } from './BookingsList';
 export type { Booking, PaginationSettings } from './BookingsList';
 export { EventCard } from './EventCard';
 export type { EventCardProps, IcalEventData } from './EventCard';
+export { NativeEmoji } from './NativeEmoji';
+export type { NativeEmojiProps } from './NativeEmoji';

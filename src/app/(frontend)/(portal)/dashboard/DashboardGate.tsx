@@ -26,26 +26,7 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
       .then(data => {
         if (!cancelled) setBookings(data as unknown as Booking[]);
       })
-      .catch(err => {
-        // #region agent log
-        fetch(
-          'http://127.0.0.1:7245/ingest/f7f14da6-8371-465e-9a52-bf7ad8a2ae59',
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              location: 'DashboardGate.tsx:getBookings:catch',
-              message: 'Bookings fetch failed',
-              data: {
-                message: err instanceof Error ? err.message : String(err),
-              },
-              timestamp: Date.now(),
-              sessionId: 'debug-session',
-              hypothesisId: 'E',
-            }),
-          }
-        ).catch(() => {});
-        // #endregion
+      .catch(() => {
         if (!cancelled) setBookings([]);
       })
       .finally(() => {

@@ -1,0 +1,129 @@
+{
+  "submitButtonLabel": "Ansök",
+  "submitButtonVariant": "marquee",
+  "submitSectionTitle": "Har du fyllt i alla uppgifter?",
+  "submitButtonClassName": "text-[color:var(--color-bg)]",
+  "submitButtonSize": "lg",
+  "showSuccessMessage": false,
+  "sections": [
+    {
+      "title": "Personuppgifter",
+      "fields": [
+        {
+          "name": "email",
+          "label": "E-postadress",
+          "fieldType": "email",
+          "required": true,
+          "placeholder": "din@epost.se",
+          "helpText": "Obligatoriskt för medlemsansökan."
+        },
+        {
+          "name": "name",
+          "label": "För- och efternamn",
+          "fieldType": "text",
+          "required": true,
+          "placeholder": "Ditt offentliga visningsnamn"
+        },
+        {
+          "name": "mobile",
+          "label": "Mobilnummer",
+          "fieldType": "tel",
+          "required": true,
+          "placeholder": "Ditt mobilnummer"
+        },
+        {
+          "name": "birthDate",
+          "label": "Födelsedatum",
+          "fieldType": "date",
+          "required": true,
+          "placeholder": "MM/DD/ÅÅÅÅ"
+        },
+        {
+          "name": "location",
+          "label": "Vart är du baserad?",
+          "fieldType": "select",
+          "required": true,
+          "placeholder": "Välj",
+          "options": [
+            { "label": "Stockholm", "value": "stockholm" },
+            { "label": "Göteborg", "value": "goteborg" },
+            { "label": "Malmö", "value": "malmo" },
+            { "label": "Övrigt", "value": "other" }
+          ]
+        },
+        {
+          "name": "gender",
+          "label": "Vilket kön identifierar du dig som?",
+          "fieldType": "select",
+          "required": true,
+          "options": [
+            { "label": "Man", "value": "man" },
+            { "label": "Kvinna", "value": "kvinna" },
+            { "label": "Icke-binär", "value": "non-binary" },
+            { "label": "Vill ej uppge", "value": "prefer-not-to-say" },
+            { "label": "Övrigt", "value": "other" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Dina behov",
+      "fields": [
+        {
+          "name": "needs",
+          "label": "Beskriv dina behov",
+          "fieldType": "textarea",
+          "required": false,
+          "placeholder": "Berätta om dina behov..."
+        },
+        {
+          "name": "preferences",
+          "label": "Preferenser",
+          "fieldType": "textarea",
+          "required": false,
+          "placeholder": "Eventuella preferenser..."
+        }
+      ]
+    },
+    {
+      "title": "Uppgifter om din kreativa verksamhet",
+      "fields": [
+        {
+          "name": "occupation",
+          "label": "Sysselsättning",
+          "fieldType": "text",
+          "required": false,
+          "placeholder": "Fyll i här"
+        },
+        {
+          "name": "creativeField",
+          "label": "Inom vilket område verkar du inom?",
+          "fieldType": "select",
+          "required": false,
+          "options": [
+            { "label": "Visuell konst", "value": "visuell-konst" },
+            { "label": "Scenkonst", "value": "scenkonst" },
+            { "label": "Musik", "value": "musik" },
+            { "label": "Litteratur och skrivande", "value": "litteratur" },
+            { "label": "Övrigt", "value": "other" }
+          ]
+        },
+        {
+          "name": "creativeFieldOther",
+          "label": "Vänligen specificera",
+          "fieldType": "text",
+          "required": true,
+          "placeholder": "Skriv här",
+          "conditionalField": { "field": "creativeField", "value": "other", "operator": "equals" }
+        },
+        {
+          "name": "membershipMotivation",
+          "label": "Berätta med egna ord varför du söker medlemskap i Värmeverket och vad du hoppas kunna bidra med till vår community.",
+          "fieldType": "textarea",
+          "required": false,
+          "placeholder": "Skriv här"
+        }
+      ]
+    }
+  ]
+}

@@ -54,7 +54,7 @@ export function EventCard({
 
   return (
     <div className={clsx('flex items-start gap-4', className)}>
-      <div className="flex-shrink-0 w-24 flex items-center font-mono mt-8">
+      <div className="flex-shrink-0 w-24 flex items-center font-mono mt-6">
         {time}
       </div>
       <div
