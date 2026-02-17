@@ -14,7 +14,7 @@
           "label": "E-postadress",
           "fieldType": "email",
           "required": true,
-          "placeholder": "din@epost.se",
+          "placeholder": "Din e-postadress",
           "helpText": "Obligatoriskt för medlemsansökan."
         },
         {
@@ -114,7 +114,11 @@
           "fieldType": "text",
           "required": true,
           "placeholder": "Skriv här",
-          "conditionalField": { "field": "creativeField", "value": "other", "operator": "equals" }
+          "conditionalField": {
+            "field": "creativeField",
+            "value": "other",
+            "operator": "equals"
+          }
         },
         {
           "name": "membershipMotivation",
