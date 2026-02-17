@@ -285,6 +285,73 @@ Response:
 
 Note: The curl examples here use HTTP Basic credentials for terminal testing. In web context, authentication is via session cookie, so ignore the `$credentialsuser@` prefix in the URL.
 
+### 3.6 Profile photo
+
+Profile photos are stored in S3 (DigitalOcean Spaces). The API uses **presigned upload URLs**: the client gets a one-time URL from the API, uploads the file directly to S3, then confirms with the API. The API tracks file keys, ownership, and generates the presigned URLs. Files are intended to be `public-read` once confirmed (CORS on DO Spaces may need to be configured for client-side uploads).
+
+**Flow:** (1) Create upload intent → (2) Upload file to presigned URL (client-side) → (3) Confirm upload.
+
+#### 3.6.1 Create upload intent
+
+Creates a pending record and returns a presigned URL where the client should upload the image.
+
+    POST /v3/users/:email/profile-photo/intent
+
+Requires authentication (the user creating the intent must be the same user or have permission). Response includes `upload_url` (use for a PUT in the next step) and `file_key` (use when confirming).
+
+**Note:** The current implementation assumes uploaded images are `.jpg`. Sending the intended file type when creating the intent could be supported later. Using a client-side crop/export that outputs the correct format (or encoding the image) is recommended for security and performance.
+
+Example:
+
+    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/intent"
+
+Response:
+
+    {
+      "upload_url": "https://fra1.digitaloceanspaces.com/varmeverket-assets/profile_photos/308/911d38bb-6b4c-4c81-9cde-7aa55dfde25d.jpg?X-Amz-Algorithm=...",
+      "file_key": "profile_photos/308/911d38bb-6b4c-4c81-9cde-7aa55dfde25d.jpg"
+    }
+
+#### 3.6.2 Upload the image
+
+Upload the image file **client-side** with a **PUT** request to the `upload_url` from the previous step. No API call here—upload goes directly to S3.
+
+#### 3.6.3 Confirm upload
+
+After a successful upload to S3, call the API to mark the upload as confirmed. The confirmed `file_key` then becomes the active profile photo for that user.
+
+    POST /v3/users/:email/profile-photo/confirm?file_key={file_key}
+
+Example:
+
+    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/confirm?file_key=profile_photos/308/911d38bb-6b4c-4c81-9cde-7aa55dfde25d.jpg"
+
+Response:
+
+    {
+      "status_code": 200,
+      "status_message": "Profile photo upload confirmed"
+    }
+
+#### 3.6.4 Get current profile photo
+
+Returns the latest confirmed profile photo for a user.
+
+    GET /v3/users/:email/profile-photo
+
+Example:
+
+    curl -X GET "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo"
+
+Response:
+
+    {
+      "file_key": "profile_photos/308/911d38bb-6b4c-4c81-9cde-7aa55dfde25d.jpg",
+      "status": "confirmed"
+    }
+
+To display the image, use your CDN or bucket base URL + `file_key` (e.g. the DO Spaces public URL for the bucket + the returned `file_key`).
+
 ---
 
 ## 4. Spaces
@@ -518,13 +585,56 @@ Notes:
 - By default, only non-archived submissions are returned in queries
 - If a submission contains an `email` field, a `user_id` will be created or linked (not required for all forms)
 - Email address is required for submissions related to membership applications
-- In the future, approved and activated users will be able to list their own submissions
+- Approved and activated users can list their own submissions via `GET /v3/forms/` (see 7.2)
 
-### 7.2 Get form submissions
+### 7.2 List my form submissions
+
+Authenticated users can fetch their own form submissions (across all forms) with:
+
+Endpoint:
+
+    GET /v3/forms/
+
+Requires authentication (e.g. Basic auth with the user’s credentials). Returns only submissions belonging to the current user.
+
+Example:
+
+    curl -X GET "https://$credentialsuser@api.varmeverket.com/v3/forms/"
+
+Response:
+
+    [
+      {
+        "id": 693,
+        "form": "studios",
+        "submission": {
+          "email": "benji@superstition.io",
+          "name": "Benji Smith",
+          "craft": "IT"
+        },
+        "user_id": 308,
+        "created_at": "Fri, 13 Feb 2026 16:08:53 GMT",
+        "archived": 0,
+        "status_history": [
+          {
+            "id": 49,
+            "submission_id": 693,
+            "status": "new",
+            "created_at": "2026-02-13 16:08:53"
+          }
+        ]
+      }
+    ]
+
+If the user has no submissions, the response is an empty array `[]`.
+
+### 7.3 Get form submissions (by form)
 
 Endpoint:
 
     GET /v3/forms/<form>
+
+Returns all submissions for the given form (typically used by admins). Requires appropriate credentials.
 
 Example:
 
@@ -558,13 +668,13 @@ By default, only non-archived submissions are returned. To include archived subm
 
     GET /v3/forms/<form>?archived=1
 
-### 7.3 Update a submission
+### 7.4 Update a submission
 
 Endpoint:
 
     PATCH /v3/forms/<submission_id>
 
-#### 7.3.1 Archive a submission
+#### 7.4.1 Archive a submission
 
 Archive a submission when it's been handled and is no longer current. This is a separate step so that unapproved applications can be archived without activating a member.
 
@@ -585,7 +695,7 @@ Response:
       "archived": 1
     }
 
-#### 7.3.2 Update submission status
+#### 7.4.2 Update submission status
 
 Update the status of a submission to track its progress through a workflow.
 
@@ -642,7 +752,7 @@ Response:
       }
     ]
 
-### 7.4 Status History and Workflow
+### 7.5 Status History and Workflow
 
 Form submissions now support status history tracking, allowing you to monitor the progress of submissions through various stages of processing. This is particularly useful for complex processes like membership applications that involve interviews, meet-and-greet sessions, and approval workflows.
 

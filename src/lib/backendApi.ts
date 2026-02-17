@@ -532,6 +532,56 @@ export class BackendAPI {
   }
 
   /**
+   * Create profile photo upload intent
+   * POST /v3/users/:email/profile-photo/intent
+   * Returns presigned upload URL and file_key. Client uploads file with PUT to upload_url, then confirms.
+   */
+  static async createProfilePhotoUploadIntent(email: string): Promise<{
+    upload_url: string;
+    file_key: string;
+  }> {
+    return this.fetch<{ upload_url: string; file_key: string }>(
+      `/v3/users/${encodeURIComponent(email)}/profile-photo/intent`,
+      { method: 'POST' }
+    );
+  }
+
+  /**
+   * Confirm profile photo upload
+   * POST /v3/users/:email/profile-photo/confirm?file_key=...
+   * Call after successful PUT to presigned URL. Marks the upload as confirmed so it becomes the active profile photo.
+   */
+  static async confirmProfilePhotoUpload(
+    email: string,
+    fileKey: string
+  ): Promise<{ status_code: number; status_message: string }> {
+    const params = new URLSearchParams({ file_key: fileKey });
+    return this.fetch<{ status_code: number; status_message: string }>(
+      `/v3/users/${encodeURIComponent(email)}/profile-photo/confirm?${params}`,
+      { method: 'POST' }
+    );
+  }
+
+  /**
+   * Get current profile photo for a user
+   * GET /v3/users/:email/profile-photo
+   * Returns file_key and status. Use profilePhotoUrl() to build the display URL.
+   */
+  static async getProfilePhoto(email: string): Promise<{
+    file_key: string;
+    status: string;
+  } | null> {
+    try {
+      return await this.fetch<{ file_key: string; status: string }>(
+        `/v3/users/${encodeURIComponent(email)}/profile-photo`
+      );
+    } catch (e) {
+      if ((e as BackendAPIError).status === 404) return null;
+      throw e;
+    }
+  }
+
+  /**
    * Logout user
    * GET /session/logout
    * Clears the current session

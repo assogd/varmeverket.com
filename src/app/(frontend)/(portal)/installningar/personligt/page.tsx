@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { FormRenderer } from '@/components/forms';
 import { ProfilePictureUpload } from '@/components/portal/settings/components/ProfilePictureUpload';
+import { useSession } from '@/hooks/useSession';
 import { createPersonalFormConfig } from '@/utils/settings/formConfigs';
 import { handlePersonalFormSubmit } from '@/utils/settings/handlers';
 import { useSettingsTab } from '@/utils/settings/useSettingsTab';
 
 export default function PersonalSettingsPage() {
+  const { refetch: refetchSession } = useSession();
   const { formConfig: personalFormConfig, user } = useSettingsTab(
     createPersonalFormConfig,
     async (user, data) => {
@@ -29,6 +31,8 @@ export default function PersonalSettingsPage() {
         <ProfilePictureUpload
           currentImage={profileImage}
           onImageChange={setProfileImage}
+          userEmail={user?.email}
+          onUploadSuccess={refetchSession}
         />
       }
     />

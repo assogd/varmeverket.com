@@ -55,6 +55,16 @@ export function fixImageUrl(url: string | undefined | null): string {
 }
 
 /**
+ * Build public URL for a profile photo from API file_key (e.g. profile_photos/308/xxx.jpg).
+ * Profile photos are stored in DO Spaces; same CDN as other assets unless overridden.
+ */
+export function profilePhotoUrl(fileKey: string | undefined | null): string {
+  if (!fileKey) return '';
+  if (fileKey.startsWith('http')) return fileKey;
+  return `${S3_CDN_DOMAIN}/${fileKey.replace(/^\//, '')}`;
+}
+
+/**
  * Fix video URL to use S3 CDN
  */
 export function fixVideoUrl(url: string | undefined | null): string {
