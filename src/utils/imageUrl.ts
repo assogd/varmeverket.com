@@ -54,9 +54,44 @@ export function fixImageUrl(url: string | undefined | null): string {
   return `${S3_CDN_DOMAIN}/${url}`;
 }
 
+const PROFILE_PHOTO_CACHE_PREFIX = 'profilePhotoUrl:';
+
+/** Get cached profile photo URL for an email (sessionStorage). Returns null if none or in SSR. */
+export function getCachedProfilePhotoUrl(email: string): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return sessionStorage.getItem(PROFILE_PHOTO_CACHE_PREFIX + email);
+  } catch {
+    return null;
+  }
+}
+
+/** Cache profile photo URL for an email (sessionStorage). No-op in SSR. */
+export function setCachedProfilePhotoUrl(email: string, url: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(PROFILE_PHOTO_CACHE_PREFIX + email, url);
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+/** Clear cached profile photo for an email (e.g. after remove). */
+export function clearCachedProfilePhotoUrl(email: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.removeItem(PROFILE_PHOTO_CACHE_PREFIX + email);
+  } catch {
+    // ignore
+  }
+}
+
 /**
- * Build public URL for a profile photo from API file_key (e.g. profile_photos/308/xxx.jpg).
- * Profile photos are stored in DO Spaces; same CDN as other assets unless overridden.
+ * Build public URL for a profile photo from API file_key (e.g. profile-photos/10564/xxx.jpg).
+ * Profile photos are stored in DO Spaces; same CDN as other assets.
+ *
+ * Resolutions: DO Spaces CDN does not support URL-based resizing. Use next/image with this URL
+ * and width/height/sizes so Next.js serves an optimized, resized version (and WebP/AVIF when enabled).
  */
 export function profilePhotoUrl(fileKey: string | undefined | null): string {
   if (!fileKey) return '';

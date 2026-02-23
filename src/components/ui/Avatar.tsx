@@ -10,7 +10,7 @@ interface AvatarProps {
     email?: string;
   };
   profileImageUrl?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
   className?: string;
 }
 
@@ -114,36 +114,53 @@ export const Avatar: React.FC<AvatarProps> = ({
     md: 'w-10 h-10 text-sm',
     lg: 'w-12 h-12 text-base',
     xl: 'w-16 h-16 text-lg',
+    '2xl': 'w-24 h-24 text-xl',
+    '3xl': 'w-32 h-32 text-2xl',
   };
 
   const baseClasses = clsx(
     'rounded-md overflow-hidden flex items-center justify-center',
-    'bg-black text-white dark:bg-transparent',
     sizeClasses[size],
     className
   );
 
-  // If profile image is provided, use it
+  const withImageClasses = clsx(baseClasses);
+  const initialsClasses = clsx(
+    baseClasses,
+    'border border-text/30 dark:border-dark-text/30',
+    'bg-black text-white dark:bg-transparent'
+  );
+
+  // If profile image is provided, use it (Next.js optimizes and serves at this size from CDN)
   if (profileImageUrl) {
+    const px =
+      size === 'sm'
+        ? 32
+        : size === 'md'
+          ? 40
+          : size === 'lg'
+            ? 48
+            : size === 'xl'
+              ? 64
+              : size === '2xl'
+                ? 96
+                : 128;
     return (
-      <div className={baseClasses}>
+      <div className={withImageClasses}>
         <Image
           src={profileImageUrl}
           alt={user?.name || 'User'}
-          width={
-            size === 'sm' ? 32 : size === 'md' ? 40 : size === 'lg' ? 48 : 64
-          }
-          height={
-            size === 'sm' ? 32 : size === 'md' ? 40 : size === 'lg' ? 48 : 64
-          }
+          width={px}
+          height={px}
+          sizes={`${px}px`}
           className="w-full h-full object-cover"
         />
       </div>
     );
   }
 
-  // Otherwise, show initials
-  return <div className={baseClasses}>{userInitials}</div>;
+  // Otherwise, show initials (with border so the avatar is visible)
+  return <div className={initialsClasses}>{userInitials}</div>;
 };
 
 export default Avatar;

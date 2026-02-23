@@ -19,6 +19,7 @@ export { TextOnlyCard, CompactCard, MediumCard, LargeCard } from './UserCard';
 export { MarqueeButton, Button, RoundButton } from './buttons';
 export type { RoundButtonProps } from './buttons';
 export { Avatar } from './Avatar';
+export { DropdownMenu } from './DropdownMenu';
 export { BookingsList } from './BookingsList';
 export type { Booking, PaginationSettings } from './BookingsList';
 export { EventCard } from './EventCard';

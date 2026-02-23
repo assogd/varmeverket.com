@@ -2,10 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import BackendAPI, { type SessionResponse } from '@/lib/backendApi';
+import {
+  profilePhotoUrl,
+  getCachedProfilePhotoUrl,
+  setCachedProfilePhotoUrl,
+  clearCachedProfilePhotoUrl,
+} from '@/utils/imageUrl';
 
 interface UseSessionResult {
   session: SessionResponse | null;
   user: SessionResponse['user'] | null;
+  /** Resolved profile photo URL (from API or built from session). Fetched once when user is set, not on every navigation. */
+  profilePhotoUrl: string | null;
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -16,6 +24,7 @@ interface UseSessionResult {
  */
 export function useSession(): UseSessionResult {
   const [session, setSession] = useState<SessionResponse | null>(null);
+  const [profilePhotoUrlState, setProfilePhotoUrlState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +38,28 @@ export function useSession(): UseSessionResult {
       // with credentials: 'include' when making requests to that domain
       const sessionData = await BackendAPI.getSession();
       setSession(sessionData);
+
+      const email = sessionData?.user?.email;
+      if (email) {
+        // Show cached photo immediately to avoid flash (U → initials → image)
+        const cached = getCachedProfilePhotoUrl(email);
+        if (cached) setProfilePhotoUrlState(cached);
+
+        BackendAPI.getProfilePhoto(email)
+          .then(photo => {
+            const url =
+              photo?.url ?? (photo ? profilePhotoUrl(photo.file_key) : null);
+            setProfilePhotoUrlState(url);
+            if (url) setCachedProfilePhotoUrl(email, url);
+            else clearCachedProfilePhotoUrl(email);
+          })
+          .catch(() => {
+            setProfilePhotoUrlState(null);
+            clearCachedProfilePhotoUrl(email);
+          });
+      } else {
+        setProfilePhotoUrlState(null);
+      }
     } catch (err) {
       // 401 or 400 means not logged in, which is fine
       const isNotAuthenticated =
@@ -61,6 +92,7 @@ export function useSession(): UseSessionResult {
 
         // Don't set error for expected authentication failures
         setSession(null);
+        setProfilePhotoUrlState(null);
         setError(null);
       } else {
         // Only log and set error for actual problems (network errors, etc.)
@@ -75,6 +107,7 @@ export function useSession(): UseSessionResult {
         }
         setError(errorMessage);
         setSession(null);
+        setProfilePhotoUrlState(null);
       }
     } finally {
       setLoading(false);
@@ -94,6 +127,7 @@ export function useSession(): UseSessionResult {
   return {
     session,
     user: session?.user || null,
+    profilePhotoUrl: profilePhotoUrlState,
     loading,
     error,
     refetch: fetchSession,

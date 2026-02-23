@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { useSession } from '@/hooks/useSession';
+import { profilePhotoUrl } from '@/utils/imageUrl';
 import { LockIcon } from '@/components/icons';
 import { FadeIn } from '@/components/ui/FadeIn';
 import { Avatar } from '@/components/ui';
@@ -20,7 +21,16 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   mounted,
   fadeInDelay = 0.4,
 }) => {
-  const { user, loading } = useSession();
+  const { user, profilePhotoUrl: profilePhotoUrlFromSession, loading } =
+    useSession();
+
+  // Resolve avatar URL once per session/photo change (API URL or build from session file_key)
+  const avatarImageUrl = useMemo(
+    () =>
+      profilePhotoUrlFromSession ??
+      (user?.profileImage ? profilePhotoUrl(user.profileImage) : undefined),
+    [profilePhotoUrlFromSession, user?.profileImage]
+  );
 
   const authButtonClasses = clsx(
     `fixed top-4 left-[3.65em] sm:top-2 sm:left-[2.65em] z-30`,
@@ -28,8 +38,8 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     `cursor-pointer text-white ${NAV_DIMENSIONS.WIDTH} ${NAV_DIMENSIONS.HEIGHT}`,
     'flex items-center justify-center overflow-hidden',
     'border-text',
-    mounted && isDarkMode && 'border',
-    mounted && !isDarkMode && 'mix-blend-multiply bg-text'
+    mounted && isDarkMode && !avatarImageUrl && 'border',
+    mounted && !isDarkMode && !avatarImageUrl && 'mix-blend-multiply bg-text'
   );
 
   // Don't render until mounted to prevent hydration issues
@@ -70,7 +80,12 @@ const AuthButton: React.FC<AuthButtonProps> = ({
         aria-label="Go to dashboard"
         className="w-full h-full"
       >
-        <Avatar user={user} className="w-full h-full" />
+        <Avatar
+          user={user}
+          profileImageUrl={avatarImageUrl}
+          size="md"
+          className="w-full h-full"
+        />
       </Link>
     </FadeIn>
   );

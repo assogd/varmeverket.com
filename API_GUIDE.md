@@ -287,44 +287,70 @@ Note: The curl examples here use HTTP Basic credentials for terminal testing. In
 
 ### 3.6 Profile photo
 
-Profile photos are stored in S3 (DigitalOcean Spaces). The API uses **presigned upload URLs**: the client gets a one-time URL from the API, uploads the file directly to S3, then confirms with the API. The API tracks file keys, ownership, and generates the presigned URLs. Files are intended to be `public-read` once confirmed (CORS on DO Spaces may need to be configured for client-side uploads).
+Profile photos are stored in S3 (DigitalOcean Spaces). The API uses **presigned upload URLs**: the client gets a one-time URL from the API, uploads the file directly to S3, then confirms with the API. The API tracks file keys, ownership, and generates the presigned URLs. Files are stored with `public-read` ACL. Allowed origins on Spaces include `https://api.varmeverket.com`, `https://dev.varmeverket.com`, and `https://local.add.varmeverket.com:3000` for client-side uploads.
 
-**Flow:** (1) Create upload intent → (2) Upload file to presigned URL (client-side) → (3) Confirm upload.
+**Flow:** (1) Create upload intent (with optional content-type) → (2) PUT file to presigned URL with required headers → (3) Confirm upload → (4) Optional: GET profile-photo for `file_key`, `status`, and ready-made `url`.
 
-#### 3.6.1 Create upload intent
+#### 3.6.1 Create upload intent (presigned key)
 
 Creates a pending record and returns a presigned URL where the client should upload the image.
 
-    POST /v3/users/:email/profile-photo/intent
+    POST /v3/users/:email/profile-photo/intent?content-type={content-type}
+
+Optional query parameter:
+
+- **content-type** — MIME type for the image (e.g. `image/jpeg`, `image/png`). Defaults to `image/jpeg` if omitted. Use the same value as the `Content-Type` header when uploading in step 2.
 
 Requires authentication (the user creating the intent must be the same user or have permission). Response includes `upload_url` (use for a PUT in the next step) and `file_key` (use when confirming).
 
-**Note:** The current implementation assumes uploaded images are `.jpg`. Sending the intended file type when creating the intent could be supported later. Using a client-side crop/export that outputs the correct format (or encoding the image) is recommended for security and performance.
-
 Example:
 
-    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/intent"
+    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/intent?content-type=image/jpeg"
 
 Response:
 
     {
-      "upload_url": "https://fra1.digitaloceanspaces.com/varmeverket-assets/profile_photos/308/911d38bb-6b4c-4c81-9cde-7aa55dfde25d.jpg?X-Amz-Algorithm=...",
-      "file_key": "profile_photos/308/911d38bb-6b4c-4c81-9cde-7aa55dfde25d.jpg"
+      "upload_url": "https://fra1.digitaloceanspaces.com/varmeverket-assets/profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&...",
+      "file_key": "profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg"
     }
 
-#### 3.6.2 Upload the image
+#### 3.6.2 Upload the image to S3
 
-Upload the image file **client-side** with a **PUT** request to the `upload_url` from the previous step. No API call here—upload goes directly to S3.
+Upload the image file **client-side** with a **PUT** request to the `upload_url` from the previous step. No API call here—upload goes directly to DigitalOcean Spaces.
+
+**Required headers:**
+
+- **x-amz-acl: public-read** — Required so the object is publicly readable (e.g. via `https://assets.varmeverket.com/...`).
+- **Content-Type** — Must match the type used when creating the intent (e.g. `image/jpeg`). Use the same value as the `content-type` query parameter from step 1.
+
+**Optional:** Set `Origin` to your app origin (e.g. `https://api.varmeverket.com` or `https://dev.varmeverket.com`) so it matches the allowed origins on Spaces.
+
+Example:
+
+    curl -X PUT "https://fra1.digitaloceanspaces.com/varmeverket-assets/profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg?X-Amz-Algorithm=...&X-Amz-Signature=..." \
+      -H "x-amz-acl: public-read" \
+      -H "Content-Type: image/jpeg" \
+      -H "Origin: https://api.varmeverket.com" \
+      --data-binary @"/path/to/image.jpg"
+
+On success you get `HTTP/2 200` and the file is available at the CDN URL (see step 4 for the canonical URL format).
 
 #### 3.6.3 Confirm upload
 
 After a successful upload to S3, call the API to mark the upload as confirmed. The confirmed `file_key` then becomes the active profile photo for that user.
 
-    POST /v3/users/:email/profile-photo/confirm?file_key={file_key}
+    POST /v3/users/:email/profile-photo/confirm
 
-Example:
+Send `file_key` either as a query parameter or in the request body (e.g. form `file_key=...`).
 
-    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/confirm?file_key=profile_photos/308/911d38bb-6b4c-4c81-9cde-7aa55dfde25d.jpg"
+Example (query):
+
+    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/confirm?file_key=profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg"
+
+Example (form body):
+
+    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/confirm" \
+      -d "file_key=profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg"
 
 Response:
 
@@ -335,7 +361,7 @@ Response:
 
 #### 3.6.4 Get current profile photo
 
-Returns the latest confirmed profile photo for a user.
+Returns the latest confirmed profile photo for a user, including a ready-made public URL.
 
     GET /v3/users/:email/profile-photo
 
@@ -346,11 +372,20 @@ Example:
 Response:
 
     {
-      "file_key": "profile_photos/308/911d38bb-6b4c-4c81-9cde-7aa55dfde25d.jpg",
-      "status": "confirmed"
+      "file_key": "profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg",
+      "status": "confirmed",
+      "url": "https://assets.varmeverket.com/profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg"
     }
 
-To display the image, use your CDN or bucket base URL + `file_key` (e.g. the DO Spaces public URL for the bucket + the returned `file_key`).
+Use the **url** field to display the image. Alternatively, build the URL from your CDN base + `file_key` (e.g. `https://assets.varmeverket.com` + `file_key`).
+
+#### 3.6.5 Remove profile photo
+
+Removes the current profile photo for the user (no photo will be returned from GET until a new one is confirmed).
+
+    DELETE /v3/users/:email/profile-photo
+
+Requires authentication. The portal calls this when the user chooses "Ta bort bild".
 
 ---
 

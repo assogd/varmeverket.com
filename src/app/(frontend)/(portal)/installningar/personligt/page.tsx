@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FormRenderer } from '@/components/forms';
 import { ProfilePictureUpload } from '@/components/portal/settings/components/ProfilePictureUpload';
 import { useSession } from '@/hooks/useSession';
@@ -9,20 +9,20 @@ import { handlePersonalFormSubmit } from '@/utils/settings/handlers';
 import { useSettingsTab } from '@/utils/settings/useSettingsTab';
 
 export default function PersonalSettingsPage() {
-  const { refetch: refetchSession } = useSession();
+  const { refetch: refetchSession, profilePhotoUrl: sessionProfilePhotoUrl } =
+    useSession();
   const { formConfig: personalFormConfig, user } = useSettingsTab(
     createPersonalFormConfig,
     async (user, data) => {
       await handlePersonalFormSubmit(user!.email, data, user?.profile);
     }
   );
-  const [profileImage, setProfileImage] = useState<string | undefined>();
+  // Local state only for optimistic update after upload; otherwise use session's profile photo (cached)
+  const [profileImageOverride, setProfileImageOverride] = useState<
+    string | undefined
+  >(undefined);
 
-  useEffect(() => {
-    if (user?.profileImage) {
-      setProfileImage(user.profileImage);
-    }
-  }, [user?.profileImage]);
+  const profileImage = profileImageOverride ?? sessionProfilePhotoUrl ?? undefined;
 
   return (
     <FormRenderer
@@ -30,8 +30,9 @@ export default function PersonalSettingsPage() {
       customFirstField={
         <ProfilePictureUpload
           currentImage={profileImage}
-          onImageChange={setProfileImage}
+          onImageChange={setProfileImageOverride}
           userEmail={user?.email}
+          user={user ?? undefined}
           onUploadSuccess={refetchSession}
         />
       }

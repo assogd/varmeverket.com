@@ -533,15 +533,16 @@ export class BackendAPI {
 
   /**
    * Create profile photo upload intent
-   * POST /v3/users/:email/profile-photo/intent
-   * Returns presigned upload URL and file_key. Client uploads file with PUT to upload_url, then confirms.
+   * POST /v3/users/:email/profile-photo/intent?content-type=...
+   * Returns presigned upload URL and file_key. Client uploads file with PUT to upload_url (with x-amz-acl: public-read), then confirms.
    */
-  static async createProfilePhotoUploadIntent(email: string): Promise<{
-    upload_url: string;
-    file_key: string;
-  }> {
+  static async createProfilePhotoUploadIntent(
+    email: string,
+    contentType: string = 'image/jpeg'
+  ): Promise<{ upload_url: string; file_key: string }> {
+    const params = new URLSearchParams({ 'content-type': contentType });
     return this.fetch<{ upload_url: string; file_key: string }>(
-      `/v3/users/${encodeURIComponent(email)}/profile-photo/intent`,
+      `/v3/users/${encodeURIComponent(email)}/profile-photo/intent?${params}`,
       { method: 'POST' }
     );
   }
@@ -565,20 +566,34 @@ export class BackendAPI {
   /**
    * Get current profile photo for a user
    * GET /v3/users/:email/profile-photo
-   * Returns file_key and status. Use profilePhotoUrl() to build the display URL.
+   * Returns file_key, status, and optional url (ready-made CDN URL).
    */
   static async getProfilePhoto(email: string): Promise<{
     file_key: string;
     status: string;
+    url?: string;
   } | null> {
     try {
-      return await this.fetch<{ file_key: string; status: string }>(
-        `/v3/users/${encodeURIComponent(email)}/profile-photo`
-      );
+      return await this.fetch<{
+        file_key: string;
+        status: string;
+        url?: string;
+      }>(`/v3/users/${encodeURIComponent(email)}/profile-photo`);
     } catch (e) {
       if ((e as BackendAPIError).status === 404) return null;
       throw e;
     }
+  }
+
+  /**
+   * Remove profile photo for a user
+   * DELETE /v3/users/:email/profile-photo
+   */
+  static async deleteProfilePhoto(email: string): Promise<void> {
+    await this.fetch(
+      `/v3/users/${encodeURIComponent(email)}/profile-photo`,
+      { method: 'DELETE' }
+    );
   }
 
   /**
