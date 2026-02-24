@@ -11,6 +11,8 @@ interface ButtonProps {
   disabled?: boolean;
   className?: string;
   variant?: 'primary' | 'secondary' | 'outline';
+  /** Force black bg + white text and isolate from mix-blend (e.g. on orange theme). */
+  solidContrast?: boolean;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -20,6 +22,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   className = '',
   variant = 'primary',
+  solidContrast = false,
 }) => {
   const isDark = useIsDark();
 
@@ -47,6 +50,7 @@ export const Button: React.FC<ButtonProps> = ({
         getVariantStyles(),
         'px-4 py-3.5 transition-transform duration-75 ease-out active:scale-[0.99]',
         disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-90',
+        solidContrast && '!bg-black !text-[#e68456] isolate hover:!bg-black/90',
         className
       )}
     >

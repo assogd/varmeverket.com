@@ -109,8 +109,9 @@ export default async function LoginPage({
             </div>
             <Button
               type="submit"
-              className="w-full bg-text text-[color:var(--color-bg)] hover:bg-text/90"
               variant="outline"
+              solidContrast
+              className="w-full"
             >
               Gå vidare
             </Button>
