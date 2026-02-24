@@ -6,7 +6,7 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { PageHeaderTextOnly } from '@/components/headers/pages';
 import PageLayout from '@/components/layout/PageLayout';
 import { SectionFrame } from '@/components/layout/SectionFrame';
-import { type Booking, RoundButton } from '@/components/ui';
+import { type Booking, RoundButton, LoadingState } from '@/components/ui';
 import { useNotification } from '@/hooks/useNotification';
 import { PlusIcon } from '@/components/icons';
 import BackendAPI from '@/lib/backendApi';
@@ -19,32 +19,6 @@ import {
 const INITIAL_BOOKINGS_VISIBLE = 10;
 const LOAD_MORE_STEP = 10;
 
-function CalendarListSkeleton() {
-  return (
-    <div className="space-y-8 px-2" aria-hidden>
-      {[1, 2].map(day => (
-        <div key={day} className="space-y-4 pt-4 first:pt-0">
-          <div className="h-5 w-32 rounded bg-text/10 dark:bg-dark-text/10 animate-pulse" />
-          <div className="space-y-2">
-            {[1, 2].map(card => (
-              <div key={card} className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-24 h-4 mt-6 rounded bg-text/10 dark:bg-dark-text/10 animate-pulse" />
-                <div className="flex-1 min-w-0 rounded-lg border border-text p-5">
-                  <div className="h-5 w-3/4 rounded bg-text/10 dark:bg-dark-text/10 animate-pulse mb-3" />
-                  <div className="flex gap-2">
-                    <div className="h-6 w-16 rounded bg-text/10 dark:bg-dark-text/10 animate-pulse" />
-                    <div className="h-6 w-14 rounded bg-text/10 dark:bg-dark-text/10 animate-pulse" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function BookingsPage() {
   const { user } = useSession();
   const { showError } = useNotification();
@@ -52,13 +26,17 @@ export default function BookingsPage() {
   const [bookingsLoading, setBookingsLoading] = useState(true);
   const [bookingsError, setBookingsError] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(INITIAL_BOOKINGS_VISIBLE);
+  /** Prevents showing "Inga kommande" before we've actually loaded for this user (avoids Laddar → Inga kommande → Laddar flash). */
+  const [hasCompletedLoadForUser, setHasCompletedLoadForUser] = useState(false);
 
   useEffect(() => {
     if (!user?.email) {
       setBookingsLoading(false);
+      setHasCompletedLoadForUser(false);
       return;
     }
     let cancelled = false;
+    setHasCompletedLoadForUser(false);
     setBookingsLoading(true);
     setBookingsError(null);
     BackendAPI.getBookings(user.email)
@@ -80,7 +58,10 @@ export default function BookingsPage() {
         showError(errorMessage);
       })
       .finally(() => {
-        if (!cancelled) setBookingsLoading(false);
+        if (!cancelled) {
+          setHasCompletedLoadForUser(true);
+          setBookingsLoading(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -132,8 +113,8 @@ export default function BookingsPage() {
       <PageLayout contentType="page" className="px-2" paddingBottom={false}>
         <PageHeaderTextOnly title="Bokningar" />
         <SectionFrame>
-          {bookingsLoading || !user?.email ? (
-            <CalendarListSkeleton />
+          {bookingsLoading || !user?.email || !hasCompletedLoadForUser ? (
+            <LoadingState />
           ) : bookingsError ? (
             <div className="space-y-4">
               <p className="">{bookingsError}</p>
