@@ -27,7 +27,7 @@ interface AvatarProps {
  * - For single word with 1 char: That single letter
  *   Example: "A" -> "A"
  */
-const getInitials = (name: string): string => {
+export const getInitials = (name: string): string => {
   try {
     if (!name || typeof name !== 'string') {
       return 'U';
@@ -118,11 +118,11 @@ export const Avatar: React.FC<AvatarProps> = ({
     lg: 'w-12 h-12 text-base',
     xl: 'w-16 h-16 text-lg',
     '2xl': 'w-24 h-24 text-xl',
-    '3xl': 'w-32 h-32 text-2xl',
+    '3xl': 'w-32 h-32 text-xl',
   };
 
   const baseClasses = clsx(
-    'rounded-md overflow-hidden flex items-center justify-center',
+    'rounded-md overflow-hidden flex items-center justify-center max-w-full max-h-full',
     sizeClasses[size],
     className
   );
@@ -145,7 +145,7 @@ export const Avatar: React.FC<AvatarProps> = ({
           : size === 'xl'
             ? 64
             : size === '2xl'
-              ? 96
+              ? 72
               : 128;
 
   // If profile image is provided, use it (Next.js optimizes and serves at this size from CDN)
@@ -153,7 +153,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     return (
       <div
         className={withImageClasses}
-        style={{ width: px, height: px, minWidth: px, minHeight: px }}
+        style={{ width: px, height: px, minWidth: 0, minHeight: 0 }}
       >
         <Image
           src={profileImageUrl}
@@ -168,11 +168,11 @@ export const Avatar: React.FC<AvatarProps> = ({
     );
   }
 
-  // Otherwise, show initials (same reserved size to avoid CLS when switching to image)
+  // Otherwise, show initials (same reserved size; max-w/max-h let it shrink in small containers)
   return (
     <div
       className={initialsClasses}
-      style={{ width: px, height: px, minWidth: px, minHeight: px }}
+      style={{ width: px, height: px, minWidth: 0, minHeight: 0 }}
     >
       {userInitials}
     </div>

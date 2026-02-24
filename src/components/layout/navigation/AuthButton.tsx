@@ -7,7 +7,7 @@ import { useSession } from '@/hooks/useSession';
 import { profilePhotoUrl } from '@/utils/imageUrl';
 import { LockIcon } from '@/components/icons';
 import { FadeIn } from '@/components/ui/FadeIn';
-import { Avatar } from '@/components/ui';
+import { Avatar, getInitials } from '@/components/ui';
 import { NAV_DIMENSIONS } from './constants';
 
 interface AuthButtonProps {
@@ -32,14 +32,16 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     [profilePhotoUrlFromSession, user?.profileImage]
   );
 
+  // Match hamburger button: same size, border, radius; only inner content differs
   const authButtonClasses = clsx(
     `fixed top-4 left-[3.65em] sm:top-2 sm:left-[2.65em] z-30`,
     `${NAV_DIMENSIONS.BORDER_RADIUS}`,
     `cursor-pointer text-white ${NAV_DIMENSIONS.WIDTH} ${NAV_DIMENSIONS.HEIGHT}`,
     'flex items-center justify-center overflow-hidden',
     'border-text',
-    mounted && isDarkMode && !avatarImageUrl && 'border',
-    mounted && !isDarkMode && !avatarImageUrl && 'mix-blend-multiply bg-text'
+    !mounted && 'mix-blend-multiply bg-text',
+    mounted && isDarkMode && 'border',
+    mounted && !isDarkMode && 'mix-blend-multiply bg-text'
   );
 
   // Don't render until mounted to prevent hydration issues
@@ -67,7 +69,14 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     );
   }
 
-  // Logged in - show avatar
+  // Logged in: profile image (Avatar) or initials in same box as hamburger button
+  const initials =
+    user?.name && typeof user.name === 'string'
+      ? getInitials(user.name)
+      : user?.email
+        ? String(user.email[0] ?? 'U').toUpperCase()
+        : 'U';
+
   return (
     <FadeIn
       variant="fadeDown"
@@ -78,14 +87,18 @@ const AuthButton: React.FC<AuthButtonProps> = ({
       <Link
         href="/dashboard"
         aria-label="Go to dashboard"
-        className="w-full h-full"
+        className="w-full h-full flex items-center justify-center font-sans text-sm font-medium"
       >
-        <Avatar
-          user={user}
-          profileImageUrl={avatarImageUrl}
-          size="md"
-          className="w-full h-full"
-        />
+        {avatarImageUrl ? (
+          <Avatar
+            user={user}
+            profileImageUrl={avatarImageUrl}
+            size="md"
+            className="w-full h-full"
+          />
+        ) : (
+          <span className="select-none">{initials}</span>
+        )}
       </Link>
     </FadeIn>
   );
