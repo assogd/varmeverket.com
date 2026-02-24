@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from '@/hooks/useSession';
 import BackendAPI from '@/lib/backendApi';
+import { LoadingState } from '@/components/ui';
 import { DashboardClient } from './DashboardClient';
 import type { Announcement } from '@/lib/announcements';
 import type { Booking } from '@/components/ui';
@@ -45,11 +46,7 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
   }, [loading, user, router]);
 
   if (loading) {
-    return (
-      <div className="min-h-[40vh] flex items-center justify-center">
-        Laddar...
-      </div>
-    );
+    return <LoadingState className="min-h-[40vh]" />;
   }
 
   if (!user?.email) {
@@ -58,9 +55,10 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
 
   if (bookingsLoading) {
     return (
-      <div className="min-h-[40vh] flex items-center justify-center text-text/70">
-        Laddar bokningar...
-      </div>
+      <LoadingState
+        message="Laddar bokningar..."
+        className="min-h-[40vh]"
+      />
     );
   }
 

@@ -160,11 +160,10 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       date.getMonth() === monthNum - 1 &&
       date.getDate() === dayNum
     ) {
-      const isoString = date.toISOString().split('T')[0];
-      // Only call onChange if the date actually changed
-      if (lastValueRef.current !== isoString) {
-        lastValueRef.current = isoString;
-        onChange(isoString);
+      const localYMD = `${yearNum}-${String(monthNum).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+      if (lastValueRef.current !== localYMD) {
+        lastValueRef.current = localYMD;
+        onChange(localYMD);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

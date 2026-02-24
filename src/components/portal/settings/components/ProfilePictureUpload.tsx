@@ -35,6 +35,8 @@ interface ProfilePictureUploadProps {
   userEmail?: string;
   user?: { name?: string; email?: string };
   onUploadSuccess?: () => void;
+  /** Prioritize loading the avatar image (e.g. on settings page). */
+  priority?: boolean;
 }
 
 /**
@@ -88,6 +90,7 @@ export function ProfilePictureUpload({
   userEmail,
   user,
   onUploadSuccess,
+  priority = false,
 }: ProfilePictureUploadProps) {
   const [profileImage, setProfileImage] = useState<string | undefined>(() => {
     if (!currentImage) return undefined;
@@ -212,6 +215,7 @@ export function ProfilePictureUpload({
                   user={user}
                   profileImageUrl={profileImage}
                   size="3xl"
+                  priority={priority}
                   className="shrink-0"
                 />
               )}

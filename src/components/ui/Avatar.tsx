@@ -11,6 +11,8 @@ interface AvatarProps {
   };
   profileImageUrl?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+  /** Prioritize loading (e.g. for above-the-fold avatars like settings). */
+  priority?: boolean;
   className?: string;
 }
 
@@ -82,6 +84,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   user,
   profileImageUrl,
   size = 'md',
+  priority = false,
   className,
 }) => {
   // Memoize user initials - only recalculate when user.name or user.email changes
@@ -131,36 +134,49 @@ export const Avatar: React.FC<AvatarProps> = ({
     'bg-black text-white dark:bg-transparent'
   );
 
+  // Pixel dimensions so layout is reserved and no CLS when image loads
+  const px =
+    size === 'sm'
+      ? 32
+      : size === 'md'
+        ? 40
+        : size === 'lg'
+          ? 48
+          : size === 'xl'
+            ? 64
+            : size === '2xl'
+              ? 96
+              : 128;
+
   // If profile image is provided, use it (Next.js optimizes and serves at this size from CDN)
   if (profileImageUrl) {
-    const px =
-      size === 'sm'
-        ? 32
-        : size === 'md'
-          ? 40
-          : size === 'lg'
-            ? 48
-            : size === 'xl'
-              ? 64
-              : size === '2xl'
-                ? 96
-                : 128;
     return (
-      <div className={withImageClasses}>
+      <div
+        className={withImageClasses}
+        style={{ width: px, height: px, minWidth: px, minHeight: px }}
+      >
         <Image
           src={profileImageUrl}
           alt={user?.name || 'User'}
           width={px}
           height={px}
           sizes={`${px}px`}
+          priority={priority}
           className="w-full h-full object-cover"
         />
       </div>
     );
   }
 
-  // Otherwise, show initials (with border so the avatar is visible)
-  return <div className={initialsClasses}>{userInitials}</div>;
+  // Otherwise, show initials (same reserved size to avoid CLS when switching to image)
+  return (
+    <div
+      className={initialsClasses}
+      style={{ width: px, height: px, minWidth: px, minHeight: px }}
+    >
+      {userInitials}
+    </div>
+  );
 };
 
 export default Avatar;

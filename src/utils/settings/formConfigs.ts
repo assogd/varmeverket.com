@@ -46,7 +46,18 @@ export function createPersonalFormConfig(
         : '',
     address_city: user?.address_city || '',
   };
-  const content = applyDefaultsToContent(base.content ?? [], defaults);
+  let content = applyDefaultsToContent(base.content ?? [], defaults);
+  // Födelsedatum: cap year at (current - 15) so under-15 cannot be selected
+  const maxBirthYear = new Date().getFullYear() - 15;
+  content = content.map(block => {
+    if (block.blockType !== 'formSection') return block;
+    const section = block as FormSectionBlock;
+    if (!section.fields?.length) return block;
+    const fields = section.fields.map(f =>
+      f.name === 'birthdate' ? { ...f, maxYear: maxBirthYear } : f
+    );
+    return { ...section, fields };
+  });
   return {
     ...base,
     content,

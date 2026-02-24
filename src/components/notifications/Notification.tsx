@@ -14,10 +14,14 @@ interface NotificationProps {
 }
 
 const typeStyles = {
-  success: 'bg-surface-backdrop',
-  error: 'bg-red-500 text-white border-red-600',
-  warning: 'bg-yellow-500 text-black border-yellow-600',
-  info: 'bg-blue-500 text-white border-blue-600',
+  success:
+    'bg-surface-backdrop dark:bg-surface-dark dark:border dark:border-border',
+  error:
+    'bg-red-500 text-white border-red-600 dark:bg-red-900/90 dark:border-red-700 dark:text-red-100',
+  warning:
+    'bg-yellow-500 text-black border-yellow-600 dark:bg-amber-900/90 dark:border-amber-700 dark:text-amber-100',
+  info:
+    'bg-blue-500 text-white border-blue-600 dark:bg-blue-900/90 dark:border-blue-700 dark:text-blue-100',
 };
 
 const iconMap = {

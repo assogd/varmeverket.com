@@ -61,7 +61,7 @@ export const NotificationContainer: React.FC = () => {
             {notifications.slice(0, 5).map((notification, index) => (
               <motion.div
                 key={notification.id}
-                className="w-full shadow-sm absolute top-0 left-0"
+                className="w-full shadow-sm dark:shadow-none dark:ring-1 dark:ring-border dark:ring-inset absolute top-0 left-0"
                 layout
                 drag="y" // Enable vertical dragging
                 dragConstraints={{ top: 0, bottom: 0 }} // Prevent dragging up, allow dragging down

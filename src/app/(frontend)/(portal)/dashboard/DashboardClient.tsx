@@ -6,7 +6,7 @@ import { PageHeaderTextOnly } from '@/components/headers/pages';
 import PageLayout from '@/components/layout/PageLayout';
 import { SectionFrame } from '@/components/layout/SectionFrame';
 import { Heading } from '@/components/headings';
-import { type Booking } from '@/components/ui';
+import { type Booking, LoadingState } from '@/components/ui';
 import { useNotification } from '@/hooks/useNotification';
 import { PlusIcon } from '@/components/icons';
 import { NativeEmoji } from '@/components/ui';
@@ -136,7 +136,7 @@ export function DashboardClient({
         }
       >
         {bookingsLoading ? (
-          <p className="">Laddar bokningar...</p>
+          <LoadingState message="Laddar bokningar..." />
         ) : bookingsError ? (
           <div className="space-y-4">
             <p className="">{bookingsError}</p>

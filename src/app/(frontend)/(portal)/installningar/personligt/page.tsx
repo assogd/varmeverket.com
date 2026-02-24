@@ -34,6 +34,7 @@ export default function PersonalSettingsPage() {
           userEmail={user?.email}
           user={user ?? undefined}
           onUploadSuccess={refetchSession}
+          priority
         />
       }
     />
