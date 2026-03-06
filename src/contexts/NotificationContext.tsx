@@ -75,12 +75,22 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+const noopContext: NotificationContextType = {
+  notifications: [],
+  addNotification: () => '',
+  removeNotification: () => {},
+  clearAllNotifications: () => {},
+};
+
 export const useNotifications = (): NotificationContextType => {
   const context = useContext(NotificationContext);
   if (context === undefined) {
-    throw new Error(
-      'useNotifications must be used within a NotificationProvider'
-    );
+    if (typeof window !== 'undefined') {
+      console.warn(
+        'useNotifications must be used within a NotificationProvider; using no-op. Wrap the app (e.g. in (frontend) layout) with <NotificationProvider>.'
+      );
+    }
+    return noopContext;
   }
   return context;
 };

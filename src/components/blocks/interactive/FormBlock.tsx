@@ -286,15 +286,19 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
           window.location.href = actualForm.redirect.url;
         } else if (
           actualForm.redirect.type === 'reference' &&
-          actualForm.redirect.reference
+          actualForm.redirect.reference &&
+          typeof actualForm.redirect.reference === 'object'
         ) {
           // Handle internal redirect based on relationTo
-          const { relationTo, value } = actualForm.redirect.reference;
-          if (relationTo === 'pages') {
+          const { relationTo, value } = actualForm.redirect.reference as {
+            relationTo?: string;
+            value?: string;
+          };
+          if (relationTo === 'pages' && value) {
             window.location.href = `/${value}`;
-          } else if (relationTo === 'spaces') {
+          } else if (relationTo === 'spaces' && value) {
             window.location.href = `/spaces/${value}`;
-          } else if (relationTo === 'articles') {
+          } else if (relationTo === 'articles' && value) {
             window.location.href = `/artikel/${value}`;
           }
         }

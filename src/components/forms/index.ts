@@ -83,6 +83,9 @@ export type {
 export function conditionToShowIf(
   condition: FieldCondition
 ): (formValues: FormValues) => boolean {
+  if (condition == null || typeof condition !== 'object') {
+    return () => true;
+  }
   const { field, value, operator = 'equals' } = condition;
   return (formValues: FormValues) => {
     const fieldValue = formValues[field];

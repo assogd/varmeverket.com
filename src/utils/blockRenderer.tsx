@@ -72,6 +72,9 @@ const blockRegistry: Record<
  * Renders a block component based on its blockType
  */
 export const renderBlock: BlockRenderer = (block, index, options = {}) => {
+  if (block == null || typeof block !== 'object') {
+    return null;
+  }
   const { blockType, ...blockProps } = block;
 
   // Handle special cases
