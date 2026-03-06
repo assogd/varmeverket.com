@@ -1,6 +1,7 @@
 import { PayloadAPI } from '@/lib/api';
 import { ArticleHeader } from '@/components/headers';
 import ArticleContent from '@/components/blocks/articles/ArticleContent';
+import FormBlock from '@/components/blocks/interactive/FormBlock';
 import RelatedArticles from '@/components/articles/RelatedArticles';
 import PageLayout from '@/components/layout/PageLayout';
 import React, { cache } from 'react';
@@ -217,6 +218,17 @@ async function ArticlePage({ params }: ArticlePageProps) {
           }
         }
       />
+
+      {/* Form (article form reference) */}
+      {article.form && (
+        <FormBlock
+          form={
+            typeof article.form === 'object' && article.form !== null
+              ? article.form
+              : { id: String(article.form) }
+          }
+        />
+      )}
 
       {/* Footer */}
       <footer className="font-mono mx-auto w-full max-w-2xl px-4 -mt-24">

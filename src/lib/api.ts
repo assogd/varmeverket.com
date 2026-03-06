@@ -7,11 +7,23 @@
 
 import { monitoredFetch } from '@/utils/cacheMonitor';
 
-// Environment configuration - always use external for frontend
+const PROD_API_BASE_URL = 'https://payload.cms.varmeverket.com/api';
+
+// In dev with no PAYLOAD_API_URL: try local first, then prod. Otherwise use single URL.
+const isDevLocalFirst =
+  typeof process !== 'undefined' &&
+  process.env.NODE_ENV === 'development' &&
+  !process.env.NEXT_PUBLIC_PAYLOAD_API_URL;
+
+const LOCAL_API_BASE_URL = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://127.0.0.1:3000'}/api`;
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_PAYLOAD_API_URL ||
-  'https://payload.cms.varmeverket.com/api';
-const USE_EXTERNAL_BACKEND = true; // Always use external for frontend
+  (typeof process !== 'undefined' && process.env.NODE_ENV === 'development'
+    ? LOCAL_API_BASE_URL
+    : PROD_API_BASE_URL);
+
+const USE_EXTERNAL_BACKEND = true;
 
 // Reduce noisy external API logs in dev; enable only when explicitly debugging.
 const SERVER_API_DEBUG = process.env.NEXT_PUBLIC_API_DEBUG === 'true';
@@ -40,6 +52,51 @@ interface FindOptions {
   draft?: boolean; // Add draft support
 }
 
+/** In dev with local-first: try local Payload, then prod. Otherwise single URL. */
+async function fetchPayloadPath<T>(
+  path: string,
+  options: RequestInit & {
+    validate?: (data: unknown) => boolean;
+  } = {}
+): Promise<T> {
+  const { validate, ...init } = options;
+  const bases = isDevLocalFirst
+    ? [LOCAL_API_BASE_URL, PROD_API_BASE_URL]
+    : [API_BASE_URL];
+
+  let lastError: Error | null = null;
+  let lastData: T | null = null;
+  for (const base of bases) {
+    try {
+      const url = path.startsWith('http') ? path : `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+      const response = await monitoredFetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        next: { revalidate: 1800 },
+        ...init,
+      });
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      }
+      const data = (await response.json()) as T;
+      if (validate && !validate(data)) {
+        lastData = data;
+        continue;
+      }
+      return data;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (SERVER_API_DEBUG && base === bases[0]) {
+        console.error(`❌ Payload request failed (trying next base):`, lastError);
+      }
+    }
+  }
+  if (lastData !== null) {
+    return lastData;
+  }
+  throw lastError ?? new Error('Payload request failed');
+}
+
 /**
  * Fetch data from external Payload API
  */
@@ -56,59 +113,20 @@ async function fetchFromExternalAPI<T>(
     draft = false,
   } = options;
 
-  // Build query parameters
   const params = new URLSearchParams();
+  if (where) params.append('where', JSON.stringify(where));
+  if (draft) params.append('draft', 'true');
+  params.append('depth', depth.toString());
+  params.append('limit', limit.toString());
+  params.append('page', page.toString());
+  if (sort) params.append('sort', sort);
 
-  if (where) {
-    params.append('where', JSON.stringify(where));
-  }
-
-  // Add draft parameter for preview mode
-  if (draft) {
-    params.append('draft', 'true');
-  }
-  if (depth) {
-    params.append('depth', depth.toString());
-  }
-  if (limit) {
-    params.append('limit', limit.toString());
-  }
-  if (page) {
-    params.append('page', page.toString());
-  }
-  if (sort) {
-    params.append('sort', sort);
-  }
-
-  const url = `${API_BASE_URL}/${collection}?${params.toString()}`;
-
+  const path = `/${collection}?${params.toString()}`;
   try {
-    const response = await monitoredFetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      // Add cache control for better performance
-      next: { revalidate: 1800 }, // Revalidate every 30 minutes
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `API request failed: ${response.status} ${response.statusText}`
-      );
-    }
-
-    const data = await response.json();
-
-    // Response logged for debugging in development
-
-    return data;
+    return await fetchPayloadPath<ApiResponse<T>>(path);
   } catch (error) {
     if (SERVER_API_DEBUG) {
-      console.error(
-        `❌ Failed to fetch from external API (${collection}):`,
-        error
-      );
+      console.error(`❌ Failed to fetch from external API (${collection}):`, error);
     }
     throw error;
   }
@@ -169,24 +187,8 @@ export class PayloadAPI {
     id: string,
     depth = 10
   ): Promise<T> {
-    const response = await fetch(
-      `${API_BASE_URL}/${collection}/${id}?depth=${depth}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        next: { revalidate: 60 },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `API request failed: ${response.status} ${response.statusText}`
-      );
-    }
-
-    return response.json();
+    const path = `/${collection}/${id}?depth=${depth}`;
+    return fetchPayloadPath<T>(path, { next: { revalidate: 60 } } as RequestInit);
   }
 
   /**
@@ -201,44 +203,22 @@ export class PayloadAPI {
     const cacheKey = `findBySlug-${collection}-${slug}-${depth}-${draft}`;
 
     return this.deduplicatedRequest(cacheKey, async () => {
-      // Use direct fetch with simple query format instead of the broken JSON format
       const params = new URLSearchParams();
       params.append(`where[slug][equals]`, slug);
       params.append('depth', depth.toString());
-
-      // Add draft parameter for preview mode
-      if (draft) {
-        params.append('draft', 'true');
-      }
+      if (draft) params.append('draft', 'true');
       params.append('limit', '1');
 
-      const url = `${API_BASE_URL}/${collection}?${params.toString()}`;
-
+      const path = `/${collection}?${params.toString()}`;
       try {
-        const response = await monitoredFetch(url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          next: { revalidate: 1800 },
+        const data = await fetchPayloadPath<{ docs: T[] }>(path, {
+          validate: (d) =>
+            Array.isArray((d as { docs?: unknown[] }).docs) &&
+            (d as { docs: unknown[] }).docs.length > 0,
         });
-
-        if (!response.ok) {
-          throw new Error(
-            `API request failed: ${response.status} ${response.statusText}`
-          );
-        }
-
-        const data = await response.json();
-
-        // Response logged for debugging in development
-
-        return data.docs[0] || null;
+        return data.docs[0] ?? null;
       } catch (error) {
-        console.error(
-          `❌ Failed to fetch by slug from API (${collection}):`,
-          error
-        );
+        console.error(`❌ Failed to fetch by slug from API (${collection}):`, error);
         throw error;
       }
     });
@@ -340,31 +320,11 @@ export class PayloadAPI {
     return this.deduplicatedRequest(cacheKey, async () => {
       const params = new URLSearchParams();
       params.append('depth', depth.toString());
-
-      // Add draft parameter for preview mode
-      if (draft) {
-        params.append('draft', 'true');
-      }
-
-      const url = `${API_BASE_URL}/globals/${global}?${params.toString()}`;
-
+      if (draft) params.append('draft', 'true');
+      const path = `/globals/${global}?${params.toString()}`;
       try {
-        const response = await monitoredFetch(url, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          next: { revalidate: 1800 },
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            `API request failed: ${response.status} ${response.statusText}`
-          );
-        }
-
-        const data = await response.json();
-        return data || null;
+        const data = await fetchPayloadPath<T>(path);
+        return data ?? null;
       } catch (error) {
         console.error(`❌ Failed to fetch global (${global}):`, error);
         throw error;
