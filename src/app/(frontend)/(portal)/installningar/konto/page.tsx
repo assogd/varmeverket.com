@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackendAPI, { type Subscription } from '@/lib/backendApi';
 import { FormRenderer } from '@/components/forms';
-import type { FormConfig } from '@/components/forms';
 import { AppLink, Button } from '@/components/ui';
 import { SectionFrame } from '@/components/layout/SectionFrame';
 import { useNotification } from '@/hooks/useNotification';
