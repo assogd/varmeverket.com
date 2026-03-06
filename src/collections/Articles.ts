@@ -273,6 +273,15 @@ const Articles: CollectionConfig = {
                   'The main content of the article. You can insert blocks (images, quotes, videos, etc.) anywhere within the content using the block button.',
               },
             },
+            {
+              name: 'form',
+              type: 'relationship',
+              relationTo: 'forms',
+              required: false,
+              admin: {
+                description: 'Optional form to display on this article',
+              },
+            },
           ],
         },
         {
