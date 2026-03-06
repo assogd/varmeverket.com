@@ -154,6 +154,16 @@ Notes:
 - Path `:email` should be the current identifier (the logged-in user’s email)
 - Body may include a new email if user is changing address
 - If you get **403 "No permission"** with a valid session and path matching the current user, it is likely a backend permission/origin issue — contact the API maintainers
+- **Email change behaviour (multi-email accounts)**:
+  - En användare kan ha **flera emailadresser kopplade till samma konto**. Inloggningen sker alltid mot en specifik emailadress (lookup på vilken user den tillhör), men användarobjektet under `/v2/users` har fortfarande ett eget `email`-fält som fungerar som **primär emailadress**.
+  - Den primära emailadressen används bl.a. i **permissionsystemet**, medan inloggningen kan ske via vilken som helst av de kopplade adresserna.
+  - När en användare loggar in med adress **X**, kan den i sina inställningar se en **primär emailadress Y** om dessa skiljer sig.
+  - Vid uppdatering till en ny emailadress sker flera kontroller:
+    - Kollar att adressen är tillgänglig
+    - Skapar mailbox/post för adressen (om behövs) och synkar dess `enabled`-status
+    - Sätter den nya adressen som **primär emailadress** på användaren
+  - Eftersom den primära adressen används i permissions, kan det uppstå en **tillfällig mismatch** direkt efter en PATCH (t.ex. `/v2/users/:email`) där backend fortfarande pekar på den tidigare primära adressen. Detta löser sig normalt efter en **refresh** / ny sessionhämtning.
+  - Planerat: tydligare **bekräftelseflöde** innan email faktiskt ändras (t.ex. via separat länk + session-expiry) för att göra beteendet mer förutsägbart i UI och permissions.
 
 Use-case: Send a JSON payload with variable data (e.g. a profile object)
 
@@ -386,6 +396,69 @@ Removes the current profile photo for the user (no photo will be returned from G
     DELETE /v3/users/:email/profile-photo
 
 Requires authentication. The portal calls this when the user chooses "Ta bort bild".
+
+### 3.7 Stripe subscription (membership)
+
+An authenticated user can fetch their actual membership based on Stripe subscription (matched by the user's email in Stripe). The backend requires the user's email; use either path or query (path is more reliable with redirects).
+
+    GET /v3/users/:email/subscription
+    GET /v3/users/subscription?email=<email>
+
+Requires authentication (session). Returns an array of subscription objects.
+
+**With Stripe subscription** (example):
+
+    [
+      {
+        "id": "sub_1T6zKiPunD14rMeQRamPVst1",
+        "status": "active",
+        "current_period_start": "2026-03-03",
+        "current_period_end": "2026-04-03",
+        "cancel_at_period_end": false,
+        "items": [
+          {
+            "product_name": "Kickstart 12 Timmar",
+            "product_id": "prod_TahJuqTzki0ayE",
+            "price_id": "price_1Sne9UPunD14rMeQGaRnRFuE",
+            "amount": 300.0,
+            "currency": "SEK",
+            "interval": "month",
+            "interval_count": 1,
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+
+The `product_name` field replaces the previous Shape, Elevate, etc. concepts for displaying membership tier.
+
+**Without Stripe subscription** (dummy for base access):
+
+    [
+      {
+        "id": null,
+        "status": "active",
+        "current_period_start": null,
+        "current_period_end": null,
+        "cancel_at_period_end": false,
+        "items": [
+          {
+            "product_name": "Community",
+            "product_id": null,
+            "price_id": null,
+            "amount": 0.0,
+            "currency": "SEK",
+            "interval": null,
+            "interval_count": null,
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+
+Use the first item's `product_name` (e.g. "Kickstart 12 Timmar" or "Community") to show the user's current membership in the UI.
+
+For **admin/staff**: the backend may support lookup by email (e.g. `GET /v3/users/subscription?email=<email>`) when using API key or staff session, so the admin panel can display a user's Stripe level when searching by email.
 
 ---
 
@@ -882,7 +955,59 @@ After activation, you can sign the user in programmatically:
 
 For server-side operations (e.g., managing submissions and user activations), an API key is available that has permissions for queries and changes related to users.
 
-**Note:** It would be possible to use session management to allow team members to manage submissions and activations, but this would require two-step logins when it comes to the `/admin` panel (one for `/admin` login, one for getting the user's session cookie for administrative requests). As an alternative, an API key was generated that is authorized to make queries and changes related to users. It is intended for use in server context only.
+### 9.1 Rollbaserad admin-access (session) och Admin-panelen
+
+- Permissionsystemet är **rollbaserat**. En användare kan ha en eller flera roller, t.ex.:
+  - `member`
+  - `community`
+  - `staff`
+  - `team`
+  - `system`
+- Rollen exponeras i `/session`-svaret:
+
+      GET /session
+
+      {
+        "session": {
+          "csrf_token": "...",
+          "lang": "sv",
+          "_fresh": true,
+          "_id": "..."
+        },
+        "user": {
+          "email": "benji@superstition.io",
+          "username": "94dc7aa5-3acb-580d-9ebe-3ca8e9fa35ba",
+          "created": "Wed, 11 Feb 2026 12:02:42 GMT",
+          "updated": "Wed, 25 Feb 2026 10:11:03 GMT",
+          "idx": 10460,
+          "name": "Benji Smith",
+          "phone": "-",
+          "birthdate": null,
+          "address_street": null,
+          "address_code": null,
+          "address_city": null,
+          "profile": "null",
+          "pronoun": null,
+          "roles": [
+            "community"
+          ]
+        }
+      }
+
+- **Adminroller**:
+  - Användare med rollerna `staff`, `team` eller `system` betraktas som **admins**.
+  - Dessa roller kommer att få **automatiskt tillträde** till administrativa funktioner (t.ex. `/admin`-panel, API-nyckel-liknande queries) baserat på sessions-cookien.
+- Planerat: ett explicit `is_admin`-fält i `/session.user` för att göra klientlogik enklare (istället för att hårdkoda rollnamn).
+
+Detta innebär att Admin-panelen kan styras helt via session och roller (utan separat inloggning), där UI:t bara behöver läsa `roles` (och senare `is_admin`) från `/session` för att avgöra om admin-vyer ska visas eller gömmas.
+
+**Note (staff/roller):** Med roller som `staff` returneras ofta mer information än användarens egna konto. För att avgränsa till en specifik användare, ange användarens e-post på de ställen där det behövs, t.ex. `?email=<email>` eller endpoint som `/v2/bookings/<email>`.
+
+### 9.2 API-nyckel (server-side)
+
+**Note:** Det är fortfarande möjligt – och ibland lämpligt – att använda en API-nyckel för server-side operationer. Historiskt har API-nyckeln använts för att hantera användare/submissions utan att behöva tvåstegsinloggning för `/admin` (se nedan).
+
+Det skulle vara möjligt att enbart använda sessionshantering för att låta teammedlemmar hantera submissions och aktiveringar, men det skulle kräva två steg när det gäller `/admin` (en inloggning för `/admin`-gränssnittet och en separat för att hämta användarens session-cookie för administrativa requests). Som alternativ finns därför en API-nyckel som är auktoriserad att göra queries och ändringar relaterade till användare. Den är avsedd för **serverkontext**.
 
 Authentication is done via HTTP Basic Auth:
 

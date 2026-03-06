@@ -28,9 +28,21 @@ interface EmailStatus {
   enabled: number;
 }
 
+interface SubscriptionItem {
+  product_name: string;
+}
+
+interface Subscription {
+  id: string | null;
+  status: string;
+  items: SubscriptionItem[];
+}
+
 interface UserData {
   user: User | null;
   emailStatus: EmailStatus | null;
+  subscription?: Subscription[] | null;
+  subscriptionError?: string | null;
   warnings?: {
     userError: string | null;
     emailError: string | null;
@@ -140,6 +152,20 @@ export function UsersList() {
                   <div>
                     <span className="font-medium">Roles:</span>{' '}
                     {userData.user.roles.join(', ') || 'No roles'}
+                  </div>
+                )}
+                {userData.subscription != null && userData.subscription.length > 0 && userData.subscription[0].items?.[0] && (
+                  <div>
+                    <span className="font-medium">Stripe level / Medlemskap:</span>{' '}
+                    {userData.subscription[0].items[0].product_name}
+                  </div>
+                )}
+                {userData.subscriptionError && (
+                  <div>
+                    <span className="font-medium">Stripe level:</span>{' '}
+                    <span className="text-amber-600 dark:text-amber-400">
+                      {userData.subscriptionError}
+                    </span>
                   </div>
                 )}
                 {userData.user.created && (

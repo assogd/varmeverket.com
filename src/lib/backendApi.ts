@@ -6,6 +6,10 @@
  * form submissions, and settings management.
  */
 
+// Reduce noisy logging: disable debug logging by default.
+// Flip to true temporarily when you actively need backend request logging.
+const API_DEBUG = false;
+
 // Environment configuration
 const BACKEND_API_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL ||
@@ -91,6 +95,32 @@ export interface PublicBooking {
 }
 
 /**
+ * Stripe subscription item (product/price line)
+ */
+export interface SubscriptionItem {
+  product_name: string;
+  product_id: string | null;
+  price_id: string | null;
+  amount: number;
+  currency: string;
+  interval: string | null;
+  interval_count: number | null;
+  quantity: number;
+}
+
+/**
+ * Stripe subscription (or dummy "Community" when no subscription)
+ */
+export interface Subscription {
+  id: string | null;
+  status: string;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  items: SubscriptionItem[];
+}
+
+/**
  * Sign-on response
  */
 export interface SignOnResponse {
@@ -129,10 +159,10 @@ export class BackendAPI {
    */
   private static async fetch<T>(
     endpoint: string,
-    options: RequestInit & { requireAuth?: boolean } = {}
+    options: RequestInit & { requireAuth?: boolean; suppressErrorLog404?: boolean } = {}
   ): Promise<T> {
     const url = `${BACKEND_API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-    const { requireAuth = true, ...fetchOptions } = options;
+    const { requireAuth = true, suppressErrorLog404 = false, ...fetchOptions } = options;
 
     // Only add Content-Type for requests with a body (POST, PUT, PATCH)
     const hasBody = fetchOptions.body !== undefined;
@@ -142,11 +172,13 @@ export class BackendAPI {
     }
 
     try {
-      console.log(`🔵 Backend API request: ${url}`, {
-        method: fetchOptions.method || 'GET',
-        credentials: requireAuth ? 'include' : 'omit',
-        hasBody,
-      });
+      if (API_DEBUG) {
+        console.log(`🔵 Backend API request: ${url}`, {
+          method: fetchOptions.method || 'GET',
+          credentials: requireAuth ? 'include' : 'omit',
+          hasBody,
+        });
+      }
 
       const response = await fetch(url, {
         ...fetchOptions,
@@ -157,22 +189,26 @@ export class BackendAPI {
         },
       });
 
-      // Log response headers to see if Set-Cookie is present
-      const setCookieHeader = response.headers.get('Set-Cookie');
-      console.log(`🔵 Backend API response: ${url}`, {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        hasSetCookie: !!setCookieHeader,
-      });
+      // Log response headers to see if Set-Cookie is present (dev only)
+      if (API_DEBUG) {
+        const setCookieHeader = response.headers.get('Set-Cookie');
+        console.log(`🔵 Backend API response: ${url}`, {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          hasSetCookie: !!setCookieHeader,
+        });
+      }
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        console.error(`❌ Backend API error (${endpoint}):`, {
-          status: response.status,
-          data,
-        });
+        if (!(suppressErrorLog404 && response.status === 404)) {
+          console.error(`❌ Backend API error (${endpoint}):`, {
+            status: response.status,
+            data,
+          });
+        }
         throw new BackendAPIError(
           data.message || `API request failed: ${response.statusText}`,
           response.status,
@@ -348,19 +384,23 @@ export class BackendAPI {
         const hasLocalSessionCookie = localCookies.includes('session=');
         const hasLocalRememberToken = localCookies.includes('remember_token=');
 
-        console.log('🔵 getSession - Request details:', {
-          url,
-          localDomain:
-            typeof window !== 'undefined' ? window.location.hostname : 'server',
-          note: 'Session cookies for api.varmeverket.com are not visible in document.cookie but will be sent automatically with credentials: include',
-          localCookies: {
-            hasSessionCookie: hasLocalSessionCookie,
-            hasRememberToken: hasLocalRememberToken,
-            cookieCount: localCookies
-              ? localCookies.split(';').filter(c => c.trim()).length
-              : 0,
-          },
-        });
+        if (API_DEBUG) {
+          console.log('🔵 getSession - Request details:', {
+            url,
+            localDomain:
+              typeof window !== 'undefined'
+                ? window.location.hostname
+                : 'server',
+            note: 'Session cookies for api.varmeverket.com are not visible in document.cookie but will be sent automatically with credentials: include',
+            localCookies: {
+              hasSessionCookie: hasLocalSessionCookie,
+              hasRememberToken: hasLocalRememberToken,
+              cookieCount: localCookies
+                ? localCookies.split(';').filter(c => c.trim()).length
+                : 0,
+            },
+          });
+        }
 
         const response = await fetch(url, {
           method: 'GET',
@@ -578,7 +618,9 @@ export class BackendAPI {
         file_key: string;
         status: string;
         url?: string;
-      }>(`/v3/users/${encodeURIComponent(email)}/profile-photo`);
+      }>(`/v3/users/${encodeURIComponent(email)}/profile-photo`, {
+        suppressErrorLog404: true,
+      });
     } catch (e) {
       if ((e as BackendAPIError).status === 404) return null;
       throw e;
@@ -597,6 +639,16 @@ export class BackendAPI {
   }
 
   /**
+   * Get current user's Stripe subscription (membership)
+   * GET /v3/users/:email/subscription (path) or ?email= (query); backend may require path.
+   */
+  static async getSubscription(email: string): Promise<Subscription[]> {
+    return this.fetch<Subscription[]>(
+      `/v3/users/${encodeURIComponent(email)}/subscription`
+    );
+  }
+
+  /**
    * Logout user
    * GET /session/logout
    * Clears the current session
@@ -608,7 +660,9 @@ export class BackendAPI {
       });
     } catch (error) {
       // Continue even if logout fails
-      console.warn('Logout request failed:', error);
+      if (API_DEBUG) {
+        console.warn('Logout request failed:', error);
+      }
     }
   }
 

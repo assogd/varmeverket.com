@@ -32,15 +32,27 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     [profilePhotoUrlFromSession, user?.profileImage]
   );
 
-  // Match hamburger button: same size, border, radius; only inner content differs
-  const authButtonClasses = clsx(
+  // Base styles: same size/shape as hamburger button
+  const baseButtonClasses = clsx(
     `fixed top-4 left-[3.65em] sm:top-2 sm:left-[2.65em] z-30`,
     `${NAV_DIMENSIONS.BORDER_RADIUS}`,
     `cursor-pointer text-white ${NAV_DIMENSIONS.WIDTH} ${NAV_DIMENSIONS.HEIGHT}`,
-    'flex items-center justify-center overflow-hidden',
+    'flex items-center justify-center overflow-hidden'
+  );
+
+  // When there's no avatar image (lock icon or initials), match hamburger border
+  const borderedButtonClasses = clsx(
+    baseButtonClasses,
     'border-text',
     !mounted && 'mix-blend-multiply bg-text',
     mounted && isDarkMode && 'border',
+    mounted && !isDarkMode && 'mix-blend-multiply bg-text'
+  );
+
+  // When there IS an avatar image, keep same box but without the white border
+  const imageButtonClasses = clsx(
+    baseButtonClasses,
+    !mounted && 'mix-blend-multiply bg-text',
     mounted && !isDarkMode && 'mix-blend-multiply bg-text'
   );
 
@@ -56,7 +68,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
         variant="fadeDown"
         timing="normal"
         delay={fadeInDelay}
-        className={authButtonClasses}
+        className={borderedButtonClasses}
       >
         <Link
           href="/login"
@@ -82,7 +94,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
       variant="fadeDown"
       timing="normal"
       delay={fadeInDelay}
-      className={authButtonClasses}
+      className={avatarImageUrl ? imageButtonClasses : borderedButtonClasses}
     >
       <Link
         href="/dashboard"

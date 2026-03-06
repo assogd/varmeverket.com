@@ -65,17 +65,33 @@ export function createPersonalFormConfig(
   };
 }
 
+/** Business form field names (must match handlers + business.json) */
+const BUSINESS_FIELD_NAMES = [
+  'occupation',
+  'creativeField',
+  'creativeFieldOther',
+  'membershipMotivation',
+];
+
 /**
  * Creates the business information form configuration.
- * Structure from content/forms/business.json.
+ * Structure from content/forms/business.json; defaults from user.profile.
  */
 export function createBusinessFormConfig(
-  _user: User | null,
+  user: User | null,
   onSubmit: (data: Record<string, unknown>) => Promise<void>
 ): FormConfig {
   const base = getFormConfigFromJson('business');
+  const profile = user?.profile && typeof user.profile === 'object' ? user.profile as Record<string, unknown> : {};
+  const defaults: Record<string, string> = {};
+  for (const name of BUSINESS_FIELD_NAMES) {
+    const v = profile[name];
+    if (v !== undefined && v !== null) defaults[name] = String(v);
+  }
+  const content = applyDefaultsToContent(base.content ?? [], defaults);
   return {
     ...base,
+    content,
     onSubmit,
   };
 }

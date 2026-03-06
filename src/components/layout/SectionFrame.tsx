@@ -18,7 +18,7 @@ export const SectionFrame: React.FC<SectionFrameProps> = ({
   const bodyClasses =
     variant === 'compact'
       ? 'max-w-2xl mx-auto border-r border-l border-text px-10 py-8'
-      : 'max-w-2xl mx-auto border-r border-l border-text p-12 my-2';
+      : 'max-w-2xl mx-auto border-r border-l border-text p-12 pb-16 my-2';
 
   const renderTitle = () => {
     if (!title) return null;

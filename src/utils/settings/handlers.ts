@@ -3,7 +3,7 @@
  * Form submission and data handling logic with optimistic updates
  */
 
-import { updateUser } from '@/services/userService';
+import { getUserByEmail, updateUser } from '@/services/userService';
 import { clearUserCache } from '@/hooks/useUser';
 import type { User } from '@/lib/backendApi';
 
@@ -164,18 +164,48 @@ export async function handlePersonalFormSubmit(
   return updatedUser;
 }
 
+/** Business form field names (stored in user.profile) */
+const BUSINESS_PROFILE_KEYS = [
+  'occupation',
+  'creativeField',
+  'creativeFieldOther',
+  'membershipMotivation',
+] as const;
+
 /**
- * Handles submission of business information form
- * TODO: Implement when backend supports business fields
+ * Handles submission of business information form.
+ * Persists business fields into user.profile via PATCH /v2/users/:email.
  */
 export async function handleBusinessFormSubmit(
   userEmail: string,
   data: Record<string, unknown>
-): Promise<void> {
-  // TODO: Implement business form submission
-  console.log('Business form data:', data);
-  // Clear cache when implemented
+): Promise<User> {
+  const existingUser = await getUserByEmail(userEmail).catch(() => null);
+  const existingProfile =
+    existingUser?.profile && typeof existingUser.profile === 'object'
+      ? (existingUser.profile as Record<string, unknown>)
+      : {};
+
+  const businessData: Record<string, unknown> = {};
+  for (const key of BUSINESS_PROFILE_KEYS) {
+    const value = data[key];
+    if (value === undefined) continue;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      businessData[key] = trimmed || null;
+    } else {
+      businessData[key] = value;
+    }
+  }
+
+  const mergedProfile = {
+    ...existingProfile,
+    ...businessData,
+  };
+
+  const updatedUser = await updateUser(userEmail, { profile: mergedProfile });
   clearUserCache(userEmail);
+  return updatedUser;
 }
 
 /**

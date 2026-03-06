@@ -13,6 +13,9 @@ const API_BASE_URL =
   'https://payload.cms.varmeverket.com/api';
 const USE_EXTERNAL_BACKEND = true; // Always use external for frontend
 
+// Reduce noisy external API logs in dev; enable only when explicitly debugging.
+const SERVER_API_DEBUG = process.env.NEXT_PUBLIC_API_DEBUG === 'true';
+
 // API response types
 interface ApiResponse<T> {
   docs: T[];
@@ -101,10 +104,12 @@ async function fetchFromExternalAPI<T>(
 
     return data;
   } catch (error) {
-    console.error(
-      `❌ Failed to fetch from external API (${collection}):`,
-      error
-    );
+    if (SERVER_API_DEBUG) {
+      console.error(
+        `❌ Failed to fetch from external API (${collection}):`,
+        error
+      );
+    }
     throw error;
   }
 }

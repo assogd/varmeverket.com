@@ -24,74 +24,71 @@ export function AdminNavigation() {
   const activeHref = getActiveItem();
 
   return (
-    <div className="p-2">
-      <div className="flex items-start justify-center w-full gap-2 mb-8">
-        {adminNavItems.map(item => {
-          // For base route, only match exactly
-          // For other routes, match exactly or if pathname starts with the href
-          const isActive =
-            item.href === '/portal/admin'
-              ? activeHref === '/portal/admin'
-              : activeHref === item.href ||
-                pathname?.startsWith(`${item.href}/`);
-          const isTriangle = item.shape === 'triangle';
-          const isSquare = item.shape === 'square';
-          const isPolygon = isTriangle || isSquare;
-          const shapeClass = item.shape === 'circle' ? 'rounded-full' : '';
+    <div className="flex items-center justify-center w-full max-w-8xl mx-auto gap-2 mb-8">
+      {adminNavItems.map(item => {
+        // For base route, only match exactly
+        // For other routes, match exactly or if pathname starts with the href
+        const isActive =
+          item.href === '/portal/admin'
+            ? activeHref === '/portal/admin'
+            : activeHref === item.href || pathname?.startsWith(`${item.href}/`);
+        const isTriangle = item.shape === 'triangle';
+        const isSquare = item.shape === 'square';
+        const isPolygon = isTriangle || isSquare;
+        const shapeClass = item.shape === 'circle' ? 'rounded-full' : '';
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={clsx(
-                'relative flex items-center justify-center uppercase',
-                !isPolygon && 'border border-text dark:border-dark-text',
-                'flex-1 aspect-square max-w-sm',
-                shapeClass,
-                isActive
-                  ? 'text-text dark:text-dark-text underline'
-                  : 'text-text dark:text-dark-text'
-              )}
-            >
-              {isSquare && (
-                <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  viewBox="0 0 100 100"
-                  aria-hidden="true"
-                >
-                  <polygon
-                    points="28,0.5 72,0.5 99.5,28 99.5,72 72,99.5 28,99.5 0.5,72 0.5,28"
-                    fill="transparent"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeLinecap="square"
-                    strokeLinejoin="bevel"
-                    vectorEffect="non-scaling-stroke"
-                    shapeRendering="geometricPrecision"
-                  />
-                </svg>
-              )}
-              {isTriangle && (
-                <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none scale-[1.08] origin-center"
-                  viewBox="0 0 100 100"
-                  aria-hidden="true"
-                >
-                  <polygon
-                    points="50,4 96,38 78,96 22,96 4,38"
-                    fill="transparent"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    strokeLinejoin="round"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                </svg>
-              )}
-              {item.label}
-            </Link>
-          );
-        })}
-      </div>
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={clsx(
+              'relative flex items-center justify-center uppercase',
+              !isPolygon && 'border border-text dark:border-dark-text',
+              'flex-1 aspect-square max-w-sm',
+              shapeClass,
+              isActive
+                ? 'text-text dark:text-dark-text underline'
+                : 'text-text dark:text-dark-text'
+            )}
+          >
+            {isSquare && (
+              <svg
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                viewBox="0 0 100 100"
+                aria-hidden="true"
+              >
+                <polygon
+                  points="28,0.5 72,0.5 99.5,28 99.5,72 72,99.5 28,99.5 0.5,72 0.5,28"
+                  fill="transparent"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  strokeLinecap="square"
+                  strokeLinejoin="bevel"
+                  vectorEffect="non-scaling-stroke"
+                  shapeRendering="geometricPrecision"
+                />
+              </svg>
+            )}
+            {isTriangle && (
+              <svg
+                className="absolute inset-0 w-full h-full pointer-events-none scale-[1.08] origin-center"
+                viewBox="0 0 100 100"
+                aria-hidden="true"
+              >
+                <polygon
+                  points="50,4 96,38 78,96 22,96 4,38"
+                  fill="transparent"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  strokeLinejoin="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
+            )}
+            {item.label}
+          </Link>
+        );
+      })}
     </div>
   );
 }

@@ -15,13 +15,6 @@
           "helpText": "Detta är ditt offentliga visningsnamn."
         },
         {
-          "name": "email",
-          "label": "Email",
-          "fieldType": "email",
-          "required": true,
-          "placeholder": "Din e-postadress"
-        },
-        {
           "name": "phone",
           "label": "Mobilnummer",
           "fieldType": "tel",

@@ -46,7 +46,7 @@ export default function AdminLayout({
           }}
         />
         <AdminNavigation />
-        <div className="px-2 pb-24">{children}</div>
+        <div className="px-2">{children}</div>
       </PageLayout>
     </ProtectedRoute>
   );

@@ -9,6 +9,10 @@ import {
   clearCachedProfilePhotoUrl,
 } from '@/utils/imageUrl';
 
+// Track emails we've already checked for a profile photo (including 404/no-photo)
+// to avoid repeated GET /v3/users/:email/profile-photo calls and their 404s.
+const emailsCheckedForProfilePhoto = new Set<string>();
+
 interface UseSessionResult {
   session: SessionResponse | null;
   user: SessionResponse['user'] | null;
@@ -45,18 +49,22 @@ export function useSession(): UseSessionResult {
         const cached = getCachedProfilePhotoUrl(email);
         if (cached) setProfilePhotoUrlState(cached);
 
-        BackendAPI.getProfilePhoto(email)
-          .then(photo => {
-            const url =
-              photo?.url ?? (photo ? profilePhotoUrl(photo.file_key) : null);
-            setProfilePhotoUrlState(url);
-            if (url) setCachedProfilePhotoUrl(email, url);
-            else clearCachedProfilePhotoUrl(email);
-          })
-          .catch(() => {
-            setProfilePhotoUrlState(null);
-            clearCachedProfilePhotoUrl(email);
-          });
+        // Only check profile photo once per email in this browser session.
+        if (!emailsCheckedForProfilePhoto.has(email)) {
+          emailsCheckedForProfilePhoto.add(email);
+          BackendAPI.getProfilePhoto(email)
+            .then(photo => {
+              const url =
+                photo?.url ?? (photo ? profilePhotoUrl(photo.file_key) : null);
+              setProfilePhotoUrlState(url);
+              if (url) setCachedProfilePhotoUrl(email, url);
+              else clearCachedProfilePhotoUrl(email);
+            })
+            .catch(() => {
+              setProfilePhotoUrlState(null);
+              clearCachedProfilePhotoUrl(email);
+            });
+        }
       } else {
         setProfilePhotoUrlState(null);
       }

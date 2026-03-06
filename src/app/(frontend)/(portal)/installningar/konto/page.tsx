@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import clsx from 'clsx';
-import BackendAPI, { type User } from '@/lib/backendApi';
+import BackendAPI, { type Subscription } from '@/lib/backendApi';
 import { FormRenderer } from '@/components/forms';
 import type { FormConfig } from '@/components/forms';
 import { AppLink, Button } from '@/components/ui';
@@ -13,17 +12,12 @@ import { createAccountFormConfig } from '@/utils/settings/formConfigs';
 import { handleAccountFormSubmit } from '@/utils/settings/handlers';
 import { useSettingsTab } from '@/utils/settings/useSettingsTab';
 
-const accessOptions = [
-  { value: 'member', label: 'Member' },
-  { value: 'elevate', label: 'Elevate' },
-  { value: 'shape', label: 'Shape' },
-];
-
-function getDefaultAccess(user?: User | null) {
-  const roles = user?.roles?.map(role => role.toLowerCase()) || [];
-  if (roles.includes('shape')) return 'shape';
-  if (roles.includes('elevate')) return 'elevate';
-  return 'member';
+function getProductNameFromSubscription(
+  subscription: Subscription[] | null
+): string {
+  const first = subscription?.[0];
+  const item = first?.items?.[0];
+  return item?.product_name ?? 'Community';
 }
 
 export default function AccountSettingsPage() {
@@ -34,14 +28,31 @@ export default function AccountSettingsPage() {
     (user, data) => handleAccountFormSubmit(user!.email, data)
   );
 
-  const [selectedAccess, setSelectedAccess] = useState(() =>
-    getDefaultAccess(user)
+  const [subscription, setSubscription] = useState<Subscription[] | null>(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(
+    null
   );
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
-    setSelectedAccess(getDefaultAccess(user));
-  }, [user]);
+    if (!user?.email) {
+      setSubscription(null);
+      setSubscriptionLoading(false);
+      return;
+    }
+    setSubscriptionLoading(true);
+    setSubscriptionError(null);
+    BackendAPI.getSubscription(user.email)
+      .then(setSubscription)
+      .catch(err => {
+        console.error('Failed to load subscription:', err);
+        setSubscriptionError(
+          err instanceof Error ? err.message : 'Kunde inte hämta medlemskap'
+        );
+      })
+      .finally(() => setSubscriptionLoading(false));
+  }, [user?.email]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -66,37 +77,14 @@ export default function AccountSettingsPage() {
         description="Vill du uppgradera din access? Ansök via detta formulär."
       >
         <p className="">Din aktuella access</p>
-        <div className="mt-2 space-y-2 select-none">
-          {accessOptions.map(option => {
-            const isSelected = option.value === selectedAccess;
-            return (
-              <label
-                key={option.value}
-                className={clsx(
-                  'flex items-center justify-between border border-text rounded-sm px-4 py-3 cursor-pointer',
-                  isSelected && 'bg-text/10 dark:bg-dark-text/10',
-                  !isSelected && 'opacity-50'
-                )}
-              >
-                <span className="">{option.label}</span>
-                <span
-                  className={clsx(
-                    'h-3.5 w-3.5 rounded-full border border-text flex items-center justify-center',
-                    isSelected && 'bg-text'
-                  )}
-                />
-                <input
-                  type="radio"
-                  name="access"
-                  value={option.value}
-                  checked={isSelected}
-                  onChange={() => setSelectedAccess(option.value)}
-                  className="sr-only"
-                  disabled={!isSelected}
-                />
-              </label>
-            );
-          })}
+        <div className="mt-2 border border-text rounded-sm uppercase px-4 py-3 bg-text/10 dark:bg-dark-text/10">
+          {subscriptionLoading ? (
+            <span className="opacity-70">…</span>
+          ) : subscriptionError ? (
+            <span className="opacity-70">{subscriptionError}</span>
+          ) : (
+            getProductNameFromSubscription(subscription)
+          )}
         </div>
       </SectionFrame>
 
