@@ -21,8 +21,11 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   mounted,
   fadeInDelay = 0.4,
 }) => {
-  const { user, profilePhotoUrl: profilePhotoUrlFromSession, loading } =
-    useSession();
+  const {
+    user,
+    profilePhotoUrl: profilePhotoUrlFromSession,
+    loading,
+  } = useSession();
 
   // Resolve avatar URL once per session/photo change (API URL or build from session file_key)
   const avatarImageUrl = useMemo(
@@ -52,8 +55,8 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   // When there IS an avatar image, keep same box but without the white border
   const imageButtonClasses = clsx(
     baseButtonClasses,
-    !mounted && 'mix-blend-multiply bg-text',
-    mounted && !isDarkMode && 'mix-blend-multiply bg-text'
+    !mounted && '',
+    mounted && !isDarkMode && ''
   );
 
   // Don't render until mounted to prevent hydration issues
