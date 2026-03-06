@@ -110,7 +110,7 @@ export default function AccountSettingsPage() {
         </AppLink>
       </SectionFrame>
 
-      {accountFormConfig?.content?.length > 0 && (
+      {(accountFormConfig?.content?.length ?? 0) > 0 && (
         <FormRenderer config={accountFormConfig} />
       )}
     </>
