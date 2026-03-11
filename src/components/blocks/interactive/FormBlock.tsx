@@ -399,12 +399,12 @@ function FormBlockInner({
     <div className="relative px-4 pt-8 pb-12">
       <DevIndicator componentName="FormBlock" />
 
-      {/* Same header pattern as FAQBlock */}
-      {showHeader && (headline || description) && (
+      {/* Same header pattern as FAQBlock; actualForm.title is h2 backup when no headline */}
+      {showHeader && (headline || description || actualForm.title) && (
         <div className="mb-8 text-center">
-          {headline && (
+          {(headline || actualForm.title) && (
             <Heading variant="content-h2" as="h2" className="mb-4 px-2">
-              {headline}
+              {headline || actualForm.title}
             </Heading>
           )}
           {description && (
@@ -417,14 +417,7 @@ function FormBlockInner({
         </div>
       )}
 
-      {/* Form document title when no block headline (backward compatible) */}
-      {actualForm.title && showHeader && !headline && (
-        <Heading variant="content-h2" as="h2" className="mb-8 text-center">
-          {actualForm.title}
-        </Heading>
-      )}
-
-      <div className="max-w-2xl mx-auto border-t border-b border-text py-2">
+      <div className="border-t border-b border-text py-2">
         <FormRenderer config={configWithCallback} />
       </div>
     </div>
