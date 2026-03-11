@@ -15,8 +15,11 @@ import type {
   FormValues,
 } from '@/components/forms';
 import { RichText } from '@payloadcms/richtext-lexical/react';
-import clsx from 'clsx';
 import { articleConverter } from '@/utils/richTextConverters/index';
+
+/** Confirmation RichText wrapper classes (no clsx — avoids client ReferenceError if clsx chunk missing) */
+const CONFIRMATION_RICH_TEXT_CLASS =
+  'grid gap-3 justify-center pb-8 w-full max-w-2xl mx-auto [&_p]:font-mono [&_p]:text-center [&_ul]:font-mono [&_ul]:text-center [&_ul]:mx-auto [&_ol]:font-mono [&_ol]:text-center [&_ol]:mx-auto [&_blockquote]:font-mono [&_blockquote]:text-center [&_a]:underline';
 interface CMSFormField {
   name: string;
   label: string;
@@ -337,14 +340,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({
           <RichText
             data={actualForm.confirmationMessage as never}
             converters={articleConverter}
-            className={clsx(
-              'grid gap-3 justify-center pb-8 w-full max-w-2xl mx-auto',
-              '[&_p]:font-mono [&_p]:text-center',
-              '[&_ul]:font-mono [&_ul]:text-center [&_ul]:mx-auto',
-              '[&_ol]:font-mono [&_ol]:text-center [&_ol]:mx-auto',
-              '[&_blockquote]:font-mono [&_blockquote]:text-center',
-              '[&_a]:underline'
-            )}
+            className={CONFIRMATION_RICH_TEXT_CLASS}
           />
         ),
         showSuccessMessage: false,
