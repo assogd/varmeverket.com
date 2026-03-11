@@ -592,21 +592,32 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
             )}
           >
             <FadeIn variant="fadeUp" timing="fast" className="w-full">
-              <main className="relative w-full">
+              <div className="relative w-full">
                 {convertedConfig.successContent}
-              </main>
+              </div>
               {/* Same button treatment as error.tsx / global-error (Försök igen) */}
-              <div className="flex flex-col gap-4 mt-8 justify-center items-center">
+              <div className="flex flex-col gap-4 justify-center items-center">
                 <Button
                   type="button"
                   variant="primary"
                   className="uppercase"
                   onClick={() => {
+                    // Reset form to defaults and clear validation state
+                    const defaults: FormValues = {};
+                    allFields.forEach(field => {
+                      if (field.defaultValue !== undefined) {
+                        defaults[field.name] = field.defaultValue;
+                      }
+                    });
+                    setFormValues(defaults);
+                    setErrors({});
+                    setTouched({});
+                    setIsLoading(false);
                     setSubmitted(false);
                     convertedConfig.onInlineReset?.();
                   }}
                 >
-                  Gå tillbaka till formuläret
+                  Gå tillbaka
                 </Button>
               </div>
             </FadeIn>
