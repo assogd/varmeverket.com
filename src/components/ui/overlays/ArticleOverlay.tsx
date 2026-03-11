@@ -9,6 +9,10 @@ import { articleConverter } from '@/utils/richTextConverters/index';
 import Image from 'next/image';
 import { TagList } from '@/components/ui';
 import { DevIndicator } from '@/components/dev/DevIndicator';
+import {
+  getAuthorDisplayName,
+  getAuthorBylineDescription,
+} from '@/utils/authorDisplay';
 
 interface ArticleOverlayProps {
   article: {
@@ -85,6 +89,8 @@ const ArticleOverlay: React.FC<ArticleOverlayProps> = ({
     });
   };
 
+  const authorBylineDesc = getAuthorBylineDescription(article.author);
+
   return (
     <Overlay
       isOpen={true}
@@ -135,9 +141,7 @@ const ArticleOverlay: React.FC<ArticleOverlayProps> = ({
                 {article.author && (
                   <div className="">
                     Författare:&nbsp;
-                    {article.author.firstName && article.author.lastName
-                      ? `${article.author.firstName} ${article.author.lastName}`
-                      : article.author.email}
+                    {getAuthorDisplayName(article.author) || '—'}
                   </div>
                 )}
                 <div>
@@ -179,17 +183,15 @@ const ArticleOverlay: React.FC<ArticleOverlayProps> = ({
             ———
             <div>
               Författare: &nbsp;
-              {article.author?.firstName && article.author?.lastName
-                ? `${article.author.firstName} ${article.author.lastName}`
-                : article.author?.email}
+              {getAuthorDisplayName(article.author) || '—'}
             </div>
             <div>
               {article.lastModifiedDate
                 ? `Publicerad: ${formatDate(article.lastModifiedDate)}`
                 : `Publicerad: ${formatDate(article.publishedDate || '')}`}
             </div>
-            {article.author?.bylineDescription && (
-              <div className="mt-4">{article.author.bylineDescription}</div>
+            {authorBylineDesc && (
+              <div className="mt-4">{authorBylineDesc}</div>
             )}
           </footer>
 

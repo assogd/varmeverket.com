@@ -13,6 +13,7 @@ import { Heading } from '@/components/headings';
 import VideoPlayer from '@/components/common/VideoPlayer';
 import { fixImageUrl } from '@/utils/imageUrl';
 import { defaultConverter } from '@/utils/richTextConverters';
+import { getAuthorDisplayName } from '@/utils/authorDisplay';
 
 interface Asset {
   type: 'image' | 'mux' | 'video';
@@ -194,9 +195,7 @@ export default function ArticleHeaderAssetsAbove({
           {articleData.author && (
             <div className="">
               Författare:&nbsp;
-              {articleData.author.firstName && articleData.author.lastName
-                ? `${articleData.author.firstName} ${articleData.author.lastName}`
-                : articleData.author.email}
+              {getAuthorDisplayName(articleData.author) || '—'}
             </div>
           )}
           <div>Publicerad: {formatDate(articleData.publishedDate || '')}</div>

@@ -4,6 +4,10 @@ import ArticleContent from '@/components/blocks/articles/ArticleContent';
 import FormBlock from '@/components/blocks/interactive/FormBlock';
 import RelatedArticles from '@/components/articles/RelatedArticles';
 import PageLayout from '@/components/layout/PageLayout';
+import {
+  getAuthorDisplayName,
+  getAuthorBylineDescription,
+} from '@/utils/authorDisplay';
 import React, { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { ContentItem } from '@/components/blocks/layout/HighlightGridGenerator/types';
@@ -89,6 +93,8 @@ async function ArticlePage({ params }: ArticlePageProps) {
       day: 'numeric',
     });
   };
+
+  const authorBylineDesc = getAuthorBylineDescription(article.author);
 
   // Cached function to fetch related articles (per article ID)
   const getRelatedArticles = cache(
@@ -235,13 +241,11 @@ async function ArticlePage({ params }: ArticlePageProps) {
         ———
         <div>
           Författare: &nbsp;
-          {article.author.firstName && article.author.lastName
-            ? `${article.author.firstName} ${article.author.lastName}`
-            : article.author.email}
+          {getAuthorDisplayName(article.author) || '—'}
         </div>
         <div>Publicerad: {formatDate(article.publishedDate || '')}</div>
-        {article.author?.bylineDescription && (
-          <div className="mt-4">{article.author.bylineDescription}</div>
+        {authorBylineDesc && (
+          <div className="mt-4">{authorBylineDesc}</div>
         )}
       </footer>
 

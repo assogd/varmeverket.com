@@ -11,6 +11,7 @@ import { TagList } from '@/components/ui';
 import { Heading } from '@/components/headings';
 import MediaAsset from '@/components/common/MediaAsset';
 import { defaultConverter } from '@/utils/richTextConverters';
+import { getAuthorDisplayName } from '@/utils/authorDisplay';
 
 interface Asset {
   type: 'image' | 'mux';
@@ -118,9 +119,7 @@ export default function ArticleHeaderStandard({
           {articleData.author && (
             <div className="">
               Författare:&nbsp;
-              {articleData.author.firstName && articleData.author.lastName
-                ? `${articleData.author.firstName} ${articleData.author.lastName}`
-                : articleData.author.email}
+              {getAuthorDisplayName(articleData.author) || '—'}
             </div>
           )}
           <div>Publicerad: {formatDate(articleData.publishedDate || '')}</div>
