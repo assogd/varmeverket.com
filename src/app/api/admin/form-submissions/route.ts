@@ -42,81 +42,121 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Build URL
-    const url = includeArchived
-      ? `${BACKEND_API_URL}/v3/forms/${formSlug}?archived=1`
-      : `${BACKEND_API_URL}/v3/forms/${formSlug}`;
+    const baseUrl = `${BACKEND_API_URL}/v3/forms/${formSlug}`;
+    const urlActive = baseUrl;
+    const urlArchivedOnly = `${baseUrl}?archived=1`;
 
     // Create HTTP Basic Auth header
     const credentials = Buffer.from(
       `${API_KEY_USERNAME}:${API_KEY_PASSWORD}`
     ).toString('base64');
 
-    console.log('🔐 Fetching form submissions with API key:', {
-      formSlug,
-      includeArchived,
-      url,
-      hasCredentials: !!credentials,
-    });
+    const headers = {
+      Authorization: `Basic ${credentials}`,
+      Accept: 'application/json' as const,
+    };
 
-    // Fetch from backend API with API key authentication
-    // Note: GET requests typically don't need Content-Type header
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Basic ${credentials}`,
-        Accept: 'application/json',
-      },
-    });
-
-    const responseText = await response.text();
-    let errorData: unknown = { message: response.statusText };
-
-    try {
-      errorData = JSON.parse(responseText);
-    } catch {
-      // If response is not JSON, use the text as error message
-      errorData = { message: responseText || response.statusText };
-    }
-
-    if (!response.ok) {
-      console.error('❌ Backend API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorData,
-        url,
-      });
-      return NextResponse.json(
-        {
-          error: 'Failed to fetch form submissions',
-          message:
-            (errorData as { message?: string })?.message ||
-            response.statusText ||
-            'Unknown error',
+    /**
+     * Backend GET without ?archived=1 returns non-archived only.
+     * GET with ?archived=1 returns archived only (not "all").
+     * To show both, we fetch both and merge by submission id.
+     */
+    async function fetchSubmissionsList(
+      url: string
+    ): Promise<{ ok: true; list: unknown[] } | { ok: false; response: NextResponse }> {
+      const response = await fetch(url, { method: 'GET', headers });
+      const responseText = await response.text();
+      let errorData: unknown = { message: response.statusText };
+      try {
+        errorData = JSON.parse(responseText);
+      } catch {
+        errorData = { message: responseText || response.statusText };
+      }
+      if (!response.ok) {
+        console.error('❌ Backend API error:', {
           status: response.status,
-          details: errorData,
-        },
-        { status: response.status }
-      );
+          url,
+          error: errorData,
+        });
+        return {
+          ok: false,
+          response: NextResponse.json(
+            {
+              error: 'Failed to fetch form submissions',
+              message:
+                (errorData as { message?: string })?.message ||
+                response.statusText ||
+                'Unknown error',
+              status: response.status,
+              details: errorData,
+            },
+            { status: response.status }
+          ),
+        };
+      }
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(responseText);
+      } catch {
+        parsed = responseText;
+      }
+      const list = Array.isArray(parsed) ? parsed : [parsed];
+      return { ok: true, list };
     }
 
-    let submissions: unknown;
-    try {
-      submissions = JSON.parse(responseText);
-    } catch {
-      submissions = responseText;
+    if (!includeArchived) {
+      const result = await fetchSubmissionsList(urlActive);
+      if (!result.ok) return result.response;
+      const submissions = result.list;
+      console.log('✅ Form submissions fetched:', {
+        formSlug,
+        count: submissions.length,
+      });
+      return NextResponse.json({
+        success: true,
+        formSlug,
+        submissions,
+        count: submissions.length,
+      });
     }
 
-    console.log('✅ Form submissions fetched:', {
-      formSlug,
-      count: Array.isArray(submissions) ? submissions.length : 0,
+    // Include archived: merge active + archived-only lists
+    const [activeResult, archivedResult] = await Promise.all([
+      fetchSubmissionsList(urlActive),
+      fetchSubmissionsList(urlArchivedOnly),
+    ]);
+    if (!activeResult.ok) return activeResult.response;
+    if (!archivedResult.ok) return archivedResult.response;
+
+    const byId = new Map<number, unknown>();
+    for (const item of activeResult.list) {
+      const id = (item as { id?: number })?.id;
+      if (typeof id === 'number') byId.set(id, item);
+    }
+    for (const item of archivedResult.list) {
+      const id = (item as { id?: number })?.id;
+      if (typeof id === 'number' && !byId.has(id)) byId.set(id, item);
+    }
+    const merged = Array.from(byId.values());
+    merged.sort((a, b) => {
+      const ta = new Date(
+        (a as { created_at?: string })?.created_at ?? 0
+      ).getTime();
+      const tb = new Date(
+        (b as { created_at?: string })?.created_at ?? 0
+      ).getTime();
+      return tb - ta;
     });
 
+    console.log('✅ Form submissions fetched (merged active + archived):', {
+      formSlug,
+      count: merged.length,
+    });
     return NextResponse.json({
       success: true,
       formSlug,
-      submissions: Array.isArray(submissions) ? submissions : [submissions],
-      count: Array.isArray(submissions) ? submissions.length : 1,
+      submissions: merged,
+      count: merged.length,
     });
   } catch (error) {
     console.error('❌ Error fetching form submissions:', error);

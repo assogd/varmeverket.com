@@ -1,7 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import clsx from 'clsx';
 import { useNotification } from '@/hooks/useNotification';
+import { Button } from '@/components/ui/buttons/Button';
+import {
+  submissionEntries,
+  formatSubmissionValue,
+} from '@/components/portal/admin/submissionDisplayUtils';
 
 interface BackendReport {
   endpoint: string;
@@ -47,22 +53,160 @@ interface Subscription {
   items: SubscriptionItem[];
 }
 
+interface FormSubmissionItem {
+  id: number;
+  form: string;
+  submission?: Record<string, unknown>;
+  created_at?: string;
+  archived?: number;
+}
+
 interface UserData {
   user: User | null;
   emailStatus: EmailStatus | null;
   subscription?: Subscription[] | null;
   subscriptionError?: string | null;
+  formSubmissions?: FormSubmissionItem[] | null;
+  formSubmissionsError?: string | null;
   warnings?: {
     userError: string | null;
     emailError: string | null;
   };
 }
 
+function formatDateShort(iso?: string) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  } catch {
+    return iso;
+  }
+}
+
+/** Calendar age in full years (birth date → today). */
+function ageInYears(birth: Date): number {
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+/** Birthdate: date only + "(X år)" — API often sends midnight UTC */
+function formatBirthdate(value?: string) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  const dateStr = d.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+  const age = ageInYears(d);
+  if (age >= 0 && age < 150) {
+    return `${dateStr} (${age} år)`;
+  }
+  return dateStr;
+}
+
+function Section({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={clsx(
+        'rounded-lg border border-text/15 dark:border-dark-text/15 overflow-hidden',
+        className
+      )}
+    >
+      <h3 className="px-4 py-3 text-sm font-semibold border-b border-text/10 dark:border-dark-text/10 bg-text/[0.03] dark:bg-white/[0.03]">
+        {title}
+      </h3>
+      <div className="p-4 sm:p-5">{children}</div>
+    </section>
+  );
+}
+
+function DataTable({
+  rows,
+}: {
+  rows: { label: string; value: React.ReactNode }[];
+}) {
+  if (rows.length === 0) return null;
+  return (
+    <div className="overflow-x-auto rounded-md border border-text/10 dark:border-dark-text/10">
+      <table className="w-full text-sm border-collapse">
+        <tbody>
+          {rows.map(({ label, value }) => (
+            <tr
+              key={label}
+              className="border-b border-text/8 dark:border-dark-text/8 last:border-0"
+            >
+              <td className="align-top py-2 pl-3 pr-4 w-40 text-text/50 dark:text-dark-text/50 font-medium whitespace-nowrap">
+                {label}
+              </td>
+              <td className="align-top py-2 pr-3 text-text dark:text-dark-text break-words">
+                {value}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function SubmissionFieldsTable({ data }: { data: Record<string, unknown> }) {
+  const fields = submissionEntries(data);
+  if (fields.length === 0) {
+    return (
+      <p className="text-xs text-text/45 dark:text-dark-text/45">No fields</p>
+    );
+  }
+  return (
+    <div className="overflow-x-auto rounded-md border border-text/10 dark:border-dark-text/10">
+      <table className="w-full text-sm border-collapse">
+        <tbody>
+          {fields.map(([key, value]) => (
+            <tr
+              key={key}
+              className="border-b border-text/8 dark:border-dark-text/8 last:border-0"
+            >
+              <td
+                className="align-top py-2 pl-3 pr-4 w-36 max-w-[40%] sm:w-44 text-text/50 dark:text-dark-text/50 font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+                title={key}
+              >
+                {key}
+              </td>
+              <td className="align-top py-2 pr-3 break-words">
+                {formatSubmissionValue(value)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function UsersList() {
   const [email, setEmail] = useState('');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [backendReport, setBackendReport] = useState<BackendReport | null>(null);
+  const [backendReport, setBackendReport] = useState<BackendReport | null>(
+    null
+  );
   const { showError, showWarning, showSuccess } = useNotification();
 
   const handleSearch = async () => {
@@ -85,7 +229,6 @@ export function UsersList() {
         if (data.backendReport) {
           setBackendReport(data.backendReport);
         }
-        // If it's a 404, still set the data to show warnings if available
         if (response.status === 404 && data.warnings) {
           setUserData(data);
           showWarning(data.message || 'User not found');
@@ -105,251 +248,285 @@ export function UsersList() {
 
   const copyReportToClipboard = () => {
     if (!backendReport) return;
-    const report = `## Backend 403 report
-
-- **Endpoint:** ${backendReport.endpoint}
-- **Method:** ${backendReport.method}
-- **Status:** ${backendReport.status} ${backendReport.statusText}
-- **Requested email:** ${backendReport.requestedEmail ?? '(none)'}
-- **Time (UTC):** ${new Date().toISOString()}
-
-### Response body
-\`\`\`
-${backendReport.responseBody ?? '(empty)'}
-\`\`\`
+    const report = `## Backend report
+- Endpoint: ${backendReport.endpoint}
+- Status: ${backendReport.status} ${backendReport.statusText}
+- Email: ${backendReport.requestedEmail ?? ''}
+- Time: ${new Date().toISOString()}
+${backendReport.responseBody ? `\n${backendReport.responseBody}` : ''}
 `;
     void navigator.clipboard.writeText(report).then(() => {
-      showSuccess('Report copied to clipboard. Paste into your backend issue.');
+      showSuccess('Report copied to clipboard.');
     });
   };
 
+  const submissionsByForm = useMemo(() => {
+    const list = userData?.formSubmissions;
+    if (!list?.length) return [];
+    const map = new Map<string, FormSubmissionItem[]>();
+    for (const s of list) {
+      const key = s.form || 'Unknown form';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(s);
+    }
+    return Array.from(map.entries()).sort((a, b) =>
+      a[0].localeCompare(b[0], undefined, { sensitivity: 'base' })
+    );
+  }, [userData?.formSubmissions]);
+
+  // Single source for identity (avoid repeating email / user id across sections)
+  const displayEmail =
+    userData?.user?.email ?? userData?.emailStatus?.email ?? userData?.email;
+  const displayUserId =
+    userData?.user?.idx ?? userData?.emailStatus?.user_idx ?? null;
+  const displayName = userData?.user?.name || null;
+
+  const profileRows: { label: string; value: React.ReactNode }[] = [];
+  if (userData?.user) {
+    const u = userData.user;
+    if (u.username) profileRows.push({ label: 'Username', value: u.username });
+    if (u.roles?.length)
+      profileRows.push({ label: 'Roles', value: u.roles.join(', ') });
+    if (u.phone) profileRows.push({ label: 'Phone', value: u.phone });
+    if (u.birthdate)
+      profileRows.push({
+        label: 'Birthdate',
+        value: formatBirthdate(u.birthdate),
+      });
+    if (u.address_street)
+      profileRows.push({
+        label: 'Address',
+        value: [u.address_street, u.address_code, u.address_city]
+          .filter(Boolean)
+          .join(', '),
+      });
+    if (u.created)
+      profileRows.push({
+        label: 'Account created',
+        value: formatDateShort(u.created),
+      });
+    if (u.updated)
+      profileRows.push({
+        label: 'Profile updated',
+        value: formatDateShort(u.updated),
+      });
+    if (u.profile && Object.keys(u.profile).length > 0) {
+      profileRows.push({
+        label: 'Profile',
+        value: (
+          <SubmissionFieldsTable data={u.profile as Record<string, unknown>} />
+        ),
+      });
+    }
+    if (u.profileImage)
+      profileRows.push({ label: 'Profile image', value: u.profileImage });
+  }
+
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 items-end">
-        <div className="flex-1">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:gap-4">
+        <div className="flex-1 min-w-0">
           <label htmlFor="userEmail" className="block text-sm font-medium mb-2">
-            Search by Email
+            Search by email
           </label>
-          <div className="flex gap-2">
-            <input
-              id="userEmail"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  handleSearch();
-                }
-              }}
-              placeholder="user@example.com"
-              className="flex-1 px-4 py-2 border border-text/20 dark:border-dark-text/20 rounded bg-bg dark:bg-dark-bg text-text dark:text-dark-text"
-            />
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Searching...' : 'Search'}
-            </button>
-          </div>
+          <input
+            id="userEmail"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleSearch();
+            }}
+            placeholder="user@example.com"
+            autoComplete="email"
+            className="w-full px-4 py-3.5 border border-text/20 dark:border-dark-text/20 rounded-md bg-bg dark:bg-dark-bg text-text dark:text-dark-text"
+          />
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={loading}
+          onClick={handleSearch}
+        >
+          {loading ? 'Searching…' : 'Search'}
+        </Button>
       </div>
 
       {loading && (
-        <div className="p-8 text-center text-text/70 dark:text-dark-text/70">
-          Loading user data...
+        <div className="py-12 text-center text-text/50 dark:text-dark-text/50 text-sm">
+          Loading…
         </div>
       )}
 
       {backendReport && (
-        <div className="p-6 border border-amber-500/30 dark:border-amber-400/30 rounded-lg bg-amber-50/50 dark:bg-amber-950/20">
-          <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">
-            Backend report (for bug report)
+        <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-950/20">
+          <h3 className="font-semibold text-amber-200 mb-2 text-sm">
+            Backend report
           </h3>
-          <dl className="text-sm space-y-1 mb-4 font-mono">
-            <div>
-              <span className="text-amber-700 dark:text-amber-300">Endpoint:</span>{' '}
-              {backendReport.endpoint}
-            </div>
-            <div>
-              <span className="text-amber-700 dark:text-amber-300">Method:</span>{' '}
-              {backendReport.method}
-            </div>
-            <div>
-              <span className="text-amber-700 dark:text-amber-300">Status:</span>{' '}
-              {backendReport.status} {backendReport.statusText}
-            </div>
-            {backendReport.requestedEmail && (
-              <div>
-                <span className="text-amber-700 dark:text-amber-300">Requested email:</span>{' '}
-                {backendReport.requestedEmail}
-              </div>
-            )}
-            {backendReport.responseBody != null && backendReport.responseBody !== '' && (
-              <div className="mt-2">
-                <span className="text-amber-700 dark:text-amber-300">Response body:</span>
-                <pre className="mt-1 p-2 bg-black/5 dark:bg-white/5 rounded text-xs overflow-x-auto whitespace-pre-wrap break-words">
-                  {backendReport.responseBody}
-                </pre>
-              </div>
-            )}
-          </dl>
+          <pre className="text-xs overflow-x-auto mb-3">
+            {backendReport.responseBody}
+          </pre>
           <button
             type="button"
             onClick={copyReportToClipboard}
-            className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+            className="text-xs px-3 py-1.5 rounded-md bg-amber-600 text-white hover:bg-amber-700"
           >
             Copy for report
           </button>
         </div>
       )}
 
-      {userData && (
-        <div className="space-y-4">
-          {userData.user && (
-            <div className="p-6 border border-text/20 dark:border-dark-text/20 rounded-lg bg-bg dark:bg-dark-bg">
-              <h3 className="font-semibold text-lg mb-4">User Data</h3>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-medium">Email:</span>{' '}
-                  {userData.user.email}
-                </div>
-                <div>
-                  <span className="font-medium">Name:</span>{' '}
-                  {userData.user.name || 'Not set'}
-                </div>
-                <div>
-                  <span className="font-medium">User ID:</span> {userData.user.idx}
-                </div>
-                <div>
-                  <span className="font-medium">Username:</span>{' '}
-                  {userData.user.username}
-                </div>
-                {userData.user.roles && (
-                  <div>
-                    <span className="font-medium">Roles:</span>{' '}
-                    {userData.user.roles.join(', ') || 'No roles'}
-                  </div>
-                )}
-                {userData.subscription != null && userData.subscription.length > 0 && userData.subscription[0].items?.[0] && (
-                  <div>
-                    <span className="font-medium">Stripe level / Medlemskap:</span>{' '}
-                    {userData.subscription[0].items[0].product_name}
-                  </div>
-                )}
-                {userData.subscriptionError && (
-                  <div>
-                    <span className="font-medium">Stripe level:</span>{' '}
-                    <span className="text-amber-600 dark:text-amber-400">
-                      {userData.subscriptionError}
-                    </span>
-                  </div>
-                )}
-                {userData.user.created && (
-                  <div>
-                    <span className="font-medium">Created:</span>{' '}
-                    {new Date(userData.user.created).toLocaleString()}
-                  </div>
-                )}
-                {userData.user.updated && (
-                  <div>
-                    <span className="font-medium">Updated:</span>{' '}
-                    {new Date(userData.user.updated).toLocaleString()}
-                  </div>
-                )}
-                {userData.user.phone && (
-                  <div>
-                    <span className="font-medium">Phone:</span>{' '}
-                    {userData.user.phone}
-                  </div>
-                )}
-                {userData.user.birthdate && (
-                  <div>
-                    <span className="font-medium">Birthdate:</span>{' '}
-                    {userData.user.birthdate}
-                  </div>
-                )}
-                {userData.user.address_street && (
-                  <div>
-                    <span className="font-medium">Address street:</span>{' '}
-                    {userData.user.address_street}
-                  </div>
-                )}
-                {userData.user.address_code !== undefined &&
-                  userData.user.address_code !== null && (
-                  <div>
-                    <span className="font-medium">Address code:</span>{' '}
-                    {userData.user.address_code}
-                  </div>
-                )}
-                {userData.user.address_city && (
-                  <div>
-                    <span className="font-medium">Address city:</span>{' '}
-                    {userData.user.address_city}
-                  </div>
-                )}
-                {userData.user.profile && (
-                  <div>
-                    <span className="font-medium">Profile:</span>{' '}
-                    <span className="break-all">
-                      {JSON.stringify(userData.user.profile)}
-                    </span>
-                  </div>
-                )}
-                {userData.user.profileImage && (
-                  <div>
-                    <span className="font-medium">Profile image:</span>{' '}
-                    {userData.user.profileImage}
-                  </div>
-                )}
-              </div>
-            </div>
+      {userData && (userData.user || userData.emailStatus) && (
+        <div className="space-y-6">
+          {userData.warnings?.userError && (
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              {userData.warnings.userError}
+            </p>
           )}
 
-          {userData.emailStatus && (
-            <div className="p-6 border border-text/20 dark:border-dark-text/20 rounded-lg bg-bg dark:bg-dark-bg">
-              <h3 className="font-semibold text-lg mb-4">Email Status</h3>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-medium">Email:</span>{' '}
-                  {userData.emailStatus.email}
-                </div>
-                <div>
-                  <span className="font-medium">User ID:</span>{' '}
-                  {userData.emailStatus.user_idx}
-                </div>
-                <div>
-                  <span className="font-medium">Verified:</span>{' '}
-                  {userData.emailStatus.verified
-                    ? new Date(userData.emailStatus.verified).toLocaleString()
-                    : 'Not verified'}
-                </div>
-                <div>
-                  <span className="font-medium">Subscribed:</span>{' '}
-                  {userData.emailStatus.subscribed ? 'Yes' : 'No'}
-                </div>
-                <div>
-                  <span className="font-medium">Enabled:</span>{' '}
-                  {userData.emailStatus.enabled ? (
-                    <span className="text-green-600 dark:text-green-400">
-                      ✓ Yes (User can log in)
-                    </span>
-                  ) : (
-                    <span className="text-red-600 dark:text-red-400">
-                      ✗ No (User cannot log in)
+          {/* One summary card: identity once + status chips + mailbox-only fields */}
+          <section className="rounded-lg border border-text/15 dark:border-dark-text/15 overflow-hidden">
+            <div className="px-4 py-4 sm:px-5 sm:py-5 space-y-4">
+              <div>
+                {displayName && (
+                  <h2 className="text-lg font-semibold text-text dark:text-dark-text">
+                    {displayName}
+                  </h2>
+                )}
+                <p className="text-sm text-text/70 dark:text-dark-text/70 mt-1">
+                  {displayEmail}
+                  {displayUserId != null && (
+                    <span className="text-text/50 dark:text-dark-text/50">
+                      {' '}
+                      · ID {displayUserId}
                     </span>
                   )}
-                </div>
+                </p>
               </div>
+
+              <div className="flex flex-wrap gap-2">
+                {userData.emailStatus && (
+                  <>
+                    <span
+                      className={clsx(
+                        'text-xs font-medium px-2 py-1 rounded-md',
+                        userData.emailStatus.enabled
+                          ? 'bg-emerald-500/20 text-emerald-200'
+                          : 'bg-red-500/15 text-red-300'
+                      )}
+                    >
+                      {userData.emailStatus.enabled
+                        ? 'Can log in'
+                        : 'Cannot log in'}
+                    </span>
+                    <span className="text-xs px-2 py-1 rounded-md bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80">
+                      Verified{' '}
+                      {userData.emailStatus.verified
+                        ? formatDateShort(userData.emailStatus.verified)
+                        : '—'}
+                    </span>
+                    <span className="text-xs px-2 py-1 rounded-md bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80">
+                      Newsletter:{' '}
+                      {userData.emailStatus.subscribed ? 'Yes' : 'No'}
+                    </span>
+                  </>
+                )}
+                {userData.subscription?.[0]?.items?.[0] && (
+                  <span className="text-xs px-2 py-1 rounded-md bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80">
+                    {userData.subscription[0].items[0].product_name}
+                  </span>
+                )}
+                {userData.subscriptionError && (
+                  <span className="text-xs px-2 py-1 rounded-md bg-amber-500/15 text-amber-200">
+                    Membership: {userData.subscriptionError}
+                  </span>
+                )}
+              </div>
+
+              {/* No second table for email/user id — only extra profile fields */}
+              {profileRows.length > 0 && (
+                <div className="pt-2 border-t border-text/10 dark:border-dark-text/10">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text/50 dark:text-dark-text/50 mb-2">
+                    Profile & details
+                  </p>
+                  <DataTable rows={profileRows} />
+                </div>
+              )}
             </div>
+          </section>
+
+          {/* Form submissions */}
+          {(userData.formSubmissions != null ||
+            userData.formSubmissionsError) && (
+            <Section title="Form submissions">
+              {userData.formSubmissionsError && (
+                <p className="text-sm text-amber-500 mb-4">
+                  {userData.formSubmissionsError}
+                </p>
+              )}
+              {userData.formSubmissions &&
+                userData.formSubmissions.length === 0 &&
+                !userData.formSubmissionsError && (
+                  <p className="text-sm text-text/50 dark:text-dark-text/50">
+                    No submissions linked to this user.
+                  </p>
+                )}
+              {submissionsByForm.length > 0 && (
+                <div className="space-y-6">
+                  {submissionsByForm.map(([formKey, items]) => (
+                    <div key={formKey}>
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-text/50 dark:text-dark-text/50 mb-2">
+                        {formKey}{' '}
+                        <span className="font-normal normal-case text-text/40">
+                          ({items.length})
+                        </span>
+                      </h4>
+                      <div className="space-y-4">
+                        {items.map(s => (
+                          <div
+                            key={s.id}
+                            className="rounded-md border border-text/10 dark:border-dark-text/10 overflow-hidden"
+                          >
+                            <div className="px-3 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs bg-text/[0.03] dark:bg-white/[0.03] border-b border-text/10 dark:border-dark-text/10">
+                              <span className="font-mono font-medium">
+                                #{s.id}
+                              </span>
+                              {s.created_at && (
+                                <span className="text-text/50 dark:text-dark-text/50">
+                                  {formatDateShort(s.created_at)}
+                                </span>
+                              )}
+                              {s.archived ? (
+                                <span className="text-amber-500/90">
+                                  Archived
+                                </span>
+                              ) : null}
+                            </div>
+                            <div className="p-3">
+                              {s.submission &&
+                              typeof s.submission === 'object' ? (
+                                <SubmissionFieldsTable data={s.submission} />
+                              ) : (
+                                <p className="text-xs text-text/45">
+                                  No submission payload
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Section>
           )}
 
           {!userData.user && !userData.emailStatus && (
-            <div className="p-8 text-center text-text/70 dark:text-dark-text/70">
+            <div className="py-12 text-center text-text/50 dark:text-dark-text/50 text-sm rounded-lg border border-dashed border-text/15 dark:border-dark-text/15">
               No user data found for this email
             </div>
           )}
-
         </div>
       )}
     </div>
