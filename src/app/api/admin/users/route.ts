@@ -258,3 +258,96 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+/**
+ * PATCH /api/admin/users
+ * Body: { email: string, enabled: 0 | 1 }
+ * Proxies PATCH /v2/email/:email with API key (API_GUIDE §8.2).
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
+      return NextResponse.json(
+        {
+          error: 'API key not configured',
+          message:
+            'BACKEND_API_KEY_USERNAME and BACKEND_API_KEY_PASSWORD must be set',
+        },
+        { status: 500 }
+      );
+    }
+
+    let body: { email?: string; enabled?: number };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
+    const email = body.email?.trim();
+    const enabled = body.enabled;
+    if (!email) {
+      return NextResponse.json(
+        { error: 'email is required in body' },
+        { status: 400 }
+      );
+    }
+    if (enabled !== 0 && enabled !== 1) {
+      return NextResponse.json(
+        { error: 'enabled must be 0 or 1' },
+        { status: 400 }
+      );
+    }
+
+    const credentials = Buffer.from(
+      `${API_KEY_USERNAME}:${API_KEY_PASSWORD}`
+    ).toString('base64');
+
+    const response = await fetch(
+      `${BACKEND_API_URL}/v2/email/${encodeURIComponent(email)}`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Basic ${credentials}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
+        body: `enabled=${enabled}`,
+      }
+    );
+
+    const text = await response.text();
+    let data: unknown = { message: response.statusText };
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { message: text || response.statusText };
+    }
+
+    if (!response.ok) {
+      return NextResponse.json(
+        {
+          error: 'PATCH /v2/email failed',
+          message:
+            (data as { status_message?: string; message?: string })
+              .status_message ||
+            (data as { message?: string }).message ||
+            response.statusText,
+          details: data,
+        },
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json({ success: true, data });
+  } catch (error) {
+    console.error('PATCH admin users error:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to update email status',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}

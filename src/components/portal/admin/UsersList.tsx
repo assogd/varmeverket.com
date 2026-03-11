@@ -204,6 +204,7 @@ export function UsersList() {
   const [email, setEmail] = useState('');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [patchLoading, setPatchLoading] = useState(false);
   const [backendReport, setBackendReport] = useState<BackendReport | null>(
     null
   );
@@ -246,6 +247,46 @@ export function UsersList() {
     }
   };
 
+  /** PATCH /v2/email via /api/admin/users — API_GUIDE §8.2 */
+  const setLoginEnabled = async (enabled: 0 | 1) => {
+    const targetEmail =
+      userData?.emailStatus?.email ?? userData?.user?.email ?? email.trim();
+    if (!targetEmail) {
+      showError('No email to update');
+      return;
+    }
+    setPatchLoading(true);
+    setBackendReport(null);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail, enabled }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          (data as { message?: string }).message || 'Update failed'
+        );
+      }
+      showSuccess(
+        enabled === 1
+          ? 'User activated — they can log in.'
+          : 'Login disabled for this user.'
+      );
+      // Refetch
+      const getRes = await fetch(
+        `/api/admin/users?email=${encodeURIComponent(targetEmail)}`
+      );
+      const getData = await getRes.json();
+      if (getRes.ok) setUserData(getData);
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Update failed');
+    } finally {
+      setPatchLoading(false);
+    }
+  };
+
   const copyReportToClipboard = () => {
     if (!backendReport) return;
     const report = `## Backend report
@@ -276,7 +317,7 @@ ${backendReport.responseBody ? `\n${backendReport.responseBody}` : ''}
 
   // Single source for identity (avoid repeating email / user id across sections)
   const displayEmail =
-    userData?.user?.email ?? userData?.emailStatus?.email ?? userData?.email;
+    userData?.user?.email ?? userData?.emailStatus?.email ?? null;
   const displayUserId =
     userData?.user?.idx ?? userData?.emailStatus?.user_idx ?? null;
   const displayName = userData?.user?.name || null;
@@ -384,65 +425,101 @@ ${backendReport.responseBody ? `\n${backendReport.responseBody}` : ''}
             </p>
           )}
 
-          {/* One summary card: identity once + status chips + mailbox-only fields */}
+          {/* Summary card: main block + toolbox (actions) top-right on sm+ */}
           <section className="rounded-lg border border-text/15 dark:border-dark-text/15 overflow-hidden">
-            <div className="px-4 py-4 sm:px-5 sm:py-5 space-y-4">
-              <div>
-                {displayName && (
-                  <h2 className="text-lg font-semibold text-text dark:text-dark-text">
-                    {displayName}
-                  </h2>
-                )}
-                <p className="text-sm text-text/70 dark:text-dark-text/70 mt-1">
-                  {displayEmail}
-                  {displayUserId != null && (
-                    <span className="text-text/50 dark:text-dark-text/50">
-                      {' '}
-                      · ID {displayUserId}
+            <div className="px-4 py-4 sm:px-5 sm:py-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1 space-y-4">
+                <div>
+                  {displayName && (
+                    <h2 className="text-lg font-semibold text-text dark:text-dark-text">
+                      {displayName}
+                    </h2>
+                  )}
+                  <p className="text-sm text-text/70 dark:text-dark-text/70 mt-1">
+                    {displayEmail ?? email}
+                    {displayUserId != null && (
+                      <span className="text-text/50 dark:text-dark-text/50">
+                        {' '}
+                        · ID {displayUserId}
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {userData.emailStatus && (
+                    <>
+                      <span
+                        className={clsx(
+                          'text-xs font-medium px-2 py-1 rounded-md',
+                          userData.emailStatus.enabled
+                            ? 'bg-emerald-500/20 text-emerald-200'
+                            : 'bg-red-500/15 text-red-300'
+                        )}
+                      >
+                        {userData.emailStatus.enabled
+                          ? 'Can log in'
+                          : 'Cannot log in'}
+                      </span>
+                      <span className="text-xs px-2 py-1 rounded-md bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80">
+                        Verified{' '}
+                        {userData.emailStatus.verified
+                          ? formatDateShort(userData.emailStatus.verified)
+                          : '—'}
+                      </span>
+                      <span className="text-xs px-2 py-1 rounded-md bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80">
+                        Newsletter:{' '}
+                        {userData.emailStatus.subscribed ? 'Yes' : 'No'}
+                      </span>
+                    </>
+                  )}
+                  {userData.subscription?.[0]?.items?.[0] && (
+                    <span className="text-xs px-2 py-1 rounded-md bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80">
+                      {userData.subscription[0].items[0].product_name}
                     </span>
                   )}
-                </p>
+                  {userData.subscriptionError && (
+                    <span className="text-xs px-2 py-1 rounded-md bg-amber-500/15 text-amber-200">
+                      Membership: {userData.subscriptionError}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {userData.emailStatus && (
-                  <>
-                    <span
+              {userData.emailStatus && (
+                <div className="shrink-0 self-start sm:self-center">
+                  {userData.emailStatus.enabled ? (
+                    <button
+                      type="button"
+                      disabled={patchLoading}
+                      onClick={() => setLoginEnabled(0)}
                       className={clsx(
-                        'text-xs font-medium px-2 py-1 rounded-md',
-                        userData.emailStatus.enabled
-                          ? 'bg-emerald-500/20 text-emerald-200'
-                          : 'bg-red-500/15 text-red-300'
+                        'text-xs font-medium px-3 py-2 rounded-md transition-colors',
+                        'bg-amber-500/15 text-amber-200 hover:bg-amber-500/25',
+                        'disabled:opacity-50 disabled:pointer-events-none'
                       )}
                     >
-                      {userData.emailStatus.enabled
-                        ? 'Can log in'
-                        : 'Cannot log in'}
-                    </span>
-                    <span className="text-xs px-2 py-1 rounded-md bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80">
-                      Verified{' '}
-                      {userData.emailStatus.verified
-                        ? formatDateShort(userData.emailStatus.verified)
-                        : '—'}
-                    </span>
-                    <span className="text-xs px-2 py-1 rounded-md bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80">
-                      Newsletter:{' '}
-                      {userData.emailStatus.subscribed ? 'Yes' : 'No'}
-                    </span>
-                  </>
-                )}
-                {userData.subscription?.[0]?.items?.[0] && (
-                  <span className="text-xs px-2 py-1 rounded-md bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80">
-                    {userData.subscription[0].items[0].product_name}
-                  </span>
-                )}
-                {userData.subscriptionError && (
-                  <span className="text-xs px-2 py-1 rounded-md bg-amber-500/15 text-amber-200">
-                    Membership: {userData.subscriptionError}
-                  </span>
-                )}
-              </div>
+                      {patchLoading ? '…' : 'Disable login'}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={patchLoading}
+                      onClick={() => setLoginEnabled(1)}
+                      className={clsx(
+                        'text-xs font-medium px-3 py-2 rounded-md transition-colors',
+                        'bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30',
+                        'disabled:opacity-50 disabled:pointer-events-none'
+                      )}
+                    >
+                      {patchLoading ? '…' : 'Activate user'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
 
+            <div className="px-4 pb-4 sm:px-5 sm:pb-5 space-y-4">
               {/* No second table for email/user id — only extra profile fields */}
               {profileRows.length > 0 && (
                 <div className="pt-2 border-t border-text/10 dark:border-dark-text/10">
