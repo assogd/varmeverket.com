@@ -142,6 +142,13 @@ export default buildConfig({
         payment: false, // Disable payment fields for now
       },
       redirectRelationships: ['pages'], // Collections to use for form redirects
+      // Submissions go to backend API (/v3/forms/...); hide Payload form-submissions
+      // from admin so editors aren’t confused. Collection + data stay in DB untouched.
+      formSubmissionOverrides: {
+        admin: {
+          hidden: true,
+        },
+      },
     }),
     extendFormsCollection, // Extend forms collection with sections support
     // storage-adapter-placeholder
