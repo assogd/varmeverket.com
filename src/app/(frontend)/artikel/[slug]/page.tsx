@@ -11,7 +11,6 @@ import {
 import React, { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { ContentItem } from '@/components/blocks/layout/HighlightGridGenerator/types';
-import { getFormSlugForArticle } from '@/content/articleFormSlugs';
 
 // Define proper types for article data
 interface ArticleData {
@@ -155,9 +154,15 @@ async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  // Stale Next fetch cache can return article without `form` while CMS has it — refresh once
+  // Published REST response often omits `form` / `formSlug` (versions snapshot).
+  // Read the same article as draft once — only to get the Form field reference from CMS.
   let articleForForm: ArticleData = article;
-  if (!('form' in (article as object))) {
+  const hasFormRef = (a: object) =>
+    ('form' in a && (a as Record<string, unknown>).form != null) ||
+    (typeof (a as Record<string, unknown>).formSlug === 'string' &&
+      ((a as Record<string, unknown>).formSlug as string).length > 0);
+
+  if (!hasFormRef(article as object)) {
     try {
       const fresh = await PayloadAPI.findBySlugFresh<ArticleData>(
         'articles',
@@ -165,11 +170,28 @@ async function ArticlePage({ params }: ArticlePageProps) {
         10,
         false
       );
-      if (fresh && 'form' in fresh && fresh.form != null) {
+      if (fresh && hasFormRef(fresh as object)) {
         articleForForm = fresh;
       }
     } catch {
       // keep article
+    }
+  }
+  if (!hasFormRef(articleForForm as object)) {
+    try {
+      const draftResult = await PayloadAPI.find<ArticleData>({
+        collection: 'articles',
+        where: { slug: { equals: slug } },
+        draft: true,
+        limit: 1,
+        depth: 2,
+      });
+      const draftDoc = draftResult.docs?.[0];
+      if (draftDoc && hasFormRef(draftDoc as object)) {
+        articleForForm = draftDoc;
+      }
+    } catch {
+      // anonymous draft may 403 — then formSlug on next publish must be used
     }
   }
 
@@ -263,16 +285,13 @@ async function ArticlePage({ params }: ArticlePageProps) {
     }
   );
 
-  // Form: CMS field → formSlug hook → repo fallback map (API still often omits relationship)
+  // Only the article’s Form field (or formSlug copied from it on save) — no hardcoded map
   const formSlugFromCms = (articleForForm as Record<string, unknown>).formSlug;
-  const formSlugFallback = getFormSlugForArticle(slug);
   const formRef =
     articleForForm.form ??
     (typeof formSlugFromCms === 'string' && formSlugFromCms.length > 0
       ? { slug: formSlugFromCms }
-      : formSlugFallback
-        ? { slug: formSlugFallback }
-        : null);
+      : null);
   const articleFormDoc = formRef ? await resolveArticleFormDoc(formRef) : null;
 
   // Fetch related articles based on matching tags
