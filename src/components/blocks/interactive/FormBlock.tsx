@@ -14,9 +14,9 @@ import type {
   FormSectionBlock,
   FormValues,
 } from '@/components/forms';
-import clsx from 'clsx';
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import { spaceConverter } from '@/utils/richTextConverters';
+import { jsxConverter } from '@/utils/richTextConverters/index';
 
 interface CMSFormField {
   name: string;
@@ -70,7 +70,21 @@ interface CMSFormData {
   };
 }
 
+/** Lexical rich text shape for block description (same as FAQBlock) */
+type BlockDescription = {
+  root: {
+    children: Array<{
+      type: string;
+      children?: Array<{ text?: string; type?: string }>;
+    }>;
+  };
+};
+
 interface FormBlockProps {
+  /** Optional block headline (InlineHeader) — rendered like FAQBlock */
+  headline?: string;
+  /** Optional block description rich text — rendered like FAQBlock */
+  description?: BlockDescription;
   form:
     | CMSFormData
     | string
@@ -213,7 +227,11 @@ const convertCMSSectionToFormSection = (
   fields: (cmsSection.fields || []).map(convertCMSFieldToFormField),
 });
 
-export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
+export const FormBlock: React.FC<FormBlockProps> = ({
+  form,
+  headline,
+  description,
+}) => {
   // Handle different relationship formats from Payload
   let actualForm: CMSFormData | null = null;
   let formId: string | null = null;
@@ -348,33 +366,65 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
     formConfig.fields = actualForm.fields.map(convertCMSFieldToFormField);
   }
 
-  return <FormBlockInner actualForm={actualForm} formConfig={formConfig} />;
+  return (
+    <FormBlockInner
+      actualForm={actualForm}
+      formConfig={formConfig}
+      headline={headline}
+      description={description}
+    />
+  );
 };
 
 function FormBlockInner({
   actualForm,
   formConfig,
+  headline,
+  description,
 }: {
   actualForm: CMSFormData;
   formConfig: FormConfig;
+  headline?: string;
+  description?: BlockDescription;
 }) {
-  const [showTitle, setShowTitle] = useState(true);
-  const onInlineSuccess = useCallback(() => setShowTitle(false), []);
+  const [showHeader, setShowHeader] = useState(true);
+  const onInlineSuccess = useCallback(() => setShowHeader(false), []);
 
   const configWithCallback: FormConfig =
-    formConfig.successContent && showTitle
+    formConfig.successContent && showHeader
       ? { ...formConfig, onInlineSuccess }
       : formConfig;
 
   return (
     <div className="relative px-4 pt-8 pb-12">
       <DevIndicator componentName="FormBlock" />
-      {actualForm.title && showTitle && (
+
+      {/* Same header pattern as FAQBlock */}
+      {showHeader && (headline || description) && (
+        <div className="mb-8 text-center">
+          {headline && (
+            <Heading variant="content-h2" as="h2" className="mb-4 px-2">
+              {headline}
+            </Heading>
+          )}
+          {description && (
+            <RichText
+              data={description as never}
+              converters={jsxConverter}
+              className="grid justify-center"
+            />
+          )}
+        </div>
+      )}
+
+      {/* Form document title when no block headline (backward compatible) */}
+      {actualForm.title && showHeader && !headline && (
         <Heading variant="content-h2" as="h2" className="mb-8 text-center">
           {actualForm.title}
         </Heading>
       )}
-      <div className="border-t border-b border-text py-2">
+
+      <div className="max-w-2xl mx-auto border-t border-b border-text py-2">
         <FormRenderer config={configWithCallback} />
       </div>
     </div>
