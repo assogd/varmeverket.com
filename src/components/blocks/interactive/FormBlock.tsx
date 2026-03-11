@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
-import { Heading } from '@/components/headings';
+import { BlockHeader } from '@/components/blocks/BlockHeader';
 import { submitForm } from '@/services/formService';
 import { FormRenderer } from '@/components/forms';
 import type {
@@ -16,8 +16,6 @@ import type {
 } from '@/components/forms';
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import { spaceConverter } from '@/utils/richTextConverters';
-import { jsxConverter } from '@/utils/richTextConverters/index';
-
 interface CMSFormField {
   name: string;
   label: string;
@@ -399,22 +397,13 @@ function FormBlockInner({
     <div className="relative px-4 pt-8 pb-12">
       <DevIndicator componentName="FormBlock" />
 
-      {/* Same header pattern as FAQBlock; actualForm.title is h2 backup when no headline */}
-      {showHeader && (headline || description || actualForm.title) && (
-        <div className="mb-8 text-center">
-          {(headline || actualForm.title) && (
-            <Heading variant="content-h2" as="h2" className="mb-4 px-2">
-              {headline || actualForm.title}
-            </Heading>
-          )}
-          {description && (
-            <RichText
-              data={description as never}
-              converters={jsxConverter}
-              className="grid justify-center"
-            />
-          )}
-        </div>
+      {/* Shared block header; form title is headline backup when block has no headline */}
+      {showHeader && (
+        <BlockHeader
+          headline={headline || actualForm.title}
+          description={description}
+          className="mb-8"
+        />
       )}
 
       <div className="border-t border-b border-text py-2">
