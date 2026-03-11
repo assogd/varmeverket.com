@@ -63,49 +63,67 @@ interface ArticlePageProps {
 }
 
 /**
- * Article `form` is a relationship — API may return only `{ relationTo, value }` or a
- * bare id string. FormBlock needs a populated doc (content/fields/sections). Resolve by id.
+ * Article `form` is a relationship. The REST embed is often truncated (defaultPopulate)
+ * or missing `content` blocks — same form works on Pages because layout is loaded differently.
+ * Always load the full form doc like form-test: PayloadAPI.find by slug or id, depth 5.
  */
 async function resolveArticleFormDoc(
   form: unknown
 ): Promise<Record<string, unknown> | null> {
   if (form == null) return null;
 
-  if (typeof form === 'string') {
-    try {
-      const doc = await PayloadAPI.findByID<Record<string, unknown>>(
-        'forms',
-        form,
-        5
-      );
-      return doc;
-    } catch {
-      return null;
+  const asString = (v: unknown): string | null =>
+    v == null ? null : typeof v === 'string' ? v : String(v);
+
+  let slug: string | null = null;
+  let id: string | null = null;
+
+  if (typeof form === 'string' || typeof form === 'number') {
+    id = asString(form);
+  } else if (typeof form === 'object' && form !== null) {
+    const o = form as Record<string, unknown>;
+    if (typeof o.slug === 'string' && o.slug.length > 0) {
+      slug = o.slug;
+    }
+    const rawId =
+      asString(o.value) ??
+      asString(o.id) ??
+      (typeof o._id === 'string' ? o._id : null);
+    if (rawId) {
+      id = rawId;
     }
   }
 
-  if (typeof form === 'object' && form !== null) {
-    const o = form as Record<string, unknown>;
-    // Already populated doc (with or without field blocks — FormBlock handles empty content)
-    if (typeof o.id === 'string' && ('content' in o || 'slug' in o)) {
-      return o;
+  const fetchForm = async (
+    where: Record<string, unknown>
+  ): Promise<Record<string, unknown> | null> => {
+    try {
+      const result = await PayloadAPI.find<Record<string, unknown>>({
+        collection: 'forms',
+        where,
+        limit: 1,
+        depth: 5,
+      });
+      const doc = result.docs?.[0];
+      return doc && typeof doc === 'object' ? doc : null;
+    } catch {
+      return null;
     }
-    const id =
-      typeof o.value === 'string'
-        ? o.value
-        : typeof o.id === 'string'
-          ? o.id
-          : null;
-    if (id) {
-      try {
-        return await PayloadAPI.findByID<Record<string, unknown>>(
-          'forms',
-          id,
-          5
-        );
-      } catch {
-        return null;
-      }
+  };
+
+  // Prefer slug (matches form-test and backend POST /v3/forms/<slug>)
+  if (slug) {
+    const doc = await fetchForm({ slug: { equals: slug } });
+    if (doc) return doc;
+  }
+  if (id) {
+    const doc = await fetchForm({ id: { equals: id } });
+    if (doc) return doc;
+    // findByID as fallback (direct path)
+    try {
+      return await PayloadAPI.findByID<Record<string, unknown>>('forms', id, 5);
+    } catch {
+      return null;
     }
   }
 
@@ -135,8 +153,6 @@ async function ArticlePage({ params }: ArticlePageProps) {
   if (!article) {
     notFound();
   }
-
-  console.log(article);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('sv-SE', {
