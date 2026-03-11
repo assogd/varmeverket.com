@@ -10,6 +10,7 @@ import PartnerBlock from '@/blocks/brand/PartnerBlock';
 import Model3D from '@/blocks/media/Model3D';
 import MinimalCarousel from '@/blocks/layout/MinimalCarousel';
 import CardGrid from '@/blocks/layout/CardGrid';
+import Form from '@/blocks/interactive/Form';
 import SEOFields from '@/fields/SEOFields';
 import { authenticated } from '@/access/authenticated';
 // import { authenticatedOrPublished } from '@/access/authenticatedOrPublished';
@@ -264,13 +265,14 @@ const Articles: CollectionConfig = {
                       Model3D,
                       MinimalCarousel,
                       CardGrid,
+                      Form,
                     ],
                   }),
                 ],
               }),
               admin: {
                 description:
-                  'The main content of the article. You can insert blocks (images, quotes, videos, etc.) anywhere within the content using the block button.',
+                  'Main content. Use the block button to insert images, video, CTA, FAQ, Form (same as page Form block — ref to a form), etc.',
               },
             },
             {
