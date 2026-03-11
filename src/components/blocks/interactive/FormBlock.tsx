@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { BlockHeader } from '@/components/blocks/BlockHeader';
 import { submitForm } from '@/services/formService';
@@ -390,34 +390,20 @@ function FormBlockInner({
   headline?: string;
   description?: BlockDescription;
 }) {
-  const [showHeader, setShowHeader] = useState(true);
-  const onInlineSuccess = useCallback(() => setShowHeader(false), []);
-
-  const onInlineReset = useCallback(() => setShowHeader(true), []);
-
-  const configWithCallback: FormConfig =
-    formConfig.successContent && showHeader
-      ? { ...formConfig, onInlineSuccess, onInlineReset }
-      : formConfig.successContent
-        ? { ...formConfig, onInlineReset }
-        : formConfig;
-
+  // Header stays visible after submit success (confirmation overlays form only)
   return (
     <div className="relative px-4 pt-8 pb-12">
       <DevIndicator componentName="FormBlock" />
 
-      {/* Shared block header; form title is headline backup when block has no headline */}
-      {showHeader && (
-        <BlockHeader
-          headline={headline || actualForm.title}
-          description={description}
-          className="mb-12"
-          headlineVariant="content-h2"
-        />
-      )}
+      <BlockHeader
+        headline={headline || actualForm.title}
+        description={description}
+        className="mb-12"
+        headlineVariant="content-h2"
+      />
 
       <div className="border-t border-b border-text py-2">
-        <FormRenderer config={configWithCallback} />
+        <FormRenderer config={formConfig} />
       </div>
     </div>
   );
