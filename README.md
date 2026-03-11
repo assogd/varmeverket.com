@@ -67,7 +67,7 @@ Create a `.env` file in the root directory with the following variables:
 
 **Required:**
 
-- `NEXT_PUBLIC_PAYLOAD_API_URL` - External Payload CMS API URL (e.g., `https://payload.cms.varmeverket.com/api`)
+- `NEXT_PUBLIC_PAYLOAD_API_URL` - External Payload CMS API URL. **Dev default:** if unset in development, the app uses `https://dev.varmeverket.com/api` (admin at [dev.varmeverket.com/admin](https://dev.varmeverket.com/admin)) so you can try announcements/forms there without a local CMS. Production default: `https://payload.cms.varmeverket.com/api`. Override explicitly when you need local Payload: `NEXT_PUBLIC_PAYLOAD_API_URL=http://local.addd.varmeverket.com:3000/api`
 
 **Optional:**
 
@@ -90,7 +90,9 @@ Create a `.env` file in the root directory with the following variables:
 **Example `.env` file:**
 
 ```env
-NEXT_PUBLIC_PAYLOAD_API_URL=https://payload.cms.varmeverket.com/api
+# Omit in dev to use dev CMS (https://dev.varmeverket.com/api), or set explicitly:
+# NEXT_PUBLIC_PAYLOAD_API_URL=https://dev.varmeverket.com/api
+# NEXT_PUBLIC_PAYLOAD_API_URL=https://payload.cms.varmeverket.com/api
 NEXT_PUBLIC_SITE_URL=http://local.addd.varmeverket.com:3000
 NEXT_PUBLIC_BACKEND_API_URL=https://api.varmeverket.com
 PREVIEW_SECRET=your-preview-secret-here

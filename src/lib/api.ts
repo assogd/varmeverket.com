@@ -9,18 +9,19 @@ import { monitoredFetch } from '@/utils/cacheMonitor';
 
 const PROD_API_BASE_URL = 'https://payload.cms.varmeverket.com/api';
 
-// In dev with no PAYLOAD_API_URL: try local first, then prod. Otherwise use single URL.
-const isDevLocalFirst =
+/** Dev/staging CMS (admin at https://dev.varmeverket.com/admin) — use for announcements, forms, etc. */
+const DEV_API_BASE_URL = 'https://dev.varmeverket.com/api';
+
+// In dev with no PAYLOAD_API_URL: use dev CMS first, then prod fallback (no local Payload).
+const isDevRemoteCmsFirst =
   typeof process !== 'undefined' &&
   process.env.NODE_ENV === 'development' &&
   !process.env.NEXT_PUBLIC_PAYLOAD_API_URL;
 
-const LOCAL_API_BASE_URL = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://127.0.0.1:3000'}/api`;
-
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_PAYLOAD_API_URL ||
   (typeof process !== 'undefined' && process.env.NODE_ENV === 'development'
-    ? LOCAL_API_BASE_URL
+    ? DEV_API_BASE_URL
     : PROD_API_BASE_URL);
 
 const USE_EXTERNAL_BACKEND = true;
@@ -60,8 +61,8 @@ async function fetchPayloadPath<T>(
   } = {}
 ): Promise<T> {
   const { validate, ...init } = options;
-  const bases = isDevLocalFirst
-    ? [LOCAL_API_BASE_URL, PROD_API_BASE_URL]
+  const bases = isDevRemoteCmsFirst
+    ? [DEV_API_BASE_URL, PROD_API_BASE_URL]
     : [API_BASE_URL];
 
   let lastError: Error | null = null;

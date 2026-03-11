@@ -177,7 +177,8 @@ if (CACHE_MONITOR_ENABLED) {
       // Only monitor API calls (not static assets)
       if (
         url.includes('/api/') ||
-        url.includes('payload.cms.varmeverket.com')
+        url.includes('payload.cms.varmeverket.com') ||
+        url.includes('dev.varmeverket.com')
       ) {
         const isCacheHit = responseTime < 50;
 
@@ -198,7 +199,8 @@ if (CACHE_MONITOR_ENABLED) {
 
       if (
         url.includes('/api/') ||
-        url.includes('payload.cms.varmeverket.com')
+        url.includes('payload.cms.varmeverket.com') ||
+        url.includes('dev.varmeverket.com')
       ) {
         cacheMonitor.recordMiss(responseTime);
         console.log(

@@ -26,6 +26,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'dev.varmeverket.com',
+        port: '',
+        pathname: '/api/media/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'payload.cms.varmeverket.com',
         port: '',
         pathname: '/api/media/**',

@@ -17,8 +17,12 @@ export function fixImageUrl(url: string | undefined | null): string {
     return url;
   }
 
-  // If it's a full URL with the old Payload domain, convert to S3 CDN
-  if (url.startsWith('http') && url.includes('payload.cms.varmeverket.com')) {
+  // Payload prod / dev CMS media URLs → S3 CDN (same path layout)
+  if (
+    url.startsWith('http') &&
+    (url.includes('payload.cms.varmeverket.com') ||
+      url.includes('dev.varmeverket.com'))
+  ) {
     try {
       const urlObj = new URL(url);
       // Extract filename from the old API path
@@ -110,8 +114,12 @@ export function fixVideoUrl(url: string | undefined | null): string {
     return url;
   }
 
-  // If it's a full URL with the old Payload domain, convert to S3 CDN
-  if (url.startsWith('http') && url.includes('payload.cms.varmeverket.com')) {
+  // Payload prod / dev CMS media URLs → S3 CDN
+  if (
+    url.startsWith('http') &&
+    (url.includes('payload.cms.varmeverket.com') ||
+      url.includes('dev.varmeverket.com'))
+  ) {
     try {
       const urlObj = new URL(url);
       // Extract filename from the old API path
