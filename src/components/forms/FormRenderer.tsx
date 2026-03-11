@@ -433,7 +433,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     }
   };
 
-  // CMS confirmation: replace form with rich text success state
+  // CMS confirmation: replace form with rich text — same shell as article body (ArticleContent)
   if (submitted && convertedConfig.successContent) {
     return (
       <FadeIn
@@ -441,15 +441,9 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
         timing="fast"
         className={clsx('w-full', className)}
       >
-        <div
-          className={clsx(
-            'max-w-2xl mx-auto rounded-lg border border-text/15 dark:border-dark-text/15',
-            'bg-bg/80 dark:bg-dark-bg/80 px-6 py-10 sm:px-10 sm:py-12',
-            'prose prose-neutral dark:prose-invert max-w-none text-center'
-          )}
-        >
+        <main className="relative w-full">
           {convertedConfig.successContent}
-        </div>
+        </main>
       </FadeIn>
     );
   }

@@ -15,7 +15,7 @@ import type {
   FormValues,
 } from '@/components/forms';
 import { RichText } from '@payloadcms/richtext-lexical/react';
-import { spaceConverter } from '@/utils/richTextConverters';
+import { articleConverter } from '@/utils/richTextConverters/index';
 interface CMSFormField {
   name: string;
   label: string;
@@ -331,11 +331,12 @@ export const FormBlock: React.FC<FormBlockProps> = ({
     // Inline rich-text confirmation: replace form, no toast
     ...(hasConfirmationRichText &&
       !isRedirectConfirmation && {
+        // Same RichText layout/converters as ArticleContent (article body)
         successContent: (
           <RichText
             data={actualForm.confirmationMessage as never}
-            converters={spaceConverter}
-            className="text-left sm:text-center [&_a]:underline"
+            converters={articleConverter}
+            className="grid gap-3 justify-center pb-8"
           />
         ),
         showSuccessMessage: false,
@@ -402,7 +403,7 @@ function FormBlockInner({
         <BlockHeader
           headline={headline || actualForm.title}
           description={description}
-          className="mb-8"
+          className="mb-12"
           headlineVariant="content-h2"
         />
       )}
