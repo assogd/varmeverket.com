@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { Heading } from '@/components/headings';
 import { submitForm } from '@/services/formService';
@@ -15,6 +15,8 @@ import type {
   FormValues,
 } from '@/components/forms';
 import clsx from 'clsx';
+import { RichText } from '@payloadcms/richtext-lexical/react';
+import { spaceConverter } from '@/utils/richTextConverters';
 
 interface CMSFormField {
   name: string;
@@ -266,11 +268,18 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
   // Convert CMS form to FormRenderer config
   // Use slug for backend API submission, fallback to id if slug not available
   const formSlug = actualForm.slug || actualForm.id;
-  
+
+  const isRedirectConfirmation =
+    actualForm.confirmationType === 'redirect' && actualForm.redirect;
+  const hasConfirmationRichText =
+    actualForm.confirmationMessage &&
+    typeof actualForm.confirmationMessage === 'object' &&
+    actualForm.confirmationMessage.root;
+
   let formConfig: FormConfig = {
     id: actualForm.id,
     title: actualForm.title,
-    submitButtonLabel: actualForm.submitButtonLabel || 'Submit',
+    submitButtonLabel: actualForm.submitButtonLabel || 'Skicka',
     onSubmit: async formData => {
       if (!formSlug) {
         throw new Error('Form slug is missing');
@@ -280,8 +289,8 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
       await submitForm(formSlug, formData);
     },
     onSuccess: () => {
-      // Handle redirect if needed
-      if (actualForm?.confirmationType === 'redirect' && actualForm.redirect) {
+      // Redirect: navigation only; no inline success view
+      if (isRedirectConfirmation && actualForm.redirect) {
         if (actualForm.redirect.type === 'custom' && actualForm.redirect.url) {
           window.location.href = actualForm.redirect.url;
         } else if (
@@ -304,11 +313,26 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
         }
       }
     },
-    successMessage: actualForm.confirmationMessage
-      ? 'Form submitted successfully!'
-      : 'Form submitted successfully!',
-    showSuccessMessage:
-      actualForm.confirmationType === 'message' || !actualForm.confirmationType,
+    // Inline rich-text confirmation: replace form, no toast
+    ...(hasConfirmationRichText &&
+      !isRedirectConfirmation && {
+        successContent: (
+          <RichText
+            data={actualForm.confirmationMessage as never}
+            converters={spaceConverter}
+            className="text-left sm:text-center [&_a]:underline"
+          />
+        ),
+        showSuccessMessage: false,
+      }),
+    // Fallback toast only when no rich text confirmation
+    ...(!hasConfirmationRichText &&
+      !isRedirectConfirmation && {
+        successMessage: 'Tack! Ditt meddelande har skickats.',
+        showSuccessMessage:
+          actualForm.confirmationType === 'message' ||
+          !actualForm.confirmationType,
+      }),
   };
 
   // Use new blocks-based structure if available, otherwise fall back to old structure
@@ -322,20 +346,40 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
   }
 
   return (
+    <FormBlockInner actualForm={actualForm} formConfig={formConfig} />
+  );
+};
+
+function FormBlockInner({
+  actualForm,
+  formConfig,
+}: {
+  actualForm: CMSFormData;
+  formConfig: FormConfig;
+}) {
+  const [showTitle, setShowTitle] = useState(true);
+  const onInlineSuccess = useCallback(() => setShowTitle(false), []);
+
+  const configWithCallback: FormConfig =
+    formConfig.successContent && showTitle
+      ? { ...formConfig, onInlineSuccess }
+      : formConfig;
+
+  return (
     <div className="relative px-4 pt-8 pb-12">
       <DevIndicator componentName="FormBlock" />
 
       <div className="max-w-2xl mx-auto">
-        {actualForm.title && (
+        {actualForm.title && showTitle && (
           <Heading variant="section" as="h2" className="mb-8 text-center">
             {actualForm.title}
           </Heading>
         )}
 
-        <FormRenderer config={formConfig} />
+        <FormRenderer config={configWithCallback} />
       </div>
     </div>
   );
-};
+}
 
 export default FormBlock;

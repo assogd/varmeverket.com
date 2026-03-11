@@ -15,7 +15,7 @@ import type {
 import { validateRequired, validateEmail } from '@/utils/validation';
 import { Heading } from '@/components/headings';
 import { SectionFrame } from '@/components/layout/SectionFrame';
-import { MarqueeButton, Button } from '@/components/ui';
+import { MarqueeButton, Button, FadeIn } from '@/components/ui';
 import clsx from 'clsx';
 import { useNotification } from '@/hooks/useNotification';
 
@@ -362,6 +362,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formValues]);
 
+  const [submitted, setSubmitted] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const { valid, errors: validationErrors } = validateForm();
@@ -383,15 +385,19 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
         await convertedConfig.onSubmit(formValues);
       }
 
-      // Call onSuccess callback if provided
+      // Call onSuccess callback if provided (e.g. redirect)
       if (convertedConfig.onSuccess) {
         convertedConfig.onSuccess(formValues);
       }
 
-      // Show success message if enabled
-      if (convertedConfig.showSuccessMessage !== false) {
+      // Inline success view (CMS rich text): hide form, no toast
+      if (convertedConfig.successContent) {
+        setSubmitted(true);
+        convertedConfig.onInlineSuccess?.();
+      } else if (convertedConfig.showSuccessMessage !== false) {
         showSuccess(
-          convertedConfig.successMessage || 'Form submitted successfully!'
+          convertedConfig.successMessage ||
+            'Tack! Ditt meddelande har skickats.'
         );
       }
 
@@ -403,9 +409,16 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'Failed to submit form. Please try again.';
+          : 'Det gick inte att skicka formuläret. Försök igen.';
 
-      showError(errorMessage);
+      // Prefer Swedish generic copy for known English backend messages
+      const displayMessage =
+        errorMessage === 'Failed to submit form. Please try again.' ||
+        errorMessage.includes('Form submission failed')
+          ? 'Det gick inte att skicka formuläret. Försök igen.'
+          : errorMessage;
+
+      showError(displayMessage);
 
       // Call onError callback if provided
       if (convertedConfig.onError) {
@@ -417,6 +430,23 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       setIsLoading(false);
     }
   };
+
+  // CMS confirmation: replace form with rich text success state
+  if (submitted && convertedConfig.successContent) {
+    return (
+      <FadeIn variant="fadeUp" timing="fast" className={clsx('w-full', className)}>
+        <div
+          className={clsx(
+            'max-w-2xl mx-auto rounded-lg border border-text/15 dark:border-dark-text/15',
+            'bg-bg/80 dark:bg-dark-bg/80 px-6 py-10 sm:px-10 sm:py-12',
+            'prose prose-neutral dark:prose-invert max-w-none text-center'
+          )}
+        >
+          {convertedConfig.successContent}
+        </div>
+      </FadeIn>
+    );
+  }
 
   return (
     <div className={clsx('w-full', className)}>
@@ -484,8 +514,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                           )}
                         >
                           {isLoading
-                            ? 'Submitting...'
-                            : convertedConfig.submitButtonLabel || 'Submit'}
+                            ? 'Skickar...'
+                            : convertedConfig.submitButtonLabel || 'Skicka'}
                         </MarqueeButton>
                       ) : (
                         <Button
@@ -495,8 +525,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                           className="w-full !border-[var(--color-text)] !text-[var(--color-text)]"
                         >
                           {isLoading
-                            ? 'Submitting...'
-                            : convertedConfig.submitButtonLabel || 'Submit'}
+                            ? 'Skickar...'
+                            : convertedConfig.submitButtonLabel || 'Skicka'}
                         </Button>
                       )}
                     </div>
@@ -532,8 +562,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                   className="w-full"
                 >
                   {isLoading
-                    ? 'Submitting...'
-                    : convertedConfig.submitButtonLabel || 'Submit'}
+                    ? 'Skickar...'
+                    : convertedConfig.submitButtonLabel || 'Skicka'}
                 </MarqueeButton>
               ) : (
                 <Button
@@ -543,8 +573,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                   className="w-full !border-[var(--color-text)] !text-[var(--color-text)]"
                 >
                   {isLoading
-                    ? 'Submitting...'
-                    : convertedConfig.submitButtonLabel || 'Submit'}
+                    ? 'Skickar...'
+                    : convertedConfig.submitButtonLabel || 'Skicka'}
                 </Button>
               )}
             </div>

@@ -120,6 +120,13 @@ export interface FormConfig {
   onError?: (error: Error) => void;
   showSuccessMessage?: boolean;
   successMessage?: string;
+  /**
+   * When set, after successful submit the form is hidden and this is shown instead
+   * (e.g. CMS Lexical confirmation rich text). No toast if this is used.
+   */
+  successContent?: React.ReactNode;
+  /** Called when form is replaced by successContent (e.g. hide surrounding title) */
+  onInlineSuccess?: () => void;
   className?: string;
   customFirstField?: React.ReactNode; // Custom component to inject as first field in first section
 }
