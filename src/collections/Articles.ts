@@ -31,10 +31,8 @@ const Articles: CollectionConfig = {
     },
     update: authenticated,
   },
-  defaultPopulate: {
-    title: true,
-    slug: true,
-  },
+  // No defaultPopulate — it can cause the REST find response to omit relationship
+  // fields like `form` / `formSlug` when the frontend fetches the article.
   admin: {
     defaultColumns: ['title', 'status', 'author', 'publishedDate', 'updatedAt'],
     useAsTitle: 'title',
@@ -278,6 +276,11 @@ const Articles: CollectionConfig = {
               type: 'relationship',
               relationTo: 'forms',
               required: false,
+              // Always expose on read so anonymous article fetches still get id/value
+              access: {
+                read: () => true,
+              },
+              maxDepth: 0,
               admin: {
                 description:
                   'Optional form to display on this article. Slug is copied to formSlug on save so the frontend can load it even when the API omits the relationship.',
@@ -287,6 +290,9 @@ const Articles: CollectionConfig = {
               name: 'formSlug',
               type: 'text',
               required: false,
+              access: {
+                read: () => true,
+              },
               admin: {
                 description:
                   'Auto-set from the selected form’s slug on save. Used when the REST API does not return the form relationship.',
