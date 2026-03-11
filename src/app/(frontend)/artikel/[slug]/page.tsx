@@ -11,6 +11,7 @@ import {
 import React, { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { ContentItem } from '@/components/blocks/layout/HighlightGridGenerator/types';
+import { getFormSlugForArticle } from '@/content/articleFormSlugs';
 
 // Define proper types for article data
 interface ArticleData {
@@ -262,13 +263,16 @@ async function ArticlePage({ params }: ArticlePageProps) {
     }
   );
 
-  // Form relationship — API often omits `form`; formSlug is set on save in CMS (Articles hook)
+  // Form: CMS field → formSlug hook → repo fallback map (API still often omits relationship)
+  const formSlugFromCms = (articleForForm as Record<string, unknown>).formSlug;
+  const formSlugFallback = getFormSlugForArticle(slug);
   const formRef =
     articleForForm.form ??
-    (typeof (articleForForm as Record<string, unknown>).formSlug === 'string' &&
-    ((articleForForm as Record<string, unknown>).formSlug as string).length > 0
-      ? { slug: (articleForForm as Record<string, unknown>).formSlug as string }
-      : null);
+    (typeof formSlugFromCms === 'string' && formSlugFromCms.length > 0
+      ? { slug: formSlugFromCms }
+      : formSlugFallback
+        ? { slug: formSlugFallback }
+        : null);
   const articleFormDoc = formRef ? await resolveArticleFormDoc(formRef) : null;
 
   // Fetch related articles based on matching tags
