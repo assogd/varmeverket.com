@@ -42,8 +42,11 @@ export const validateRequired = (
  * @returns true if valid, error message if invalid
  */
 export const validateEmail = (value: string): true | string => {
+  const trimmed = value.trim();
+  if (!trimmed) return true; // empty handled by required
+  // No spaces; local@domain with domain containing at least one dot (TLD)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(value)) {
+  if (!emailRegex.test(trimmed)) {
     return 'Vänligen ange en giltig e-postadress.';
   }
   return true;

@@ -196,9 +196,17 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       }
     }
 
-    // Email validation
-    if (field.fieldType === 'email' && value) {
-      const emailError = validateEmail(value as string);
+    // Email validation — fieldType email, or common name (CMS text field named "email")
+    let valueStr = '';
+    if (typeof value === 'string') valueStr = value.trim();
+    else if (value != null) valueStr = String(value);
+    const treatAsEmail =
+      field.fieldType === 'email' ||
+      field.name.toLowerCase() === 'email' ||
+      field.name.toLowerCase() === 'e-post' ||
+      field.name.toLowerCase() === 'epost';
+    if (treatAsEmail && valueStr) {
+      const emailError = validateEmail(valueStr);
       if (emailError !== true) {
         return emailError;
       }

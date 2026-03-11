@@ -17,9 +17,16 @@ import type {
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import { articleConverter } from '@/utils/richTextConverters/index';
 
-/** Confirmation RichText wrapper classes (no clsx — avoids client ReferenceError if clsx chunk missing) */
+/**
+ * Confirmation RichText wrapper — body mono/centered; headings overridden to
+ * section-style (sans text-lg) instead of article content-h2 display uppercase.
+ */
 const CONFIRMATION_RICH_TEXT_CLASS =
-  'grid gap-3 justify-center pb-8 w-full max-w-2xl mx-auto [&_p]:font-mono [&_p]:text-center [&_ul]:font-mono [&_ul]:text-center [&_ul]:mx-auto [&_ol]:font-mono [&_ol]:text-center [&_ol]:mx-auto [&_blockquote]:font-mono [&_blockquote]:text-center [&_a]:underline';
+  'grid gap-3 justify-center pb-8 w-full max-w-2xl mx-auto ' +
+  '[&_h1]:!font-sans [&_h1]:!text-lg [&_h1]:!normal-case [&_h1]:!tracking-[-0.01em] [&_h1]:!leading-[1em] [&_h1]:text-center ' +
+  '[&_h2]:!font-sans [&_h2]:!text-lg [&_h2]:!normal-case [&_h2]:!tracking-[-0.01em] [&_h2]:!leading-[1em] [&_h2]:text-center ' +
+  '[&_h3]:!font-sans [&_h3]:!text-lg [&_h3]:!normal-case [&_h3]:text-center ' +
+  '[&_p]:font-mono [&_p]:text-center [&_ul]:font-mono [&_ul]:text-center [&_ul]:mx-auto [&_ol]:font-mono [&_ol]:text-center [&_ol]:mx-auto [&_blockquote]:font-mono [&_blockquote]:text-center [&_a]:underline';
 interface CMSFormField {
   name: string;
   label: string;
