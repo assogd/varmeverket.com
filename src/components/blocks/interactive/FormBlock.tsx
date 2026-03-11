@@ -257,8 +257,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
 
   // Check what structure the form uses
   const hasContent = actualForm?.content && actualForm.content.length > 0;
-  const hasSections =
-    actualForm?.sections && actualForm.sections.length > 0;
+  const hasSections = actualForm?.sections && actualForm.sections.length > 0;
   const hasFields = actualForm?.fields && actualForm.fields.length > 0;
 
   if (!actualForm || (!hasContent && !hasSections && !hasFields)) {
@@ -342,14 +341,14 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
     const converted = convertBlocksToFormConfig(actualForm.content);
     formConfig = { ...formConfig, ...converted };
   } else if (hasSections && actualForm.sections) {
-    formConfig.sections = actualForm.sections.map(convertCMSSectionToFormSection);
+    formConfig.sections = actualForm.sections.map(
+      convertCMSSectionToFormSection
+    );
   } else if (hasFields && actualForm.fields) {
     formConfig.fields = actualForm.fields.map(convertCMSFieldToFormField);
   }
 
-  return (
-    <FormBlockInner actualForm={actualForm} formConfig={formConfig} />
-  );
+  return <FormBlockInner actualForm={actualForm} formConfig={formConfig} />;
 };
 
 function FormBlockInner({
@@ -370,14 +369,12 @@ function FormBlockInner({
   return (
     <div className="relative px-4 pt-8 pb-12">
       <DevIndicator componentName="FormBlock" />
-
-      <div className="max-w-2xl mx-auto">
-        {actualForm.title && showTitle && (
-          <Heading variant="section" as="h2" className="mb-8 text-center">
-            {actualForm.title}
-          </Heading>
-        )}
-
+      {actualForm.title && showTitle && (
+        <Heading variant="content-h2" as="h2" className="mb-8 text-center">
+          {actualForm.title}
+        </Heading>
+      )}
+      <div className="border-t border-b border-text py-2">
         <FormRenderer config={configWithCallback} />
       </div>
     </div>

@@ -78,7 +78,9 @@ const convertFormFieldBlockToFormField = (
     pattern: block.pattern,
     maxLength: block.maxLength,
     showIf,
-    ...(typeof block.validation === 'function' && { validation: block.validation }),
+    ...(typeof block.validation === 'function' && {
+      validation: block.validation,
+    }),
   };
 };
 
@@ -434,7 +436,11 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   // CMS confirmation: replace form with rich text success state
   if (submitted && convertedConfig.successContent) {
     return (
-      <FadeIn variant="fadeUp" timing="fast" className={clsx('w-full', className)}>
+      <FadeIn
+        variant="fadeUp"
+        timing="fast"
+        className={clsx('w-full', className)}
+      >
         <div
           className={clsx(
             'max-w-2xl mx-auto rounded-lg border border-text/15 dark:border-dark-text/15',
@@ -450,12 +456,6 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
   return (
     <div className={clsx('w-full', className)}>
-      {convertedConfig.title && (
-        <Heading variant="page-header" as="h1" className="mb-6 text-center">
-          {convertedConfig.title}
-        </Heading>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-6 px-2">
         {convertedConfig.sections ? (
           <div className="space-y-16">
@@ -522,7 +522,10 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                           type="submit"
                           disabled={isLoading}
                           variant="outline"
-                          className="w-full !border-[var(--color-text)] !text-[var(--color-text)]"
+                          className={clsx(
+                            'w-full',
+                            convertedConfig.submitButtonClassName
+                          )}
                         >
                           {isLoading
                             ? 'Skickar...'
@@ -553,7 +556,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                   />
                 ))}
             </div>
-            <div className="mt-6">
+            <div className="mt-12">
               {convertedConfig.submitButtonVariant === 'marquee' ? (
                 <MarqueeButton
                   type="submit"
@@ -569,8 +572,11 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  variant="outline"
-                  className="w-full !border-[var(--color-text)] !text-[var(--color-text)]"
+                  variant="primary"
+                  className={clsx(
+                    'w-full',
+                    convertedConfig.submitButtonClassName
+                  )}
                 >
                   {isLoading
                     ? 'Skickar...'
