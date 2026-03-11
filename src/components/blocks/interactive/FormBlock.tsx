@@ -333,6 +333,8 @@ export const FormBlock: React.FC<FormBlockProps> = ({ form }) => {
           actualForm.confirmationType === 'message' ||
           !actualForm.confirmationType,
       }),
+    // Redirect: avoid toast flash before navigation
+    ...(isRedirectConfirmation && { showSuccessMessage: false }),
   };
 
   // Use new blocks-based structure if available, otherwise fall back to old structure
