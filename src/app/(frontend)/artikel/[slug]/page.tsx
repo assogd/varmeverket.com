@@ -105,63 +105,8 @@ async function resolveArticleFormDoc(
         depth: 5,
       });
       const doc = result.docs?.[0];
-      // #region agent log
-      {
-        const contentArr = (doc as Record<string, unknown> | undefined)
-          ?.content;
-        const contentLen = Array.isArray(contentArr) ? contentArr.length : -1;
-        const docId =
-          doc && typeof doc === 'object' ? (doc as { id?: string }).id : null;
-        fetch(
-          'http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Debug-Session-Id': '95ada4',
-            },
-            body: JSON.stringify({
-              sessionId: '95ada4',
-              hypothesisId: 'B',
-              location: 'artikel/page.tsx:fetchForm',
-              message: 'forms find result',
-              data: {
-                whereKeys: Object.keys(where),
-                docsLength: result.docs?.length ?? 0,
-                docId,
-                contentLen,
-              },
-              timestamp: Date.now(),
-            }),
-          }
-        ).catch(() => {});
-      }
-      // #endregion
       return doc && typeof doc === 'object' ? doc : null;
-    } catch (e) {
-      // #region agent log
-      fetch(
-        'http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': '95ada4',
-          },
-          body: JSON.stringify({
-            sessionId: '95ada4',
-            hypothesisId: 'C',
-            location: 'artikel/page.tsx:fetchForm catch',
-            message: 'forms find threw',
-            data: {
-              whereKeys: Object.keys(where),
-              err: e instanceof Error ? e.message : String(e),
-            },
-            timestamp: Date.now(),
-          }),
-        }
-      ).catch(() => {});
-      // #endregion
+    } catch {
       return null;
     }
   };
@@ -219,105 +164,13 @@ async function ArticlePage({ params }: ArticlePageProps) {
         10,
         false
       );
-      // #region agent log
-      const freshKeys =
-        fresh && typeof fresh === 'object'
-          ? Object.keys(fresh as object).slice(0, 25)
-          : [];
-      fetch(
-        'http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': '95ada4',
-          },
-          body: JSON.stringify({
-            sessionId: '95ada4',
-            hypothesisId: 'F',
-            location: 'artikel/page.tsx:findBySlugFresh result',
-            message: 'fresh article keys',
-            data: {
-              freshNull: fresh == null,
-              freshHasForm: fresh != null && 'form' in (fresh as object),
-              freshKeys,
-            },
-            timestamp: Date.now(),
-          }),
-        }
-      ).catch(() => {});
-      // #endregion
       if (fresh && 'form' in fresh && fresh.form != null) {
         articleForForm = fresh;
       }
-    } catch (e) {
-      // #region agent log
-      fetch(
-        'http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Debug-Session-Id': '95ada4',
-          },
-          body: JSON.stringify({
-            sessionId: '95ada4',
-            hypothesisId: 'G',
-            location: 'artikel/page.tsx:findBySlugFresh catch',
-            message: 'fresh fetch threw',
-            data: { err: e instanceof Error ? e.message : String(e) },
-            timestamp: Date.now(),
-          }),
-        }
-      ).catch(() => {});
-      // #endregion
+    } catch {
+      // keep article
     }
   }
-
-  // #region agent log
-  {
-    const form = (articleForForm as Record<string, unknown>)['form'];
-    const formObj =
-      form && typeof form === 'object' && !Array.isArray(form)
-        ? (form as Record<string, unknown>)
-        : null;
-    fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': '95ada4',
-      },
-      body: JSON.stringify({
-        sessionId: '95ada4',
-        hypothesisId: 'A',
-        location: 'artikel/page.tsx:after findBySlug',
-        message: 'article.form snapshot',
-        data: {
-          articleSlug: article.slug,
-          hasFormKey: 'form' in (articleForForm as object),
-          usedFresh: articleForForm !== article,
-          formType:
-            form === null
-              ? 'null'
-              : form === undefined
-                ? 'undefined'
-                : typeof form,
-          formSlug:
-            formObj && typeof formObj.slug === 'string' ? formObj.slug : null,
-          formId:
-            formObj && typeof formObj.id === 'string'
-              ? formObj.id
-              : typeof form === 'string'
-                ? form
-                : null,
-          formValue:
-            formObj && formObj.value != null ? typeof formObj.value : null,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }
-  // #endregion
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('sv-SE', {
@@ -417,32 +270,6 @@ async function ArticlePage({ params }: ArticlePageProps) {
       ? { slug: (articleForForm as Record<string, unknown>).formSlug as string }
       : null);
   const articleFormDoc = formRef ? await resolveArticleFormDoc(formRef) : null;
-
-  // #region agent log
-  {
-    const d = articleFormDoc as Record<string, unknown> | null;
-    const contentLen = d && Array.isArray(d.content) ? d.content.length : -1;
-    fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': '95ada4',
-      },
-      body: JSON.stringify({
-        sessionId: '95ada4',
-        hypothesisId: 'D',
-        location: 'artikel/page.tsx:after resolveArticleFormDoc',
-        message: 'resolved form doc',
-        data: {
-          hasDoc: !!articleFormDoc,
-          docSlug: d && typeof d.slug === 'string' ? d.slug : null,
-          contentLen,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }
-  // #endregion
 
   // Fetch related articles based on matching tags
   let relatedArticles: ContentItem[] = [];
