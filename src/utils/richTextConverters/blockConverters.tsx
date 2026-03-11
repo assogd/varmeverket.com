@@ -14,7 +14,6 @@ import { PartnerCard } from '@/components/blocks/brand/PartnerCard';
 import Model3DBlock from '@/components/blocks/media/Model3DBlock';
 import MinimalCarousel from '@/components/blocks/layout/MinimalCarousel';
 import CardGridBlock from '@/components/blocks/layout/cardGrid/CardGridBlock';
-import FormBlock from '@/components/blocks/interactive/FormBlock';
 
 export const blockConverters = {
   textBlock: ({ node }: any) => (
@@ -82,16 +81,4 @@ export const blockConverters = {
       backgroundColor={node.fields.backgroundColor}
     />
   ),
-  /** Form block: relationship ref only until populated at depth — same UI as page FormBlock */
-  form: ({ node }: any) => {
-    const formRef = node.fields?.form;
-    if (!formRef) return null;
-    return (
-      <FormBlock
-        headline={node.fields?.headline}
-        description={node.fields?.description}
-        form={formRef}
-      />
-    );
-  },
 };

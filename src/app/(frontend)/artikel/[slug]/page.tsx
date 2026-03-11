@@ -62,6 +62,58 @@ interface ArticlePageProps {
   }>;
 }
 
+/**
+ * Article `form` is a relationship — API may return only `{ relationTo, value }` or a
+ * bare id string. FormBlock needs a populated doc (content/fields/sections). Resolve by id.
+ */
+async function resolveArticleFormDoc(form: unknown): Promise<Record<string, unknown> | null> {
+  if (form == null) return null;
+
+  const isPopulated = (o: Record<string, unknown>) =>
+    (Array.isArray(o.content) && o.content.length > 0) ||
+    (Array.isArray(o.fields) && o.fields.length > 0) ||
+    (Array.isArray(o.sections) && o.sections.length > 0);
+
+  if (typeof form === 'string') {
+    try {
+      const doc = await PayloadAPI.findByID<Record<string, unknown>>(
+        'forms',
+        form,
+        5
+      );
+      return doc;
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof form === 'object' && form !== null) {
+    const o = form as Record<string, unknown>;
+    if (typeof o.id === 'string' && isPopulated(o)) {
+      return o;
+    }
+    const id =
+      typeof o.value === 'string'
+        ? o.value
+        : typeof o.id === 'string'
+          ? o.id
+          : null;
+    if (id) {
+      try {
+        return await PayloadAPI.findByID<Record<string, unknown>>(
+          'forms',
+          id,
+          5
+        );
+      } catch {
+        return null;
+      }
+    }
+  }
+
+  return null;
+}
+
 async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
 
@@ -176,6 +228,11 @@ async function ArticlePage({ params }: ArticlePageProps) {
     }
   );
 
+  // Form relationship: ensure populated doc for FormBlock (ref-only is common from API)
+  const articleFormDoc = article.form
+    ? await resolveArticleFormDoc(article.form)
+    : null;
+
   // Fetch related articles based on matching tags
   let relatedArticles: ContentItem[] = [];
   if (article.tags && Array.isArray(article.tags) && article.tags.length > 0) {
@@ -225,16 +282,8 @@ async function ArticlePage({ params }: ArticlePageProps) {
         }
       />
 
-      {/* Form (article form reference) */}
-      {article.form && (
-        <FormBlock
-          form={
-            typeof article.form === 'object' && article.form !== null
-              ? article.form
-              : { id: String(article.form) }
-          }
-        />
-      )}
+      {/* Form — Article collection relationship field; resolved server-side when ref-only */}
+      {articleFormDoc && <FormBlock form={articleFormDoc} />}
 
       {/* Footer */}
       <footer className="font-mono mx-auto w-full max-w-2xl px-4 -mt-24">
