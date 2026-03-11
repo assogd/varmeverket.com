@@ -66,13 +66,10 @@ interface ArticlePageProps {
  * Article `form` is a relationship — API may return only `{ relationTo, value }` or a
  * bare id string. FormBlock needs a populated doc (content/fields/sections). Resolve by id.
  */
-async function resolveArticleFormDoc(form: unknown): Promise<Record<string, unknown> | null> {
+async function resolveArticleFormDoc(
+  form: unknown
+): Promise<Record<string, unknown> | null> {
   if (form == null) return null;
-
-  const isPopulated = (o: Record<string, unknown>) =>
-    (Array.isArray(o.content) && o.content.length > 0) ||
-    (Array.isArray(o.fields) && o.fields.length > 0) ||
-    (Array.isArray(o.sections) && o.sections.length > 0);
 
   if (typeof form === 'string') {
     try {
@@ -89,7 +86,8 @@ async function resolveArticleFormDoc(form: unknown): Promise<Record<string, unkn
 
   if (typeof form === 'object' && form !== null) {
     const o = form as Record<string, unknown>;
-    if (typeof o.id === 'string' && isPopulated(o)) {
+    // Already populated doc (with or without field blocks — FormBlock handles empty content)
+    if (typeof o.id === 'string' && ('content' in o || 'slug' in o)) {
       return o;
     }
     const id =
@@ -137,6 +135,8 @@ async function ArticlePage({ params }: ArticlePageProps) {
   if (!article) {
     notFound();
   }
+
+  console.log(article);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('sv-SE', {
@@ -293,9 +293,7 @@ async function ArticlePage({ params }: ArticlePageProps) {
           {getAuthorDisplayName(article.author) || '—'}
         </div>
         <div>Publicerad: {formatDate(article.publishedDate || '')}</div>
-        {authorBylineDesc && (
-          <div className="mt-4">{authorBylineDesc}</div>
-        )}
+        {authorBylineDesc && <div className="mt-4">{authorBylineDesc}</div>}
       </footer>
 
       {/* Related Articles */}

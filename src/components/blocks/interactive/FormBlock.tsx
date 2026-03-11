@@ -287,25 +287,58 @@ export const FormBlock: React.FC<FormBlockProps> = ({
   const hasSections = actualForm?.sections && actualForm.sections.length > 0;
   const hasFields = actualForm?.fields && actualForm.fields.length > 0;
 
+  // Form exists in CMS (relationship set) but has no field blocks yet — avoid silent blank
+  if (
+    actualForm &&
+    !hasContent &&
+    !hasSections &&
+    !hasFields &&
+    (actualForm.slug || actualForm.id)
+  ) {
+    const slug = actualForm.slug || actualForm.id;
+    return (
+      <div className="relative px-4 pt-8 pb-12">
+        <DevIndicator componentName="FormBlock" />
+        <div className="max-w-2xl mx-auto text-center font-mono text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mb-2">
+            Formet <strong>{actualForm.title || slug}</strong> (
+            <code className="rounded bg-black/5 dark:bg-white/10 px-1">
+              {slug}
+            </code>
+            ) är kopplat till artikeln men har{' '}
+            <strong>inga fält</strong> i CMS.
+          </p>
+          <p>
+            Lägg till fält under Content → Forms → öppna formuläret → fält i
+            Content-blocken.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!actualForm || (!hasContent && !hasSections && !hasFields)) {
     return null;
   }
 
+  // Narrow for closures (onSuccess etc.) — TS doesn't keep narrowing inside callbacks
+  const formDoc = actualForm;
+
   // Convert CMS form to FormRenderer config
   // Use slug for backend API submission, fallback to id if slug not available
-  const formSlug = actualForm.slug || actualForm.id;
+  const formSlug = formDoc.slug || formDoc.id;
 
   const isRedirectConfirmation =
-    actualForm.confirmationType === 'redirect' && actualForm.redirect;
+    formDoc.confirmationType === 'redirect' && formDoc.redirect;
   const hasConfirmationRichText =
-    actualForm.confirmationMessage &&
-    typeof actualForm.confirmationMessage === 'object' &&
-    actualForm.confirmationMessage.root;
+    formDoc.confirmationMessage &&
+    typeof formDoc.confirmationMessage === 'object' &&
+    formDoc.confirmationMessage.root;
 
   let formConfig: FormConfig = {
-    id: actualForm.id,
-    title: actualForm.title,
-    submitButtonLabel: actualForm.submitButtonLabel || 'Skicka',
+    id: formDoc.id,
+    title: formDoc.title,
+    submitButtonLabel: formDoc.submitButtonLabel || 'Skicka',
     onSubmit: async formData => {
       if (!formSlug) {
         throw new Error('Form slug is missing');
@@ -316,16 +349,16 @@ export const FormBlock: React.FC<FormBlockProps> = ({
     },
     onSuccess: () => {
       // Redirect: navigation only; no inline success view
-      if (isRedirectConfirmation && actualForm.redirect) {
-        if (actualForm.redirect.type === 'custom' && actualForm.redirect.url) {
-          window.location.href = actualForm.redirect.url;
+      if (isRedirectConfirmation && formDoc.redirect) {
+        if (formDoc.redirect.type === 'custom' && formDoc.redirect.url) {
+          window.location.href = formDoc.redirect.url;
         } else if (
-          actualForm.redirect.type === 'reference' &&
-          actualForm.redirect.reference &&
-          typeof actualForm.redirect.reference === 'object'
+          formDoc.redirect.type === 'reference' &&
+          formDoc.redirect.reference &&
+          typeof formDoc.redirect.reference === 'object'
         ) {
           // Handle internal redirect based on relationTo
-          const { relationTo, value } = actualForm.redirect.reference as {
+          const { relationTo, value } = formDoc.redirect.reference as {
             relationTo?: string;
             value?: string;
           };
@@ -345,7 +378,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({
         // h2 via articleConverter unchanged; body copy mono + centered (CMS: h2 then paragraphs)
         successContent: (
           <RichText
-            data={actualForm.confirmationMessage as never}
+            data={formDoc.confirmationMessage as never}
             converters={articleConverter}
             className={CONFIRMATION_RICH_TEXT_CLASS}
           />
@@ -357,28 +390,28 @@ export const FormBlock: React.FC<FormBlockProps> = ({
       !isRedirectConfirmation && {
         successMessage: 'Tack! Ditt meddelande har skickats.',
         showSuccessMessage:
-          actualForm.confirmationType === 'message' ||
-          !actualForm.confirmationType,
+          formDoc.confirmationType === 'message' ||
+          !formDoc.confirmationType,
       }),
     // Redirect: avoid toast flash before navigation
     ...(isRedirectConfirmation && { showSuccessMessage: false }),
   };
 
   // Use new blocks-based structure if available, otherwise fall back to old structure
-  if (hasContent && actualForm.content) {
-    const converted = convertBlocksToFormConfig(actualForm.content);
+  if (hasContent && formDoc.content) {
+    const converted = convertBlocksToFormConfig(formDoc.content);
     formConfig = { ...formConfig, ...converted };
-  } else if (hasSections && actualForm.sections) {
-    formConfig.sections = actualForm.sections.map(
+  } else if (hasSections && formDoc.sections) {
+    formConfig.sections = formDoc.sections.map(
       convertCMSSectionToFormSection
     );
-  } else if (hasFields && actualForm.fields) {
-    formConfig.fields = actualForm.fields.map(convertCMSFieldToFormField);
+  } else if (hasFields && formDoc.fields) {
+    formConfig.fields = formDoc.fields.map(convertCMSFieldToFormField);
   }
 
   return (
     <FormBlockInner
-      actualForm={actualForm}
+      actualForm={formDoc}
       formConfig={formConfig}
       headline={headline}
       description={description}
