@@ -63,14 +63,26 @@ interface ArticlePageProps {
 }
 
 /**
- * Article `form` is a relationship. The REST embed is often truncated (defaultPopulate)
- * or missing `content` blocks — same form works on Pages because layout is loaded differently.
- * Always load the full form doc like form-test: PayloadAPI.find by slug or id, depth 5.
+ * Article `form` may arrive fully populated from REST (depth) — use as-is.
+ * Only fetch when the payload is a bare id / { value } / empty content.
  */
 async function resolveArticleFormDoc(
   form: unknown
 ): Promise<Record<string, unknown> | null> {
   if (form == null) return null;
+
+  // API already returned the full form (e.g. Kontakta oss + content blocks) — do not refetch
+  if (typeof form === 'object' && form !== null) {
+    const o = form as Record<string, unknown>;
+    const content = o.content;
+    const hasBlocks = Array.isArray(content) && content.length > 0;
+    const hasLegacy =
+      (Array.isArray(o.fields) && o.fields.length > 0) ||
+      (Array.isArray(o.sections) && o.sections.length > 0);
+    if (typeof o.id === 'string' && (hasBlocks || hasLegacy)) {
+      return o;
+    }
+  }
 
   const asString = (v: unknown): string | null =>
     v == null ? null : typeof v === 'string' ? v : String(v);
@@ -154,13 +166,13 @@ async function ArticlePage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  // Published REST response often omits `form` / `formSlug` (versions snapshot).
-  // Read the same article as draft once — only to get the Form field reference from CMS.
+  // When published JSON omits `form`, try fresh then draft read once (versions/cache).
   let articleForForm: ArticleData = article;
-  const hasFormRef = (a: object) =>
-    ('form' in a && (a as Record<string, unknown>).form != null) ||
-    (typeof (a as Record<string, unknown>).formSlug === 'string' &&
-      ((a as Record<string, unknown>).formSlug as string).length > 0);
+  const formVal = (a: object) => (a as Record<string, unknown>).form;
+  const hasFormRef = (a: object) => {
+    const f = formVal(a);
+    return f != null && f !== '';
+  };
 
   if (!hasFormRef(article as object)) {
     try {
@@ -170,11 +182,9 @@ async function ArticlePage({ params }: ArticlePageProps) {
         10,
         false
       );
-      if (fresh && hasFormRef(fresh as object)) {
-        articleForForm = fresh;
-      }
+      if (fresh && hasFormRef(fresh as object)) articleForForm = fresh;
     } catch {
-      // keep article
+      /* keep article */
     }
   }
   if (!hasFormRef(articleForForm as object)) {
@@ -184,14 +194,12 @@ async function ArticlePage({ params }: ArticlePageProps) {
         where: { slug: { equals: slug } },
         draft: true,
         limit: 1,
-        depth: 2,
+        depth: 10,
       });
       const draftDoc = draftResult.docs?.[0];
-      if (draftDoc && hasFormRef(draftDoc as object)) {
-        articleForForm = draftDoc;
-      }
+      if (draftDoc && hasFormRef(draftDoc as object)) articleForForm = draftDoc;
     } catch {
-      // anonymous draft may 403 — then formSlug on next publish must be used
+      /* draft 403 etc. */
     }
   }
 
@@ -285,13 +293,15 @@ async function ArticlePage({ params }: ArticlePageProps) {
     }
   );
 
-  // Only the article’s Form field (or formSlug copied from it on save) — no hardcoded map
+  // Article Form field only — embedded object passed through; ref-only resolved by find
+  const rawForm = (articleForForm as Record<string, unknown>).form;
   const formSlugFromCms = (articleForForm as Record<string, unknown>).formSlug;
   const formRef =
-    articleForForm.form ??
+    rawForm ??
     (typeof formSlugFromCms === 'string' && formSlugFromCms.length > 0
       ? { slug: formSlugFromCms }
       : null);
+  // Pass embedded form straight to FormBlock when already complete; otherwise resolve
   const articleFormDoc = formRef ? await resolveArticleFormDoc(formRef) : null;
 
   // Fetch related articles based on matching tags
