@@ -433,22 +433,9 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     }
   };
 
-  // CMS confirmation: replace form with rich text — same shell as article body (ArticleContent)
-  if (submitted && convertedConfig.successContent) {
-    return (
-      <FadeIn
-        variant="fadeUp"
-        timing="fast"
-        className={clsx('w-full', className)}
-      >
-        <main className="relative w-full">
-          {convertedConfig.successContent}
-        </main>
-      </FadeIn>
-    );
-  }
+  const hasInlineSuccess = Boolean(convertedConfig.successContent);
 
-  return (
+  const formTree = (
     <div className={clsx('w-full', className)}>
       <form onSubmit={handleSubmit} className="space-y-6 px-2">
         {convertedConfig.sections ? (
@@ -583,4 +570,37 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       </form>
     </div>
   );
+
+  // CMS confirmation: overlay on top so form box keeps height (less CLS)
+  if (hasInlineSuccess) {
+    return (
+      <div className={clsx('relative w-full', className)}>
+        <div
+          className={clsx(
+            'transition-opacity duration-300 ease-out',
+            submitted && 'pointer-events-none opacity-0'
+          )}
+          aria-hidden={submitted}
+        >
+          {formTree}
+        </div>
+        {submitted && (
+          <div
+            className={clsx(
+              'absolute inset-0 z-10 flex flex-col justify-center overflow-y-auto',
+              'bg-bg dark:bg-dark-bg px-4 py-8'
+            )}
+          >
+            <FadeIn variant="fadeUp" timing="fast" className="w-full">
+              <main className="relative w-full">
+                {convertedConfig.successContent}
+              </main>
+            </FadeIn>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return formTree;
 };

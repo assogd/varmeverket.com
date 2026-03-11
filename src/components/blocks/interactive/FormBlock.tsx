@@ -15,6 +15,7 @@ import type {
   FormValues,
 } from '@/components/forms';
 import { RichText } from '@payloadcms/richtext-lexical/react';
+import clsx from 'clsx';
 import { articleConverter } from '@/utils/richTextConverters/index';
 interface CMSFormField {
   name: string;
@@ -331,12 +332,19 @@ export const FormBlock: React.FC<FormBlockProps> = ({
     // Inline rich-text confirmation: replace form, no toast
     ...(hasConfirmationRichText &&
       !isRedirectConfirmation && {
-        // Same RichText layout/converters as ArticleContent (article body)
+        // h2 via articleConverter unchanged; body copy mono + centered (CMS: h2 then paragraphs)
         successContent: (
           <RichText
             data={actualForm.confirmationMessage as never}
             converters={articleConverter}
-            className="grid gap-3 justify-center pb-8"
+            className={clsx(
+              'grid gap-3 justify-center pb-8 w-full max-w-2xl mx-auto',
+              '[&_p]:font-mono [&_p]:text-center',
+              '[&_ul]:font-mono [&_ul]:text-center [&_ul]:mx-auto',
+              '[&_ol]:font-mono [&_ol]:text-center [&_ol]:mx-auto',
+              '[&_blockquote]:font-mono [&_blockquote]:text-center',
+              '[&_a]:underline'
+            )}
           />
         ),
         showSuccessMessage: false,
