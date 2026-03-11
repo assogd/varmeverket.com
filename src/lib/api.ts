@@ -226,6 +226,37 @@ export class PayloadAPI {
   }
 
   /**
+   * Find by slug without Next fetch cache or dedupe — use when embedded fields
+   * (e.g. article.form) are missing due to stale cached JSON while other fields updated.
+   */
+  static async findBySlugFresh<T>(
+    collection: string,
+    slug: string,
+    depth = 10,
+    draft = false
+  ): Promise<T | null> {
+    const params = new URLSearchParams();
+    params.append(`where[slug][equals]`, slug);
+    params.append('depth', depth.toString());
+    if (draft) params.append('draft', 'true');
+    params.append('limit', '1');
+    const path = `/${collection}?${params.toString()}`;
+    try {
+      const data = await fetchPayloadPath<{ docs: T[] }>(path, {
+        validate: d =>
+          Array.isArray((d as { docs?: unknown[] }).docs) &&
+          (d as { docs: unknown[] }).docs.length > 0,
+        next: { revalidate: 0 },
+        cache: 'no-store',
+      } as RequestInit);
+      return data.docs[0] ?? null;
+    } catch (error) {
+      console.error(`❌ Failed to fetch by slug fresh (${collection}):`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Submit a form
    * 
    * Note: Form submissions go to Backend API (/v3/forms/<formSlug>), not Payload CMS.
