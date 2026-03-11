@@ -595,6 +595,20 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
               <main className="relative w-full">
                 {convertedConfig.successContent}
               </main>
+              {/* Same button treatment as error.tsx / global-error (Försök igen) */}
+              <div className="flex flex-col gap-4 mt-8 justify-center items-center">
+                <Button
+                  type="button"
+                  variant="primary"
+                  className="uppercase"
+                  onClick={() => {
+                    setSubmitted(false);
+                    convertedConfig.onInlineReset?.();
+                  }}
+                >
+                  Gå tillbaka till formuläret
+                </Button>
+              </div>
             </FadeIn>
           </div>
         )}

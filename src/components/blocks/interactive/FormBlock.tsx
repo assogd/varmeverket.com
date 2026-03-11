@@ -397,10 +397,14 @@ function FormBlockInner({
   const [showHeader, setShowHeader] = useState(true);
   const onInlineSuccess = useCallback(() => setShowHeader(false), []);
 
+  const onInlineReset = useCallback(() => setShowHeader(true), []);
+
   const configWithCallback: FormConfig =
     formConfig.successContent && showHeader
-      ? { ...formConfig, onInlineSuccess }
-      : formConfig;
+      ? { ...formConfig, onInlineSuccess, onInlineReset }
+      : formConfig.successContent
+        ? { ...formConfig, onInlineReset }
+        : formConfig;
 
   return (
     <div className="relative px-4 pt-8 pb-12">

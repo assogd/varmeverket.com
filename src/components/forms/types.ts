@@ -127,6 +127,8 @@ export interface FormConfig {
   successContent?: React.ReactNode;
   /** Called when form is replaced by successContent (e.g. hide surrounding title) */
   onInlineSuccess?: () => void;
+  /** Called when user goes back from success overlay (e.g. show header again) */
+  onInlineReset?: () => void;
   className?: string;
   customFirstField?: React.ReactNode; // Custom component to inject as first field in first section
 }
