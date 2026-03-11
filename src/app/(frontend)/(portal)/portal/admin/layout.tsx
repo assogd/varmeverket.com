@@ -1,8 +1,7 @@
 'use client';
 
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AdminProtectedRoute from '@/components/auth/AdminProtectedRoute';
 import PageLayout from '@/components/layout/PageLayout';
-import { PageHeaderTextOnly } from '@/components/headers/pages';
 import { AdminNavigation } from '@/components/portal/admin/AdminNavigation';
 
 export default function AdminLayout({
@@ -11,11 +10,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute>
+    <AdminProtectedRoute>
       <PageLayout contentType="page">
         <AdminNavigation />
-        <div className="px-2 h-screen">{children}</div>
+        <div className="px-2 min-h-screen">{children}</div>
       </PageLayout>
-    </ProtectedRoute>
+    </AdminProtectedRoute>
   );
 }
