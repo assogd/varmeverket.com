@@ -94,6 +94,8 @@ export const extendFormsCollection: Plugin = (
         unique: true,
         admin: {
           position: 'sidebar',
+          description:
+            'Backend bucket name for submissions. Must match the form segment in POST/GET /v3/forms/... on the API (same identifier as portal admin submissions and JSON forms, e.g. medlemskap). Use lowercase, no spaces.',
         },
         hooks: {
           beforeValidate: [
