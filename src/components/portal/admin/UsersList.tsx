@@ -3,6 +3,15 @@
 import { useState } from 'react';
 import { useNotification } from '@/hooks/useNotification';
 
+interface BackendReport {
+  endpoint: string;
+  method: string;
+  status: number;
+  statusText: string;
+  responseBody?: string;
+  requestedEmail?: string;
+}
+
 interface User {
   email: string;
   idx: number;
@@ -53,7 +62,8 @@ export function UsersList() {
   const [email, setEmail] = useState('');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
-  const { showError, showWarning } = useNotification();
+  const [backendReport, setBackendReport] = useState<BackendReport | null>(null);
+  const { showError, showWarning, showSuccess } = useNotification();
 
   const handleSearch = async () => {
     if (!email.trim()) {
@@ -62,6 +72,7 @@ export function UsersList() {
     }
 
     setLoading(true);
+    setBackendReport(null);
 
     try {
       const response = await fetch(
@@ -71,6 +82,9 @@ export function UsersList() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.backendReport) {
+          setBackendReport(data.backendReport);
+        }
         // If it's a 404, still set the data to show warnings if available
         if (response.status === 404 && data.warnings) {
           setUserData(data);
@@ -87,6 +101,26 @@ export function UsersList() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyReportToClipboard = () => {
+    if (!backendReport) return;
+    const report = `## Backend 403 report
+
+- **Endpoint:** ${backendReport.endpoint}
+- **Method:** ${backendReport.method}
+- **Status:** ${backendReport.status} ${backendReport.statusText}
+- **Requested email:** ${backendReport.requestedEmail ?? '(none)'}
+- **Time (UTC):** ${new Date().toISOString()}
+
+### Response body
+\`\`\`
+${backendReport.responseBody ?? '(empty)'}
+\`\`\`
+`;
+    void navigator.clipboard.writeText(report).then(() => {
+      showSuccess('Report copied to clipboard. Paste into your backend issue.');
+    });
   };
 
   return (
@@ -124,6 +158,49 @@ export function UsersList() {
       {loading && (
         <div className="p-8 text-center text-text/70 dark:text-dark-text/70">
           Loading user data...
+        </div>
+      )}
+
+      {backendReport && (
+        <div className="p-6 border border-amber-500/30 dark:border-amber-400/30 rounded-lg bg-amber-50/50 dark:bg-amber-950/20">
+          <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-2">
+            Backend report (for bug report)
+          </h3>
+          <dl className="text-sm space-y-1 mb-4 font-mono">
+            <div>
+              <span className="text-amber-700 dark:text-amber-300">Endpoint:</span>{' '}
+              {backendReport.endpoint}
+            </div>
+            <div>
+              <span className="text-amber-700 dark:text-amber-300">Method:</span>{' '}
+              {backendReport.method}
+            </div>
+            <div>
+              <span className="text-amber-700 dark:text-amber-300">Status:</span>{' '}
+              {backendReport.status} {backendReport.statusText}
+            </div>
+            {backendReport.requestedEmail && (
+              <div>
+                <span className="text-amber-700 dark:text-amber-300">Requested email:</span>{' '}
+                {backendReport.requestedEmail}
+              </div>
+            )}
+            {backendReport.responseBody != null && backendReport.responseBody !== '' && (
+              <div className="mt-2">
+                <span className="text-amber-700 dark:text-amber-300">Response body:</span>
+                <pre className="mt-1 p-2 bg-black/5 dark:bg-white/5 rounded text-xs overflow-x-auto whitespace-pre-wrap break-words">
+                  {backendReport.responseBody}
+                </pre>
+              </div>
+            )}
+          </dl>
+          <button
+            type="button"
+            onClick={copyReportToClipboard}
+            className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+          >
+            Copy for report
+          </button>
         </div>
       )}
 

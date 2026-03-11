@@ -101,6 +101,7 @@ export async function GET(request: NextRequest) {
     // Handle email response
     let emailStatus = null;
     let emailError: string | null = null;
+    let emailResponseBody: string | null = null;
 
     if (!emailResponse) {
       emailError =
@@ -115,12 +116,12 @@ export async function GET(request: NextRequest) {
         emailError = 'Failed to parse email status';
       }
     } else {
-      const errorText = await emailResponse.text().catch(() => '');
+      emailResponseBody = await emailResponse.text().catch(() => '');
       try {
-        const errorJson = JSON.parse(errorText);
+        const errorJson = JSON.parse(emailResponseBody);
         emailError = errorJson.message || `Email endpoint returned ${emailResponse.status}`;
       } catch {
-        emailError = `Email endpoint returned ${emailResponse.status}: ${errorText || emailResponse.statusText}`;
+        emailError = `Email endpoint returned ${emailResponse.status}: ${emailResponseBody || emailResponse.statusText}`;
       }
       console.log('⚠️ Email endpoint response:', {
         status: emailResponse.status,
@@ -128,7 +129,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // If email status failed, return error
+    // If email status failed, return error with backend details for reporting
     // User data is optional (requires session auth, not API key)
     if (!emailStatus) {
       const is403 = emailResponse?.status === 403;
@@ -136,11 +137,25 @@ export async function GET(request: NextRequest) {
       const message = is403
         ? 'The email endpoint returned 403 Forbidden. The API key may not have permission to access GET /v2/email. Use admin session (log in as staff) or ask the backend team to grant the API key access to this endpoint.'
         : `No email status found for ${email}. ${emailError || 'Email not registered in the system.'}`;
+
+      const backendReport =
+        emailResponse && is403
+          ? {
+              endpoint: `${BACKEND_API_URL}/v2/email/:email`,
+              method: 'GET',
+              status: emailResponse.status,
+              statusText: emailResponse.statusText,
+              responseBody: emailResponseBody || undefined,
+              requestedEmail: email,
+            }
+          : null;
+
       return NextResponse.json(
         {
           error: is403 ? 'Forbidden' : 'User not found',
           message,
           details: { userError, emailError },
+          backendReport,
         },
         { status }
       );
