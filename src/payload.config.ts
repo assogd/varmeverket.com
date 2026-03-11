@@ -129,6 +129,12 @@ export default buildConfig({
   plugins: [
     payloadCloudPlugin(),
     formBuilderPlugin({
+      // Ensure forms stay publicly readable when embedded (no auth gate on read)
+      formOverrides: {
+        access: {
+          read: () => true,
+        },
+      },
       fields: {
         text: true,
         textarea: true,

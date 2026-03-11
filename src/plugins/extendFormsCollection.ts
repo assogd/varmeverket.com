@@ -36,6 +36,14 @@ export const extendFormsCollection: Plugin = (
     // Clone the existing collection config
     const formsCollection = { ...config.collections[formsCollectionIndex] };
 
+    // Forms embedded in pages/articles must be readable anonymously so REST can
+    // populate the relationship and the frontend can render FormBlock. Never
+    // restrict read on this collection for "protection" — submissions go to backend.
+    formsCollection.access = {
+      ...(formsCollection.access || {}),
+      read: () => true,
+    };
+
     // Set admin group to 'Content' to match other content collections
     formsCollection.admin = {
       ...formsCollection.admin,
