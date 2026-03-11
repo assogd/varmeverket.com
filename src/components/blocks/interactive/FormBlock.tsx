@@ -403,6 +403,7 @@ function FormBlockInner({
           headline={headline || actualForm.title}
           description={description}
           className="mb-8"
+          headlineVariant="content-h2"
         />
       )}
 
