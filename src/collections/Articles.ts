@@ -279,7 +279,18 @@ const Articles: CollectionConfig = {
               relationTo: 'forms',
               required: false,
               admin: {
-                description: 'Optional form to display on this article',
+                description:
+                  'Optional form to display on this article. Slug is copied to formSlug on save so the frontend can load it even when the API omits the relationship.',
+              },
+            },
+            {
+              name: 'formSlug',
+              type: 'text',
+              required: false,
+              admin: {
+                description:
+                  'Auto-set from the selected form’s slug on save. Used when the REST API does not return the form relationship.',
+                readOnly: true,
               },
             },
           ],
@@ -301,6 +312,41 @@ const Articles: CollectionConfig = {
             data.publishedDate = new Date().toISOString();
           }
         }
+      },
+      // Persist form slug so frontend can load form when REST omits `form` relationship
+      async ({ data, req }) => {
+        const formRef = data.form;
+        if (formRef == null || formRef === '') {
+          data.formSlug = null;
+          return data;
+        }
+        const id =
+          typeof formRef === 'string'
+            ? formRef
+            : typeof formRef === 'object' &&
+                formRef !== null &&
+                'id' in formRef &&
+                typeof (formRef as { id: unknown }).id === 'string'
+              ? (formRef as { id: string }).id
+              : null;
+        if (!id || !req?.payload) {
+          return data;
+        }
+        try {
+          const formDoc = await req.payload.findByID({
+            collection: 'forms',
+            id,
+            depth: 0,
+          });
+          const slug =
+            formDoc && typeof formDoc === 'object' && 'slug' in formDoc
+              ? String((formDoc as { slug?: string }).slug || '')
+              : '';
+          data.formSlug = slug || null;
+        } catch {
+          // leave formSlug unchanged
+        }
+        return data;
       },
     ],
   },
