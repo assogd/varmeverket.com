@@ -6,92 +6,21 @@ import {
   submissionEntries,
   formatSubmissionValue,
 } from '@/components/portal/admin/submissionDisplayUtils';
+import {
+  type FormSubmissionLike,
+  STATUS_OPTIONS,
+  formatDateShort,
+  groupSubmissions,
+} from '@/components/portal/admin/submissionListUtils';
 
-interface StatusHistoryEntry {
-  id: number;
-  submission_id: number;
-  status: string;
-  note: string | null;
-  created_at: string;
-}
-
-interface FormSubmission {
-  id: number;
-  form: string;
-  submission: Record<string, unknown>;
-  user_id: number | null;
-  created_at: string;
+type FormSubmission = FormSubmissionLike & {
   archived: number;
-  status_history?: StatusHistoryEntry[];
-}
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'Status…' },
-  { value: 'new', label: 'new' },
-  { value: 'pending interview', label: 'pending interview' },
-  { value: 'pending introduction', label: 'pending introduction' },
-  { value: 'accepted', label: 'accepted' },
-  { value: 'denied', label: 'denied' },
-] as const;
+  submission: Record<string, unknown>;
+};
 
 interface SubmissionsListProps {
   formSlug: string;
   includeArchived?: boolean;
-}
-
-function formatDateShort(iso: string) {
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-}
-
-function latestStatus(entry: FormSubmission): string | null {
-  const history = entry.status_history;
-  if (!history?.length) return null;
-  return history[history.length - 1]?.status ?? null;
-}
-
-/** Bucket key for grouping; null history → single group */
-function statusGroupKey(entry: FormSubmission): string {
-  return latestStatus(entry) ?? 'No status';
-}
-
-/** Order groups: workflow order, then No status, then any other labels A–Z */
-const GROUP_ORDER = [
-  'new',
-  'pending interview',
-  'pending introduction',
-  'accepted',
-  'denied',
-  'No status',
-] as const;
-
-function groupSubmissions(
-  list: FormSubmission[]
-): { key: string; items: FormSubmission[] }[] {
-  const map = new Map<string, FormSubmission[]>();
-  for (const sub of list) {
-    const key = statusGroupKey(sub);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(sub);
-  }
-  const keys = Array.from(map.keys());
-  keys.sort((a, b) => {
-    const ia = GROUP_ORDER.indexOf(a as (typeof GROUP_ORDER)[number]);
-    const ib = GROUP_ORDER.indexOf(b as (typeof GROUP_ORDER)[number]);
-    if (ia !== -1 && ib !== -1) return ia - ib;
-    if (ia !== -1) return -1;
-    if (ib !== -1) return 1;
-    return a.localeCompare(b, undefined, { sensitivity: 'base' });
-  });
-  return keys.map(key => ({ key, items: map.get(key)! }));
 }
 
 /** Same form for whole page — hide per-card form id to reduce noise */

@@ -10,7 +10,7 @@ import type { User } from '@/lib/backendApi';
 /**
  * Handles submission of personal information form
  * Uses service layer for consistent error handling
- * 
+ *
  * Note: Extended fields (phone, birthdate, address, profile) are only sent
  * if they have values. Empty strings are filtered out to avoid sending unnecessary data.
  */
@@ -47,7 +47,11 @@ export async function handlePersonalFormSubmit(
   if (data.phone && typeof data.phone === 'string' && data.phone.trim()) {
     updateData.phone = data.phone.trim();
   }
-  if (data.birthdate && typeof data.birthdate === 'string' && data.birthdate.trim()) {
+  if (
+    data.birthdate &&
+    typeof data.birthdate === 'string' &&
+    data.birthdate.trim()
+  ) {
     updateData.birthdate = data.birthdate.trim();
   }
   if (
@@ -145,7 +149,9 @@ export async function handlePersonalFormSubmit(
   };
 
   const hasUnsupportedFields = Object.keys(sentExtendedFields).some(
-    key => sentExtendedFields[key as keyof typeof sentExtendedFields] && !receivedExtendedFields[key as keyof typeof receivedExtendedFields]
+    key =>
+      sentExtendedFields[key as keyof typeof sentExtendedFields] &&
+      !receivedExtendedFields[key as keyof typeof receivedExtendedFields]
   );
 
   if (hasUnsupportedFields) {
@@ -186,6 +192,28 @@ export async function handleBusinessFormSubmit(
       ? (existingUser.profile as Record<string, unknown>)
       : {};
 
+  // #region agent log
+  fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Debug-Session-Id': '95ada4',
+    },
+    body: JSON.stringify({
+      sessionId: '95ada4',
+      hypothesisId: 'H1',
+      location: 'settings/handlers.ts:handleBusinessFormSubmit:start',
+      message: 'business form submit input',
+      data: {
+        userEmail,
+        dataKeys: Object.keys(data),
+        existingProfileKeys: Object.keys(existingProfile),
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+
   const businessData: Record<string, unknown> = {};
   for (const key of BUSINESS_PROFILE_KEYS) {
     const value = data[key];
@@ -198,12 +226,77 @@ export async function handleBusinessFormSubmit(
     }
   }
 
+  // #region agent log
+  fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Debug-Session-Id': '95ada4',
+    },
+    body: JSON.stringify({
+      sessionId: '95ada4',
+      hypothesisId: 'H2',
+      location: 'settings/handlers.ts:handleBusinessFormSubmit:businessData',
+      message: 'business profile data',
+      data: {
+        businessKeys: Object.keys(businessData),
+        businessData,
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+
   const mergedProfile = {
     ...existingProfile,
     ...businessData,
   };
 
+  // #region agent log
+  fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Debug-Session-Id': '95ada4',
+    },
+    body: JSON.stringify({
+      sessionId: '95ada4',
+      hypothesisId: 'H3',
+      location: 'settings/handlers.ts:handleBusinessFormSubmit:mergedProfile',
+      message: 'business profile merged',
+      data: {
+        mergedProfile,
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+
   const updatedUser = await updateUser(userEmail, { profile: mergedProfile });
+
+  // #region agent log
+  fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Debug-Session-Id': '95ada4',
+    },
+    body: JSON.stringify({
+      sessionId: '95ada4',
+      hypothesisId: 'H4',
+      location: 'settings/handlers.ts:handleBusinessFormSubmit:afterUpdate',
+      message: 'business profile updatedUser',
+      data: {
+        updatedProfile:
+          updatedUser && typeof updatedUser.profile === 'object'
+            ? (updatedUser.profile as Record<string, unknown>)
+            : (updatedUser.profile ?? null),
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+
   clearUserCache(userEmail);
   return updatedUser;
 }

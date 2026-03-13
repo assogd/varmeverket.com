@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import clsx from 'clsx';
 import { useNotification } from '@/hooks/useNotification';
 import { Button } from '@/components/ui/buttons/Button';
@@ -8,6 +8,11 @@ import {
   submissionEntries,
   formatSubmissionValue,
 } from '@/components/portal/admin/submissionDisplayUtils';
+import {
+  STATUS_OPTIONS,
+  formatDateShort as formatSubmissionDateShort,
+  submissionPayload,
+} from '@/components/portal/admin/submissionListUtils';
 
 interface BackendReport {
   endpoint: string;
@@ -53,12 +58,57 @@ interface Subscription {
   items: SubscriptionItem[];
 }
 
-interface FormSubmissionItem {
-  id: number;
+/**
+ * v3 form_submissions from GET /v3/users/:email.
+ * PATCH must use submission_id when present — API is PATCH /v3/forms/<submission_id>.
+ */
+type FormSubmissionItem = {
+  id?: number;
+  submission_id?: number;
   form: string;
   submission?: Record<string, unknown>;
   created_at?: string;
   archived?: number;
+  user_id?: number | null;
+  /** Backend may omit note; 7.2 list uses mixed shapes */
+  status_history?: unknown[];
+  /** Some payloads expose current status at top level */
+  status?: string;
+};
+
+function submissionPatchId(sub: FormSubmissionItem): number {
+  const raw = sub.submission_id ?? sub.id;
+  const n = typeof raw === 'string' ? Number(raw) : raw;
+  return typeof n === 'number' && Number.isFinite(n) ? n : NaN;
+}
+
+/** Normalize status label from user aggregate or full GET (history may be partial). */
+function workflowStatusFromSubmission(sub: FormSubmissionItem): string | null {
+  if (typeof sub.status === 'string' && sub.status.trim()) {
+    return sub.status.trim();
+  }
+  const h = sub.status_history;
+  if (!Array.isArray(h) || h.length === 0) return null;
+  const last = h[h.length - 1];
+  if (typeof last === 'string') return last;
+  if (last && typeof last === 'object' && last !== null && 'status' in last) {
+    const s = (last as { status?: unknown }).status;
+    if (typeof s === 'string' && s.trim()) return s.trim();
+  }
+  return null;
+}
+
+function formatHistoryLine(entry: unknown): string {
+  if (typeof entry === 'string') return entry;
+  if (!entry || typeof entry !== 'object') return String(entry);
+  const o = entry as Record<string, unknown>;
+  const status =
+    typeof o.status === 'string' ? o.status : JSON.stringify(o.status);
+  const created =
+    typeof o.created_at === 'string'
+      ? formatSubmissionDateShort(o.created_at)
+      : '';
+  return created ? `${status} · ${created}` : status;
 }
 
 interface UserData {
@@ -205,6 +255,11 @@ export function UsersList() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
   const [patchLoading, setPatchLoading] = useState(false);
+  const [submissionActionId, setSubmissionActionId] = useState<number | null>(
+    null
+  );
+  const [historyOpenId, setHistoryOpenId] = useState<number | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [backendReport, setBackendReport] = useState<BackendReport | null>(
     null
   );
@@ -299,6 +354,105 @@ ${backendReport.responseBody ? `\n${backendReport.responseBody}` : ''}
     void navigator.clipboard.writeText(report).then(() => {
       showSuccess('Report copied to clipboard.');
     });
+  };
+
+  const refetchUser = useCallback(async () => {
+    const q = email.trim();
+    if (!q) return;
+    try {
+      const getRes = await fetch(
+        `/api/admin/users?email=${encodeURIComponent(q)}`
+      );
+      const getData = await getRes.json();
+      if (getRes.ok) setUserData(getData);
+    } catch {
+      // ignore
+    }
+  }, [email]);
+
+  /**
+   * PATCH status returns only { status_message } — user aggregate often has no
+   * status_history. Refresh via GET /v3/forms/<form>/<id> and merge into state.
+   */
+  const refreshSubmissionInState = useCallback(
+    async (id: number, formSlug: string) => {
+      const form = formSlug?.trim();
+      if (!form || !id) return;
+      try {
+        const r = await fetch(
+          `/api/admin/form-submissions/${id}?form=${encodeURIComponent(form)}`
+        );
+        const json = (await r.json().catch(() => ({}))) as {
+          submission?: FormSubmissionItem | null;
+        };
+        if (!r.ok || !json.submission) return;
+        const fresh = json.submission as FormSubmissionItem;
+        setUserData(prev => {
+          if (!prev?.formSubmissions?.length) return prev;
+          const list = prev.formSubmissions.map(item => {
+            if (submissionPatchId(item) !== id) return item;
+            return {
+              ...item,
+              ...fresh,
+              form: fresh.form || item.form,
+            };
+          });
+          return { ...prev, formSubmissions: list };
+        });
+      } catch {
+        // fallback below
+      }
+    },
+    []
+  );
+
+  const patchSubmission = async (
+    id: number,
+    payload: { archived?: 0 | 1 } | { status: string },
+    formSlugForRefresh?: string
+  ) => {
+    if (!id || Number.isNaN(id)) {
+      setSubmissionError('Missing submission id — cannot update.');
+      return;
+    }
+    setSubmissionActionId(id);
+    setSubmissionError(null);
+    try {
+      const res = await fetch(`/api/admin/form-submissions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        message?: string;
+        error?: string;
+        details?: unknown;
+      };
+      if (!res.ok) {
+        const msg =
+          data.message ||
+          data.error ||
+          (typeof data.details === 'object' &&
+          data.details &&
+          'message' in data.details
+            ? String((data.details as { message?: string }).message)
+            : null) ||
+          `Update failed (${res.status})`;
+        throw new Error(msg);
+      }
+      const form = formSlugForRefresh?.trim();
+      if (form) {
+        await refreshSubmissionInState(id, form);
+      }
+      await refetchUser();
+      if (form) {
+        await refreshSubmissionInState(id, form);
+      }
+    } catch (e) {
+      setSubmissionError(e instanceof Error ? e.message : 'Update failed');
+    } finally {
+      setSubmissionActionId(null);
+    }
   };
 
   const submissionsByForm = useMemo(() => {
@@ -548,52 +702,245 @@ ${backendReport.responseBody ? `\n${backendReport.responseBody}` : ''}
                     No submissions linked to this user.
                   </p>
                 )}
+              {submissionError && (
+                <div
+                  className="mb-4 px-3 py-2 rounded-md bg-amber-950/40 border border-amber-800/40 text-amber-100 text-sm"
+                  role="alert"
+                >
+                  {submissionError}
+                </div>
+              )}
+
               {submissionsByForm.length > 0 && (
-                <div className="space-y-6">
-                  {submissionsByForm.map(([formKey, items]) => (
-                    <div key={formKey}>
-                      <h4 className="text-xs font-semibold uppercase tracking-wide text-text/50 dark:text-dark-text/50 mb-2">
-                        {formKey}{' '}
-                        <span className="font-normal normal-case text-text/40">
-                          ({items.length})
-                        </span>
-                      </h4>
-                      <div className="space-y-4">
-                        {items.map(s => (
-                          <div
-                            key={s.id}
-                            className="rounded-md border border-text/10 dark:border-dark-text/10 overflow-hidden"
-                          >
-                            <div className="px-3 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs bg-text/[0.03] dark:bg-white/[0.03] border-b border-text/10 dark:border-dark-text/10">
-                              <span className="font-mono font-medium">
-                                #{s.id}
-                              </span>
-                              {s.created_at && (
-                                <span className="text-text/50 dark:text-dark-text/50">
-                                  {formatDateShort(s.created_at)}
-                                </span>
-                              )}
-                              {s.archived ? (
-                                <span className="text-amber-500/90">
-                                  Archived
-                                </span>
-                              ) : null}
-                            </div>
-                            <div className="p-3">
-                              {s.submission &&
-                              typeof s.submission === 'object' ? (
-                                <SubmissionFieldsTable data={s.submission} />
-                              ) : (
-                                <p className="text-xs text-text/45">
-                                  No submission payload
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between text-sm text-text/50 dark:text-dark-text/50">
+                    <span>
+                      {`${userData.formSubmissions!.length} submission${
+                        userData.formSubmissions!.length !== 1 ? 's' : ''
+                      }`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => refetchUser()}
+                      className="hover:text-text dark:hover:text-dark-text"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                  <div className="space-y-6">
+                    {submissionsByForm.map(([formKey, items]) => (
+                      <div key={formKey} className="space-y-2">
+                        <h4 className="text-xs font-semibold uppercase tracking-wide text-text/50 dark:text-dark-text/50">
+                          {formKey}{' '}
+                          <span className="font-normal normal-case text-text/40">
+                            ({items.length})
+                          </span>
+                        </h4>
+                        <div className="rounded-lg border border-text/15 dark:border-dark-text/15 overflow-hidden divide-y divide-text/10 dark:divide-dark-text/10">
+                          {items.map(sub => {
+                            const patchId = submissionPatchId(sub);
+                            const isArchived = Boolean(sub.archived);
+                            const busy =
+                              submissionActionId === patchId ||
+                              submissionActionId === sub.id;
+                            const payload = submissionPayload(sub);
+                            const fields = submissionEntries(payload);
+                            const history = Array.isArray(sub.status_history)
+                              ? sub.status_history
+                              : [];
+                            const workflowStatus =
+                              workflowStatusFromSubmission(sub);
+                            const historyOpen =
+                              historyOpenId === patchId ||
+                              historyOpenId === sub.id;
+                            const createdAt = sub.created_at || '';
+
+                            return (
+                              <div
+                                key={patchId || sub.id || formKey}
+                                className={clsx(
+                                  'px-4 py-4 sm:px-5',
+                                  isArchived &&
+                                    'bg-text/[0.02] dark:bg-white/[0.02]'
+                                )}
+                              >
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                  <div className="min-w-0 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                    <span className="font-mono text-sm font-medium tabular-nums">
+                                      #{(patchId || sub.id) ?? '—'}
+                                    </span>
+                                    {createdAt && (
+                                      <span className="text-text/60 dark:text-dark-text/60 text-sm">
+                                        {formatSubmissionDateShort(createdAt)}
+                                      </span>
+                                    )}
+                                    {sub.user_id != null && (
+                                      <span className="text-text/50 dark:text-dark-text/50 text-sm">
+                                        user {sub.user_id}
+                                      </span>
+                                    )}
+                                    <span className="inline-flex items-center gap-1.5 flex-wrap">
+                                      <span
+                                        className={clsx(
+                                          'text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded',
+                                          isArchived
+                                            ? 'bg-amber-500/20 text-amber-200'
+                                            : 'bg-emerald-500/20 text-emerald-200'
+                                        )}
+                                      >
+                                        {isArchived ? 'Archived' : 'Active'}
+                                      </span>
+                                      {workflowStatus ? (
+                                        <span
+                                          className={clsx(
+                                            'text-[10px] font-medium px-1.5 py-0.5 rounded',
+                                            'bg-text/10 dark:bg-white/10 text-text/80 dark:text-dark-text/80'
+                                          )}
+                                          title="Latest workflow status"
+                                        >
+                                          {workflowStatus}
+                                        </span>
+                                      ) : (
+                                        <span className="text-[10px] text-text/40 dark:text-dark-text/40">
+                                          No status
+                                        </span>
+                                      )}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                                    <select
+                                      key={`status-${patchId}-${history.length}-${sub.archived}-${workflowStatus ?? ''}`}
+                                      aria-label="Set status"
+                                      className="text-xs rounded-md border border-text/20 dark:border-dark-text/25 bg-bg dark:bg-dark-bg px-2 py-1.5 min-w-[9rem]"
+                                      disabled={busy || !patchId}
+                                      defaultValue=""
+                                      onChange={e => {
+                                        const v = e.target.value;
+                                        e.target.value = '';
+                                        if (v && patchId) {
+                                          patchSubmission(
+                                            patchId,
+                                            { status: v },
+                                            sub.form
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      {STATUS_OPTIONS.map(opt => (
+                                        <option
+                                          key={opt.value || 'empty'}
+                                          value={opt.value}
+                                          disabled={opt.value === ''}
+                                        >
+                                          {opt.label}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    {!isArchived ? (
+                                      <button
+                                        type="button"
+                                        disabled={busy || !patchId}
+                                        onClick={() =>
+                                          patchId &&
+                                          patchSubmission(
+                                            patchId,
+                                            { archived: 1 },
+                                            sub.form
+                                          )
+                                        }
+                                        className="text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded-md border border-text/25 dark:border-dark-text/25 hover:bg-text/5 dark:hover:bg-white/5 disabled:opacity-50"
+                                      >
+                                        Archive
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        disabled={busy || !patchId}
+                                        onClick={() =>
+                                          patchId &&
+                                          patchSubmission(
+                                            patchId,
+                                            { archived: 0 },
+                                            sub.form
+                                          )
+                                        }
+                                        className="text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded-md border border-text/25 dark:border-dark-text/25 hover:bg-text/5 dark:hover:bg-white/5 disabled:opacity-50"
+                                      >
+                                        Unarchive
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                                {!patchId && (
+                                  <p className="mt-2 text-xs text-amber-500/90">
+                                    Missing submission id.
+                                    <br />
+                                    Needs submission_id or id for PATCH.
+                                  </p>
+                                )}
+                                {history.length > 0 && (
+                                  <div className="mt-2">
+                                    {history.length === 1 ? (
+                                      <p className="text-xs text-text/45 dark:text-dark-text/45">
+                                        {formatHistoryLine(history[0])}
+                                      </p>
+                                    ) : (
+                                      <>
+                                        <button
+                                          type="button"
+                                          className="text-xs text-text/50 dark:text-dark-text/50 hover:text-text dark:hover:text-dark-text"
+                                          onClick={() =>
+                                            setHistoryOpenId(
+                                              historyOpen
+                                                ? null
+                                                : patchId || sub.id || null
+                                            )
+                                          }
+                                        >
+                                          {historyOpen ? 'Hide' : 'Show'}{' '}
+                                          history ({history.length})
+                                        </button>
+                                        {historyOpen && (
+                                          <ul className="mt-1.5 space-y-0.5 text-xs text-text/55 dark:text-dark-text/55">
+                                            {history.map((h, idx) => (
+                                              <li
+                                                key={
+                                                  typeof h === 'object' &&
+                                                  h &&
+                                                  'id' in h
+                                                    ? String(
+                                                        (h as { id: unknown })
+                                                          .id
+                                                      )
+                                                    : idx
+                                                }
+                                              >
+                                                {formatHistoryLine(h)}
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                                {fields.length > 0 && (
+                                  <div className="mt-4">
+                                    <SubmissionFieldsTable data={payload} />
+                                  </div>
+                                )}
+                                {fields.length === 0 && (
+                                  <p className="mt-3 text-xs text-text/40">
+                                    No field data
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </Section>

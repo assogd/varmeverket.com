@@ -4,7 +4,12 @@
  * Here we load the JSON config and inject user defaults + submit handler.
  */
 
-import type { FormConfig, FormContentBlock, FormFieldBlock, FormSectionBlock } from '@/components/forms/types';
+import type {
+  FormConfig,
+  FormContentBlock,
+  FormFieldBlock,
+  FormSectionBlock,
+} from '@/components/forms/types';
 import type { User } from '@/lib/backendApi';
 import { getFormConfigFromJson } from '@/lib/loadFormFromJson';
 
@@ -82,7 +87,34 @@ export function createBusinessFormConfig(
   onSubmit: (data: Record<string, unknown>) => Promise<void>
 ): FormConfig {
   const base = getFormConfigFromJson('business');
-  const profile = user?.profile && typeof user.profile === 'object' ? user.profile as Record<string, unknown> : {};
+  const profile =
+    user?.profile && typeof user.profile === 'object'
+      ? (user.profile as Record<string, unknown>)
+      : {};
+
+  // #region agent log
+  if (typeof window !== 'undefined') {
+    fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '95ada4',
+      },
+      body: JSON.stringify({
+        sessionId: '95ada4',
+        hypothesisId: 'H5',
+        location: 'settings/formConfigs.ts:createBusinessFormConfig',
+        message: 'business form defaults',
+        data: {
+          hasUser: !!user,
+          profileKeys: Object.keys(profile),
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  }
+  // #endregion
+
   const defaults: Record<string, string> = {};
   for (const name of BUSINESS_FIELD_NAMES) {
     const v = profile[name];

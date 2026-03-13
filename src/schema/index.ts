@@ -9,6 +9,7 @@ import Spaces from '@/collections/Spaces';
 import Showcases from '@/collections/Showcases';
 import Articles from '@/collections/Articles';
 import Announcements from '@/collections/Announcements';
+import Events from '@/collections/Events';
 
 export {
   Users,
@@ -20,6 +21,7 @@ export {
   Showcases,
   Articles,
   Announcements,
+  Events,
 };
 
 export const collections: CollectionConfig[] = [
@@ -32,4 +34,5 @@ export const collections: CollectionConfig[] = [
   Showcases,
   Articles,
   Announcements,
+  Events,
 ];
