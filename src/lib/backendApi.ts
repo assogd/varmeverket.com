@@ -508,10 +508,11 @@ export class BackendAPI {
 
   /**
    * Get user by email
-   * GET /v2/users/:email
+   * Prefer v3 users endpoint (includes profile, submissions, etc.).
+   * GET /v3/users/:email
    */
   static async getUserByEmail(email: string): Promise<User> {
-    return this.fetch<User>(`/v2/users/${encodeURIComponent(email)}`);
+    return this.fetch<User>(`/v3/users/${encodeURIComponent(email)}`);
   }
 
   /**

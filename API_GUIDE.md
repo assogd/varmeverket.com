@@ -460,6 +460,68 @@ Use the first item's `product_name` (e.g. "Kickstart 12 Timmar" or "Community") 
 
 For **admin/staff**: the backend may support lookup by email (e.g. `GET /v3/users/subscription?email=<email>`) when using API key or staff session, so the admin panel can display a user's Stripe level when searching by email.
 
+### 3.8 Saved events
+
+Saved events are user-specific “saved” items referencing an article/event ID from Payload CMS collections (e.g. `Article` or `Events`).
+
+Base URL:
+
+    /v3/users/:email/saved-events
+
+#### 3.8.1 Save an event (create)
+
+    POST /v3/users/:email/saved-events
+    Body (form): article_id=<id>
+
+Notes:
+
+- `article_id` is treated as **text** by the backend (no required datatype). UUID used below is only an example.
+
+Example:
+
+    curl -X POST "https://$credentials10460@api.varmeverket.com/v3/users/benji@superstition.io/saved-events" -d 'article_id=5acba58f-5280-40a7-829f-4002796c70ad'
+
+Response:
+
+    {
+      "status_code": 201,
+      "status_message": "Created"
+    }
+
+#### 3.8.2 List saved events
+
+    GET /v3/users/:email/saved-events
+
+Example:
+
+    curl -X GET "https://$credentials10460@api.varmeverket.com/v3/users/benji@superstition.io/saved-events"
+
+Response:
+
+    [
+      {
+        "id": 1,
+        "user_id": 10460,
+        "article_id": "5acba58f-5280-40a7-829f-4002796c70ad",
+        "created_at": "Mon, 16 Mar 2026 14:08:50 GMT"
+      }
+    ]
+
+#### 3.8.3 Remove a saved event
+
+    DELETE /v3/users/:email/saved-events/:article_id
+
+Example:
+
+    curl -X DELETE "https://$credentials10460@api.varmeverket.com/v3/users/benji@superstition.io/saved-events/5acba58f-5280-40a7-829f-4002796c70ad"
+
+Response:
+
+    {
+      "status_code": 200,
+      "status_message": "OK"
+    }
+
 ---
 
 ## 4. Spaces

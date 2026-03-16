@@ -6,10 +6,10 @@ import { handleBusinessFormSubmit } from '@/utils/settings/handlers';
 import { useSettingsTab } from '@/utils/settings/useSettingsTab';
 
 export default function BusinessSettingsPage() {
-  const { formConfig: businessFormConfig } = useSettingsTab(
+  const { formConfig: businessFormConfig, formConfigKey } = useSettingsTab(
     createBusinessFormConfig,
     (user, data) => handleBusinessFormSubmit(user!.email, data)
   );
 
-  return <FormRenderer config={businessFormConfig} />;
+  return <FormRenderer key={formConfigKey} config={businessFormConfig} />;
 }

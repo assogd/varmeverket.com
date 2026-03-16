@@ -208,12 +208,43 @@ const Events: CollectionConfig = {
               },
             },
             {
+              name: 'locationSource',
+              type: 'select',
+              required: false,
+              defaultValue: 'space',
+              options: [
+                { label: 'Choose a space', value: 'space' },
+                { label: 'Custom field', value: 'custom' },
+              ],
+              admin: {
+                description:
+                  'Choose whether to link to a space or write a custom location',
+              },
+            },
+            {
+              name: 'space',
+              type: 'relationship',
+              relationTo: 'spaces',
+              required: false,
+              admin: {
+                description: 'Choose a space for this event',
+                condition: (
+                  data: unknown,
+                  siblingData: { locationSource?: 'space' | 'custom' } = {}
+                ) => siblingData?.locationSource !== 'custom',
+              },
+            },
+            {
               name: 'locationName',
               type: 'text',
               required: false,
               admin: {
                 description:
-                  'Location name or venue (used for in-person or hybrid events)',
+                  'Location name or venue (shown when using custom field)',
+                condition: (
+                  data: unknown,
+                  siblingData: { locationSource?: 'space' | 'custom' } = {}
+                ) => siblingData?.locationSource === 'custom',
               },
             },
             {

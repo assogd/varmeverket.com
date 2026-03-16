@@ -11,7 +11,7 @@ import { useSettingsTab } from '@/utils/settings/useSettingsTab';
 export default function PersonalSettingsPage() {
   const { refetch: refetchSession, profilePhotoUrl: sessionProfilePhotoUrl } =
     useSession();
-  const { formConfig: personalFormConfig, user } = useSettingsTab(
+  const { formConfig: personalFormConfig, user, formConfigKey } = useSettingsTab(
     createPersonalFormConfig,
     async (user, data) => {
       await handlePersonalFormSubmit(user!.email, data, user?.profile);
@@ -26,6 +26,7 @@ export default function PersonalSettingsPage() {
 
   return (
     <FormRenderer
+      key={formConfigKey}
       config={personalFormConfig}
       customFirstField={
         <ProfilePictureUpload
