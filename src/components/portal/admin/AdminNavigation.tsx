@@ -7,7 +7,8 @@ import clsx from 'clsx';
 const adminNavItems = [
   { label: 'SUBMISSIONS', href: '/portal/admin/submissions', shape: 'square' },
   { label: 'USERS', href: '/portal/admin/users', shape: 'circle' },
-  { label: 'BOOKINGS', href: '/portal/admin/bookings', shape: 'triangle' },
+  { label: 'BOOKINGS', href: '/portal/admin/bookings', shape: 'polygon' },
+  { label: 'EVENTS', href: '/portal/admin/events', shape: 'triangleUp' },
 ] as const;
 
 type NavShape = (typeof adminNavItems)[number]['shape'];
@@ -49,6 +50,21 @@ function ShapeIcon({ shape, filled }: { shape: NavShape; filled: boolean }) {
       </svg>
     );
   }
+  if (shape === 'triangleUp') {
+    return (
+      <svg className={box} viewBox="0 0 100 100" aria-hidden>
+        <polygon
+          points="50,8 92,92 8,92"
+          fill={fill}
+          stroke={stroke}
+          strokeWidth={strokeW}
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    );
+  }
+  // Default: existing polygon shape
   return (
     <svg className={box} viewBox="0 0 100 100" aria-hidden>
       <polygon
