@@ -301,8 +301,6 @@ export function EventsList() {
     }
   };
 
-  console.log(payloadEvents);
-
   return (
     <div className="space-y-8">
       {/* Event cards */}
