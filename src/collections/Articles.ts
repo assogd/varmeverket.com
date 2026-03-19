@@ -1,8 +1,8 @@
 import type { CollectionConfig } from 'payload';
 import { lexicalEditor, BlocksFeature } from '@payloadcms/richtext-lexical';
+
 import Image from '@/blocks/media/Image';
 import Video from '@/blocks/media/Video';
-// import TextBlock from '@/blocks/articles/TextBlock';
 import CTA from '@/blocks/interactive/CTA';
 import QA from '@/blocks/interactive/QA';
 import LogotypeWall from '@/blocks/brand/LogotypeWall';
@@ -12,7 +12,6 @@ import MinimalCarousel from '@/blocks/layout/MinimalCarousel';
 import CardGrid from '@/blocks/layout/CardGrid';
 import SEOFields from '@/fields/SEOFields';
 import { authenticated } from '@/access/authenticated';
-// import { authenticatedOrPublished } from '@/access/authenticatedOrPublished';
 import { commonHooks, commonVersioning } from '@/utils/hooks';
 
 const Articles: CollectionConfig = {
@@ -21,7 +20,6 @@ const Articles: CollectionConfig = {
     create: authenticated,
     delete: authenticated,
     read: ({ req: { user } }) => {
-      // Allow reading if user is authenticated or if post is published
       if (user) return true;
       return {
         status: {

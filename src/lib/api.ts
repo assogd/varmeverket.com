@@ -24,7 +24,8 @@ const API_BASE_URL =
     ? DEV_API_BASE_URL
     : PROD_API_BASE_URL);
 
-const USE_EXTERNAL_BACKEND = true;
+const USE_EXTERNAL_BACKEND =
+  process.env.NEXT_PUBLIC_USE_EXTERNAL_BACKEND !== 'false';
 
 // Reduce noisy external API logs in dev; enable only when explicitly debugging.
 const SERVER_API_DEBUG = process.env.NEXT_PUBLIC_API_DEBUG === 'true';
@@ -66,7 +67,6 @@ async function fetchPayloadPath<T>(
     : [API_BASE_URL];
 
   let lastError: Error | null = null;
-  let lastData: T | null = null;
   for (const base of bases) {
     try {
       const url = path.startsWith('http') ? path : `${base}${path.startsWith('/') ? '' : '/'}${path}`;
@@ -80,10 +80,8 @@ async function fetchPayloadPath<T>(
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
       const data = (await response.json()) as T;
-      if (validate && !validate(data)) {
-        lastData = data;
-        continue;
-      }
+      // Successful 200 is the answer — return it even when validate fails (e.g. empty docs),
+      // so the caller gets the empty result instead of falling back to the next base and hitting 404.
       return data;
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
@@ -91,9 +89,6 @@ async function fetchPayloadPath<T>(
         console.error(`❌ Payload request failed (trying next base):`, lastError);
       }
     }
-  }
-  if (lastData !== null) {
-    return lastData;
   }
   throw lastError ?? new Error('Payload request failed');
 }
