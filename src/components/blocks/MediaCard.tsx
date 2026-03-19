@@ -35,7 +35,7 @@ interface MediaCardProps {
   };
   image?: { url: string; alt?: string; width?: number; height?: number };
   link?: LinkGroup;
-  buttonVariant?: 'primary' | 'secondary' | 'outline' | 'onHover';
+  buttonVariant?: 'primary' | 'secondary' | 'outline' | 'onHover' | 'textLink';
   className?: string;
   inCarousel?: boolean; // If true, applies bg-surface (for HorizontalSnapCarousel)
 }
@@ -56,6 +56,8 @@ export const MediaCard: React.FC<MediaCardProps> = ({
     linkResult?.href && linkResult.href !== '#' && link?.text
   );
   const buttonOnHoverVariant = buttonVariant === 'onHover';
+  const bottomCtaLayout =
+    buttonVariant === 'primary' || buttonVariant === 'textLink';
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -149,7 +151,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
         'flex flex-col aspect-window px-1',
         inCarousel && 'bg-surface rounded-lg w-64 sm:w-72 h-full',
         'relative',
-        hasValidLink && buttonVariant === 'primary'
+        hasValidLink && bottomCtaLayout
           ? 'pb-11 h-full justify-between'
           : 'pb-4 justify-center',
         className
@@ -160,7 +162,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
         className={clsx(
           'grid gap-6 mb-4 text-center overflow-y-hidden px-2 sm:px-5',
           'scrollbar-hide', // Hide scrollbars for all browsers
-          hasValidLink && buttonVariant === 'primary' ? 'pt-8' : 'py-8 sm:py-6'
+          hasValidLink && bottomCtaLayout ? 'pt-8' : 'py-8 sm:py-6'
         )}
       >
         <header>
@@ -195,7 +197,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
           <AppAction
             href={linkResult.href!}
             variant={buttonVariant}
-            className={clsx('', buttonVariant === 'primary' && 'w-full')}
+            className={clsx('', bottomCtaLayout && 'w-full')}
           >
             {link!.text}
           </AppAction>

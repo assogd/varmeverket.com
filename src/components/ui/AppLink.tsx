@@ -15,7 +15,13 @@ import clsx from 'clsx';
 interface AppActionProps {
   href?: string;
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline' | 'minimal' | 'noCSS';
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'outline'
+    | 'minimal'
+    | 'textLink'
+    | 'noCSS';
   size?: 'sm' | 'md' | 'lg';
   asButton?: boolean;
   className?: string;
@@ -45,6 +51,8 @@ const getBaseStyles = (isDark: boolean, isOrange: boolean) => ({
   outline:
     'uppercase border border-text rounded-md inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none',
   minimal: 'block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+  textLink:
+    'uppercase text-text text-center inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none hover:opacity-80',
   noCSS: '',
 });
 
