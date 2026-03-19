@@ -52,6 +52,8 @@ export interface CalendarEventCardProps {
   index: number;
   onClick: (event: CalendarEvent) => void;
   isInView?: boolean;
+  /** When set, the card renders as a link instead of opening the overlay. */
+  href?: string;
 }
 
 export interface CalendarEventOverlayProps {

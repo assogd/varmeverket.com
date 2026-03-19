@@ -21,11 +21,13 @@ const Events: CollectionConfig = {
     delete: authenticated,
     read: ({ req: { user } }) => {
       if (user) return true;
+      // Allow either custom status or Payload's _status (draft publish) so events show when "published" in admin
       return {
-        status: {
-          equals: 'published',
-        },
-      };
+        or: [
+          { status: { equals: 'published' } },
+          { _status: { equals: 'published' } },
+        ],
+      } as import('payload').Where;
     },
     update: authenticated,
   },
@@ -153,6 +155,94 @@ const Events: CollectionConfig = {
                 description:
                   'Optional form to display on this event.',
               },
+            },
+          ],
+        },
+        {
+          label: 'Header',
+          fields: [
+            {
+              name: 'header',
+              type: 'group',
+              label: 'Header',
+              fields: [
+                {
+                  name: 'text',
+                  type: 'richText',
+                  required: false,
+                  admin: {
+                    description: 'Main header text content for this event',
+                  },
+                },
+                {
+                  name: 'assets',
+                  type: 'array',
+                  label: 'Assets',
+                  minRows: 0,
+                  fields: [
+                    {
+                      name: 'type',
+                      type: 'select',
+                      options: [
+                        { label: 'Image', value: 'image' },
+                        { label: 'Mux Video', value: 'mux' },
+                        { label: 'Self-hosted Video', value: 'video' },
+                      ],
+                      required: false,
+                    },
+                    {
+                      name: 'placement',
+                      type: 'select',
+                      label: 'Placement',
+                      options: [
+                        { label: 'Before Text', value: 'before' },
+                        { label: 'After Text', value: 'after' },
+                      ],
+                      defaultValue: 'before',
+                      required: true,
+                      admin: {
+                        description:
+                          'Choose where this asset should appear relative to the header text content',
+                      },
+                    },
+                    {
+                      name: 'image',
+                      type: 'upload',
+                      relationTo: 'media',
+                      required: false,
+                      admin: {
+                        condition: (
+                          data: unknown,
+                          siblingData: Record<string, unknown>
+                        ) => siblingData?.type === 'image',
+                      },
+                    },
+                    {
+                      name: 'mux',
+                      type: 'text',
+                      required: false,
+                      admin: {
+                        condition: (
+                          data: unknown,
+                          siblingData: Record<string, unknown>
+                        ) => siblingData?.type === 'mux',
+                      },
+                    },
+                    {
+                      name: 'video',
+                      type: 'upload',
+                      relationTo: 'media',
+                      required: false,
+                      admin: {
+                        condition: (
+                          data: unknown,
+                          siblingData: Record<string, unknown>
+                        ) => siblingData?.type === 'video',
+                      },
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },

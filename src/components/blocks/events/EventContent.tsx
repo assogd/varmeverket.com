@@ -23,10 +23,9 @@ export default function EventContent({ content }: EventContentProps) {
       <DevIndicator componentName="EventContent" />
       <RichText
         data={content as never}
-        className="grid gap-3 justify-center pb-8"
+        className="grid gap-3 justify-center"
         converters={articleConverter}
       />
     </main>
   );
 }
-

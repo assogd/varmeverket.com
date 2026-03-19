@@ -1,9 +1,8 @@
 import { PayloadAPI } from '@/lib/api';
 import PageLayout from '@/components/layout/PageLayout';
 import EventContent from '@/components/blocks/events/EventContent';
+import { EventChildrenCalendar } from '@/components/blocks/events/EventChildrenCalendar';
 import { notFound } from 'next/navigation';
-import { formatEventDate, formatEventTime } from '@/utils/dateFormatting';
-import Link from 'next/link';
 import { EventHeader } from '@/components/headers/events/EventHeader';
 
 interface EventDocument {
@@ -47,8 +46,20 @@ interface EventDocument {
   };
   startDateTime?: string;
   endDateTime?: string;
+  isAllDay?: boolean;
   format?: 'in_person' | 'online' | 'hybrid';
   locationName?: string;
+  space?: { title?: string };
+  header?: {
+    text?: unknown;
+    assets?: Array<{
+      type: 'image' | 'mux' | 'video';
+      placement: 'before' | 'after';
+      image?: { url: string; alt?: string; width?: number; height?: number };
+      mux?: string;
+      video?: { url: string; alt?: string; width?: number; height?: number };
+    }>;
+  };
   children?: EventDocument[];
 }
 
@@ -56,21 +67,6 @@ interface ParentEventPageProps {
   params: Promise<{
     parentSlug: string;
   }>;
-}
-
-function buildEventMeta(event: EventDocument) {
-  const { startDateTime, endDateTime } = event;
-
-  if (!startDateTime) {
-    return null;
-  }
-
-  const end = endDateTime ?? startDateTime;
-
-  return {
-    date: formatEventDate(startDateTime, end),
-    time: formatEventTime(startDateTime, end),
-  };
 }
 
 export default async function ParentEventPage({
@@ -110,44 +106,35 @@ export default async function ParentEventPage({
 
   return (
     <PageLayout contentType="article">
-      <EventHeader event={event} />
+      <EventHeader
+        eventData={{
+          title: event.title,
+          excerpt: event.excerpt,
+          tags: event.tags,
+          startDateTime: event.startDateTime,
+          endDateTime: event.endDateTime,
+          isAllDay: event.isAllDay,
+          format: event.format,
+          locationName: event.locationName,
+          space: event.space,
+        }}
+        header={event.header}
+        featuredImage={event.featuredImage}
+      />
 
       {event.content && <EventContent content={event.content} />}
 
       {children.length > 0 && (
-        <section className="mx-auto w-full max-w-3xl px-4 mt-16 mb-24">
-          <h2 className="font-mono uppercase mb-6">Kommande tillfällen</h2>
-          <ul className="space-y-4">
-            {children.map(child => {
-              const date = child.startDateTime
-                ? new Date(child.startDateTime)
-                : null;
-              const year = date ? date.getFullYear() : null;
-              const month = date
-                ? String(date.getMonth() + 1).padStart(2, '0')
-                : null;
-              const day = date ? String(date.getDate()).padStart(2, '0') : null;
-
-              const href =
-                date && year && month && day
-                  ? `/evenemang/${parentSlug}/${year}/${month}/${day}/${child.slug}`
-                  : `/evenemang/${parentSlug}/${child.slug}`;
-
-              const childMeta = buildEventMeta(child);
-
-              return (
-                <li key={child.id} className="border-b border-text pb-4">
-                  <Link href={href} className="block">
-                    <p className="font-mono text-xs uppercase mb-1">
-                      {childMeta?.date}
-                    </p>
-                    <p className="text-lg">{child.title}</p>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+        <EventChildrenCalendar
+          children={children.map(c => ({
+            id: c.id,
+            title: c.title ?? '',
+            slug: c.slug,
+            startDateTime: c.startDateTime,
+            endDateTime: c.endDateTime,
+          }))}
+          parentSlug={parentSlug}
+        />
       )}
     </PageLayout>
   );

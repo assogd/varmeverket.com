@@ -511,9 +511,11 @@ Response:
 
     DELETE /v3/users/:email/saved-events/:article_id
 
-Example:
+Admins can remove a user's saved event by calling DELETE with admin credentials and the target user's email.
 
-    curl -X DELETE "https://$credentials10460@api.varmeverket.com/v3/users/benji@superstition.io/saved-events/5acba58f-5280-40a7-829f-4002796c70ad"
+Example (admin removing an entry for a user):
+
+    curl -X DELETE "https://$credentials@api.varmeverket.com/v3/users/benji@superstition.io/saved-events/5acba58f-5280-40a7-829f-4002796c70ad"
 
 Response:
 
@@ -521,6 +523,81 @@ Response:
       "status_code": 200,
       "status_message": "OK"
     }
+
+#### 3.8.4 List all saved events (admin vs user)
+
+Saved events are not a participant list per se, but staff can use this endpoint to e.g. push an event or course instance to a user's dashboard by sending `email` + `article_id` to the create endpoint for each participant.
+
+**As admin (sees all entries):**
+
+    GET /v3/users/saved-events
+
+Example:
+
+    curl -X GET "https://$credentials@api.varmeverket.com/v3/users/saved-events"
+
+Response:
+
+    [
+      {
+        "id": 4,
+        "user_id": 10460,
+        "article_id": "5acba58f-5280-40a7-829f-4002796c70ad",
+        "created_at": "Tue, 17 Mar 2026 12:51:51 GMT"
+      },
+      {
+        "id": 2,
+        "user_id": 5823,
+        "article_id": "69b409483d164c32f03e7dc6",
+        "created_at": "Mon, 16 Mar 2026 18:49:41 GMT"
+      }
+    ]
+
+**As user (sees own saved events only):**
+
+    GET /v3/users/saved-events
+
+Example (with user credentials):
+
+    curl -X GET "https://$credentials10460@api.varmeverket.com/v3/users/saved-events"
+
+Response:
+
+    [
+      {
+        "id": 4,
+        "user_id": 10460,
+        "article_id": "5acba58f-5280-40a7-829f-4002796c70ad",
+        "created_at": "Tue, 17 Mar 2026 12:51:51 GMT"
+      }
+    ]
+
+#### 3.8.5 Filter by article_id
+
+You can filter saved events by `article_id` for both admin and user listing.
+
+**As admin:**
+
+    GET /v3/users/saved-events?article_id=<article_id>
+
+Example:
+
+    curl -X GET "https://$credentials@api.varmeverket.com/v3/users/saved-events?article_id=5acba58f-5280-40a7-829f-4002796c70ad"
+
+**As user (same query, returns only own entries that match):**
+
+    curl -X GET "https://$credentials10460@api.varmeverket.com/v3/users/saved-events?article_id=5acba58f-5280-40a7-829f-4002796c70ad"
+
+Response (single matching entry for that user):
+
+    [
+      {
+        "id": 4,
+        "user_id": 10460,
+        "article_id": "5acba58f-5280-40a7-829f-4002796c70ad",
+        "created_at": "Tue, 17 Mar 2026 12:51:51 GMT"
+      }
+    ]
 
 ---
 

@@ -10,6 +10,19 @@ import {
 } from '@/components/blocks/interactive/calendar';
 import type { CalendarBlockProps, CalendarEvent } from './calendar/types';
 
+function resolveCalendarEventHref(link: CalendarEvent['link']): string | undefined {
+  if (!link?.type) return undefined;
+  if (link.type === 'external' && link.url?.trim()) return link.url.trim();
+  if (link.type === 'internal' && link.reference) {
+    const ref = link.reference as { relationTo?: string; value?: { slug?: string }; slug?: string; collection?: string };
+    const slug = ref.value?.slug ?? ref.slug;
+    if (!slug) return undefined;
+    const collection = ref.relationTo ?? ref.collection;
+    return collection === 'spaces' ? `/spaces/${slug}` : `/${slug}`;
+  }
+  return undefined;
+}
+
 const CalendarBlock: React.FC<CalendarBlockProps> = ({
   headline,
   description,
@@ -97,16 +110,20 @@ const CalendarBlock: React.FC<CalendarBlockProps> = ({
       {/* Events Grid */}
       <div className="max-w-8xl mx-auto">
         <div className="grid xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
-          {events.map((event, index) => (
-            <div className="aspect-video w-full" key={event.id || index}>
-              <CalendarEventCard
-                event={event}
-                index={index}
-                onClick={handleEventClick}
-                isInView={isInView}
-              />
-            </div>
-          ))}
+          {events.map((event, index) => {
+            const href = resolveCalendarEventHref(event.link);
+            return (
+              <div className="aspect-video w-full" key={event.id || index}>
+                <CalendarEventCard
+                  event={event}
+                  index={index}
+                  onClick={handleEventClick}
+                  isInView={isInView}
+                  href={href}
+                />
+              </div>
+            );
+          })}
           {getEmptyEventCards()}
         </div>
       </div>

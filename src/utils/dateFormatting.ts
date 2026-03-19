@@ -35,11 +35,11 @@ export const formatEventDate = (startDate: string, endDate: string): string => {
 
   // Same year
   if (start.getFullYear() === end.getFullYear()) {
-    return `${startDay} ${startMonth} - ${endDay} ${endMonth} ${startYear}`;
+    return `${startDay} ${startMonth} — ${endDay} ${endMonth} ${startYear}`;
   }
 
   // Different years
-  return `${startDay} ${startMonth} ${startYear} - ${endDay} ${endMonth} ${endYear}`;
+  return `${startDay} ${startMonth} ${startYear} — ${endDay} ${endMonth} ${endYear}`;
 };
 
 /**

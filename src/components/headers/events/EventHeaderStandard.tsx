@@ -1,0 +1,136 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+'use client';
+
+import React, { useRef } from 'react';
+import { RichText } from '@payloadcms/richtext-lexical/react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { DevIndicator } from '@/components/dev/DevIndicator';
+import { FadeIn } from '@/components/ui';
+import { TagList } from '@/components/ui';
+import { Heading } from '@/components/headings';
+import MediaAsset from '@/components/common/MediaAsset';
+import { defaultConverter } from '@/utils/richTextConverters';
+import { EventMeta } from './EventMeta';
+
+interface Asset {
+  type: 'image' | 'mux' | 'video';
+  placement: 'before' | 'after';
+  image?: { url: string; alt?: string; width?: number; height?: number };
+  mux?: string;
+  video?: {
+    url: string;
+    alt?: string;
+    width?: number;
+    height?: number;
+    filename?: string;
+    mimeType?: string;
+  };
+}
+
+interface EventHeaderStandardProps {
+  eventData: {
+    title?: string;
+    tags?: Array<{ id: string; name: string }>;
+    startDateTime?: string;
+    endDateTime?: string;
+    isAllDay?: boolean;
+    format?: 'in_person' | 'online' | 'hybrid';
+    locationName?: string;
+    space?: { title?: string };
+  };
+  text?: any;
+  assets: Asset[];
+}
+
+function hasH1(richTextData: any): boolean {
+  if (!richTextData?.root?.children) return false;
+  const checkChildren = (children: any[]): boolean => {
+    return children.some(child => {
+      if (child.type === 'heading' && child.tag === 'h1') return true;
+      if (child.children) return checkChildren(child.children);
+      return false;
+    });
+  };
+  return checkChildren(richTextData.root.children);
+}
+
+export default function EventHeaderStandard({
+  eventData,
+  text,
+  assets,
+}: EventHeaderStandardProps) {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start start', 'end start'],
+  });
+  const assetScale = useTransform(scrollYProgress, [0, 0.1], [0.95, 1]);
+
+  return (
+    <div ref={ref} className="relative">
+      <DevIndicator componentName="EventHeaderStandard" position="top-right" />
+
+      <div className="grid gap-8 justify-center pt-32 text-center">
+        <TagList tags={eventData.tags} size="md" className="mb-4" />
+
+        <motion.div className="flex items-center justify-center" style={{}}>
+          <FadeIn
+            as="div"
+            className="px-4 grid gap-4 font-mono"
+            timing="slow"
+            delay={0.2}
+          >
+            {text && eventData.title && !hasH1(text) && (
+              <Heading variant="page-header" as="h1">
+                {eventData.title}
+              </Heading>
+            )}
+            {text && (
+              <RichText
+                data={text}
+                className="grid gap-3 justify-center"
+                converters={defaultConverter}
+              />
+            )}
+          </FadeIn>
+        </motion.div>
+
+        <EventMeta
+          startDateTime={eventData.startDateTime}
+          endDateTime={eventData.endDateTime}
+          isAllDay={eventData.isAllDay}
+          format={eventData.format}
+          locationName={eventData.locationName}
+          space={eventData.space}
+        />
+
+        {assets.length > 0 && (
+          <motion.div style={{ scale: assetScale }}>
+            <FadeIn
+              as="div"
+              className="relative z-10 flex justify-center flex-row gap-4 mt-8"
+              timing="normal"
+              delay={0.6}
+            >
+              {assets.map((asset, i) => (
+                <div key={i} className={assets.length > 1 ? 'flex-1' : ''}>
+                  <MediaAsset
+                    asset={asset}
+                    height={asset.image?.height || 600}
+                    width={asset.image?.width || 800}
+                    className="rounded object-cover"
+                    videoClassName="rounded overflow-hidden"
+                    controls={false}
+                    autoplay={true}
+                    loop={true}
+                    adaptiveResolution={true}
+                  />
+                </div>
+              ))}
+            </FadeIn>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}

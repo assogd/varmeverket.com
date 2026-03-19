@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { PayloadAPI } from '@/lib/api';
 import PageLayout from '@/components/layout/PageLayout';
 import EventContent from '@/components/blocks/events/EventContent';
-import { formatEventDate, formatEventTime } from '@/utils/dateFormatting';
 import Link from 'next/link';
 import { EventHeader } from '@/components/headers/events/EventHeader';
 
@@ -19,6 +18,7 @@ interface EventDocument {
     height?: number;
   };
   excerpt?: string;
+  tags?: Array<{ id: string; name: string }>;
   introduction?: {
     root: {
       children: Array<{
@@ -43,8 +43,20 @@ interface EventDocument {
   };
   startDateTime?: string;
   endDateTime?: string;
+  isAllDay?: boolean;
   format?: 'in_person' | 'online' | 'hybrid';
   locationName?: string;
+  space?: { title?: string };
+  header?: {
+    text?: unknown;
+    assets?: Array<{
+      type: 'image' | 'mux' | 'video';
+      placement: 'before' | 'after';
+      image?: { url: string; alt?: string; width?: number; height?: number };
+      mux?: string;
+      video?: { url: string; alt?: string; width?: number; height?: number };
+    }>;
+  };
 }
 
 interface ChildEventPageParams {
@@ -57,21 +69,6 @@ interface ChildEventPageParams {
 
 interface ChildEventPageProps {
   params: Promise<ChildEventPageParams>;
-}
-
-function buildEventMeta(event: EventDocument) {
-  const { startDateTime, endDateTime } = event;
-
-  if (!startDateTime) {
-    return null;
-  }
-
-  const end = endDateTime ?? startDateTime;
-
-  return {
-    date: formatEventDate(startDateTime, end),
-    time: formatEventTime(startDateTime, end),
-  };
 }
 
 function dateMatchesParams(dateString: string, year: string, month: string, day: string) {
@@ -138,7 +135,21 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
 
   return (
     <PageLayout contentType="article">
-      <EventHeader event={child} />
+      <EventHeader
+        eventData={{
+          title: child.title,
+          excerpt: child.excerpt,
+          tags: child.tags,
+          startDateTime: child.startDateTime,
+          endDateTime: child.endDateTime,
+          isAllDay: child.isAllDay,
+          format: child.format,
+          locationName: child.locationName,
+          space: child.space,
+        }}
+        header={child.header}
+        featuredImage={child.featuredImage}
+      />
       <p className="mx-auto w-full max-w-3xl px-4 text-sm mb-4">
         <Link href={`/evenemang/${parentSlug}`} className="underline">
           Del av serien {parent.slug}

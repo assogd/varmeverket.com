@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { formatEventDate, formatEventTime } from '@/utils/dateFormatting';
 import type { CalendarEventCardProps } from './types';
@@ -10,20 +11,13 @@ const CalendarEventCard: React.FC<CalendarEventCardProps> = ({
   index,
   onClick,
   isInView = false,
+  href,
 }) => {
   // Check if this is an empty placeholder event
   const isEmpty = event.id === 'empty' && !event.title && !event.startDate;
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      className={`bg-surface-dark rounded-md py-4 px-6 flex flex-col gap-2 text-center justify-between items-center w-full h-full ${
-        isEmpty ? 'cursor-default opacity-0' : 'cursor-pointer'
-      }`}
-      onClick={() => !isEmpty && onClick(event)}
-    >
+  const content = (
+    <>
       {!isEmpty && (
         <>
           <h3 className="font-sans text-md">{event.title}</h3>
@@ -37,6 +31,37 @@ const CalendarEventCard: React.FC<CalendarEventCardProps> = ({
           </div>
         </>
       )}
+    </>
+  );
+
+  const className = `bg-surface-dark rounded-md py-4 px-6 flex flex-col gap-2 text-center justify-between items-center w-full h-full ${
+    isEmpty ? 'cursor-default opacity-0' : 'cursor-pointer'
+  }`;
+
+  if (href && !isEmpty) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        transition={{ delay: index * 0.1, duration: 0.5 }}
+        className="w-full h-full"
+      >
+        <Link href={href} className={`block w-full h-full ${className}`}>
+          {content}
+        </Link>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+      transition={{ delay: index * 0.1, duration: 0.5 }}
+      className={className}
+      onClick={() => !isEmpty && onClick(event)}
+    >
+      {content}
     </motion.div>
   );
 };
