@@ -144,8 +144,24 @@ export function EventMeta({
     ) : canShowSparaButton && savedState === 'saved' ? (
       <button
         type="button"
-        disabled
-        className="rounded-sm border border-current leading-4 text-sm px-1 pt-[.1em] pb-[.1em] font-sans uppercase opacity-80"
+        disabled={sessionLoading || saving}
+        onClick={async () => {
+          if (!eventId) return;
+          setSaving(true);
+          try {
+            await BackendAPI.removeSavedEvent(user?.email as string, eventId);
+            setSavedState('not_saved');
+            showSuccess('Event borttaget ur din kalender.');
+          } catch (e) {
+            const message =
+              e instanceof Error ? e.message : 'Failed to remove event';
+            setSavedState('saved');
+            showError(message);
+          } finally {
+            setSaving(false);
+          }
+        }}
+        className="rounded-sm border border-current leading-4 text-sm px-1 pt-[.1em] pb-[.1em] font-sans uppercase"
       >
         Sparad
       </button>
