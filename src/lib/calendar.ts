@@ -7,7 +7,7 @@ export interface CalendarItem {
   endsAt: Date;
   title: string;
   type: 'booking' | 'event' | 'course';
-  status?: 'booked' | 'saved' | 'registered';
+  status?: 'booked' | 'saved' | 'registered' | 'featured';
   space?: string;
   image?: string;
 }
@@ -44,6 +44,97 @@ export function bookingsToCalendarItems(
       status: 'booked',
       space: booking.space,
     }));
+}
+
+export interface CalendarEvent {
+  id: string;
+  title?: string | null;
+  startDateTime?: string | null;
+  endDateTime?: string | null;
+  featuredImage?: { url: string; alt?: string | null } | null;
+}
+
+function isUpcoming(startsAt: Date): boolean {
+  const now = new Date();
+  return startsAt >= now;
+}
+
+export function eventsToCalendarItems(
+  events: CalendarEvent[] | null | undefined,
+  status: Extract<NonNullable<CalendarItem['status']>, 'featured' | 'saved'>
+): CalendarItem[] {
+  if (!events || !Array.isArray(events)) return [];
+
+  return events
+    .filter(e => Boolean(e?.startDateTime))
+    .map(e => {
+      const startsAt = new Date(e.startDateTime as string);
+      const endsAt = e.endDateTime
+        ? new Date(e.endDateTime)
+        : new Date(e.startDateTime as string);
+
+      return {
+        id: e.id,
+        startsAt,
+        endsAt,
+        title: e.title || e.id,
+        type: 'event' as const,
+        status,
+        image: e.featuredImage?.url,
+      };
+    })
+    .filter(item => isUpcoming(item.startsAt));
+}
+
+function statusPriority(status: CalendarItem['status']): number {
+  switch (status) {
+    case 'featured':
+      return 3;
+    case 'saved':
+      return 2;
+    case 'registered':
+      return 1;
+    case 'booked':
+      return 0;
+    default:
+      return -1;
+  }
+}
+
+/**
+ * Merge and dedupe calendar items.
+ * If the same `event` appears as both featured and saved, keep the higher priority status (featured).
+ */
+export function mergeCalendarItems(
+  bookings: CalendarItem[],
+  featured: CalendarItem[],
+  saved: CalendarItem[]
+): CalendarItem[] {
+  const now = new Date();
+
+  const combined = [...bookings, ...featured, ...saved].filter(item => {
+    // Always filter out past items.
+    return item.startsAt >= now;
+  });
+
+  const dedupedById = new Map<string, CalendarItem>();
+
+  for (const item of combined) {
+    const prev = dedupedById.get(item.id);
+    if (!prev) {
+      dedupedById.set(item.id, item);
+      continue;
+    }
+
+    // Prefer higher-priority status (e.g. featured over saved).
+    if (statusPriority(item.status) > statusPriority(prev.status)) {
+      dedupedById.set(item.id, item);
+    }
+  }
+
+  return Array.from(dedupedById.values()).sort(
+    (a, b) => a.startsAt.getTime() - b.startsAt.getTime()
+  );
 }
 
 /**

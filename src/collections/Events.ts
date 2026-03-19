@@ -32,7 +32,15 @@ const Events: CollectionConfig = {
     update: authenticated,
   },
   admin: {
-    defaultColumns: ['title', 'status', 'startDateTime', 'format', 'updatedAt'],
+    defaultColumns: [
+      'title',
+      'status',
+      'eventAccess',
+      'featured',
+      'startDateTime',
+      'format',
+      'updatedAt',
+    ],
     useAsTitle: 'title',
     group: 'Content',
   },
@@ -69,6 +77,32 @@ const Events: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'Publication status of the event',
+      },
+    },
+    {
+      name: 'eventAccess',
+      type: 'select',
+      required: false,
+      defaultValue: 'public',
+      options: [
+        { label: 'Public', value: 'public' },
+        { label: 'Members only', value: 'members_only' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description:
+          'Controls whether the event page is public or only available for logged-in portal members.',
+      },
+    },
+    {
+      name: 'featured',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description:
+          'If enabled, this event will show on the portal dashboard for every member.',
       },
     },
     {

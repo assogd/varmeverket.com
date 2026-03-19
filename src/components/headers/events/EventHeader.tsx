@@ -45,12 +45,18 @@ interface EventHeaderProps {
     width?: number;
     height?: number;
   };
+  /** Used for showing portal actions like "Spara" next to ICAL. */
+  eventId?: string;
+  /** When an event references a form, "Spara" is not shown. */
+  hasForm?: boolean;
 }
 
 export function EventHeader({
   eventData,
   header,
   featuredImage,
+  eventId,
+  hasForm,
 }: EventHeaderProps) {
   const validAssets = (header?.assets || []).filter(asset => {
     if (asset.type === 'image') {
@@ -89,7 +95,14 @@ export function EventHeader({
   const hasAssets = assets.length > 0;
 
   if (!hasAssets) {
-    return <EventHeaderTextOnly eventData={eventData} text={header?.text} />;
+    return (
+      <EventHeaderTextOnly
+        eventData={eventData}
+        text={header?.text}
+        eventId={eventId}
+        hasForm={hasForm}
+      />
+    );
   }
 
   if (beforeAssets.length > 0) {
@@ -98,6 +111,8 @@ export function EventHeader({
         eventData={eventData}
         text={header?.text}
         assets={beforeAssets}
+        eventId={eventId}
+        hasForm={hasForm}
       />
     );
   }
@@ -108,6 +123,8 @@ export function EventHeader({
         eventData={eventData}
         text={header?.text}
         assets={afterAssets}
+        eventId={eventId}
+        hasForm={hasForm}
       />
     );
   }

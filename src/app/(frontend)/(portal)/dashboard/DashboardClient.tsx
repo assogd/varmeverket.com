@@ -15,8 +15,11 @@ import { CalendarList } from '@/components/portal/dashboard/CalendarList';
 import type { Announcement } from '@/lib/announcements';
 import {
   bookingsToCalendarItems,
+  eventsToCalendarItems,
+  mergeCalendarItems,
   groupCalendarItemsByDay,
 } from '@/lib/calendar';
+import type { CalendarEvent } from '@/lib/calendar';
 
 const INITIAL_BOOKINGS_VISIBLE = 10;
 const LOAD_MORE_STEP = 10;
@@ -24,12 +27,16 @@ const LOAD_MORE_STEP = 10;
 interface DashboardClientProps {
   announcements: Announcement[];
   bookings: Booking[];
+  featuredEvents: CalendarEvent[];
+  savedEvents: CalendarEvent[];
   userEmail: string;
 }
 
 export function DashboardClient({
   announcements,
   bookings: initialBookings,
+  featuredEvents,
+  savedEvents,
   userEmail,
 }: DashboardClientProps) {
   const { showError } = useNotification();
@@ -39,11 +46,11 @@ export function DashboardClient({
   const [visibleCount, setVisibleCount] = useState(INITIAL_BOOKINGS_VISIBLE);
 
   const allItems = useMemo(() => {
-    const items = bookingsToCalendarItems(bookings);
-    return [...items].sort(
-      (a, b) => a.startsAt.getTime() - b.startsAt.getTime()
-    );
-  }, [bookings]);
+    const bookingItems = bookingsToCalendarItems(bookings);
+    const featuredItems = eventsToCalendarItems(featuredEvents, 'featured');
+    const savedItems = eventsToCalendarItems(savedEvents, 'saved');
+    return mergeCalendarItems(bookingItems, featuredItems, savedItems);
+  }, [bookings, featuredEvents, savedEvents]);
   const displayedItems = useMemo(
     () => allItems.slice(0, visibleCount),
     [allItems, visibleCount]

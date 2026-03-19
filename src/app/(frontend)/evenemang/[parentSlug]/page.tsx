@@ -1,17 +1,25 @@
-import { PayloadAPI } from '@/lib/api';
 import PageLayout from '@/components/layout/PageLayout';
 import EventContent from '@/components/blocks/events/EventContent';
 import { EventChildrenCalendar } from '@/components/blocks/events/EventChildrenCalendar';
 import FormBlock from '@/components/blocks/interactive/FormBlock';
 import { notFound } from 'next/navigation';
+import { headers } from 'next/headers';
 import { EventHeader } from '@/components/headers/events/EventHeader';
 import { resolveFormDoc } from '@/utils/resolveFormDoc';
+import {
+  loadEventBySlugForPage,
+  type EventForPage,
+} from '@/lib/events/loadEventBySlugForPage';
 
-interface EventDocument {
+export const dynamic = 'force-dynamic';
+
+interface EventDocument extends EventForPage {
   id: string;
   title: string;
   slug: string;
   status?: string;
+  eventAccess?: 'public' | 'members_only';
+  featured?: boolean;
   featuredImage?: {
     id: string;
     url: string;
@@ -77,36 +85,29 @@ export default async function ParentEventPage({
 }: ParentEventPageProps) {
   const { parentSlug } = await params;
 
-  let event = (await PayloadAPI.findBySlug(
-    'events',
-    parentSlug,
-    10,
-    false
-  )) as EventDocument | null;
+  const cookieHeader = (await headers()).get('cookie') ?? undefined;
+  const { event, isPortalLoggedIn } = await loadEventBySlugForPage<EventDocument>(
+    {
+      slug: parentSlug,
+      cookieHeader,
+      depth: 10,
+    }
+  );
 
-  if (!event && process.env.NODE_ENV === 'development') {
-    event = (await PayloadAPI.findBySlug(
-      'events',
-      parentSlug,
-      10,
-      true
-    )) as EventDocument | null;
+  if (!event) notFound();
+
+  let children = Array.isArray(event.children) ? event.children : [];
+  if (!isPortalLoggedIn) {
+    // Prevent anonymous users from even seeing members-only children in the list.
+    children = children.filter(
+      c => (c.eventAccess ?? 'public') !== 'members_only'
+    );
   }
 
-  if (
-    process.env.NODE_ENV === 'production' &&
-    event &&
-    event.status !== 'published'
-  ) {
-    notFound();
-  }
-
-  if (!event) {
-    notFound();
-  }
-
-  const children = Array.isArray(event.children) ? event.children : [];
-  const eventFormDoc = event.form ? await resolveFormDoc(event.form) : null;
+  const hasReferencedForm = Boolean(event.form);
+  const eventFormDoc = hasReferencedForm
+    ? await resolveFormDoc(event.form)
+    : null;
 
   return (
     <PageLayout contentType="article">
@@ -124,6 +125,8 @@ export default async function ParentEventPage({
         }}
         header={event.header}
         featuredImage={event.featuredImage}
+        eventId={event.id}
+        hasForm={hasReferencedForm}
       />
 
       {event.content && <EventContent content={event.content} />}

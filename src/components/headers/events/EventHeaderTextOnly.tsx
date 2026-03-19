@@ -25,6 +25,8 @@ interface EventHeaderTextOnlyProps {
     space?: { title?: string };
   };
   text?: any;
+  eventId?: string;
+  hasForm?: boolean;
 }
 
 function hasH1(richTextData: any): boolean {
@@ -42,6 +44,8 @@ function hasH1(richTextData: any): boolean {
 export default function EventHeaderTextOnly({
   eventData,
   text,
+  eventId,
+  hasForm,
 }: EventHeaderTextOnlyProps) {
   return (
     <div className="relative">
@@ -88,6 +92,8 @@ export default function EventHeaderTextOnly({
           format={eventData.format}
           locationName={eventData.locationName}
           space={eventData.space}
+          eventId={eventId}
+          hasForm={hasForm}
         />
       </div>
     </div>

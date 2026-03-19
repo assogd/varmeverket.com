@@ -43,6 +43,8 @@ interface EventHeaderStandardProps {
   };
   text?: any;
   assets: Asset[];
+  eventId?: string;
+  hasForm?: boolean;
 }
 
 function hasH1(richTextData: any): boolean {
@@ -61,6 +63,8 @@ export default function EventHeaderStandard({
   eventData,
   text,
   assets,
+  eventId,
+  hasForm,
 }: EventHeaderStandardProps) {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -113,6 +117,8 @@ export default function EventHeaderStandard({
           format={eventData.format}
           locationName={eventData.locationName}
           space={eventData.space}
+          eventId={eventId}
+          hasForm={hasForm}
         />
 
         {assets.length > 0 && (

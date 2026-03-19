@@ -188,6 +188,22 @@ export class PayloadAPI {
   }
 
   /**
+   * Find a single document by ID without cross-request caching.
+   * Useful for pages that gate rendering based on a per-request session.
+   */
+  static async findByIDFresh<T>(
+    collection: string,
+    id: string,
+    depth = 10
+  ): Promise<T> {
+    const path = `/${collection}/${id}?depth=${depth}`;
+    return fetchPayloadPath<T>(path, {
+      next: { revalidate: 0 },
+      cache: 'no-store',
+    } as RequestInit);
+  }
+
+  /**
    * Find documents by slug
    */
   static async findBySlug<T>(

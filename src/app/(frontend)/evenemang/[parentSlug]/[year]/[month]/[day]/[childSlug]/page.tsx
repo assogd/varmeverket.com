@@ -5,12 +5,21 @@ import EventContent from '@/components/blocks/events/EventContent';
 import FormBlock from '@/components/blocks/interactive/FormBlock';
 import { EventHeader } from '@/components/headers/events/EventHeader';
 import { resolveFormDoc } from '@/utils/resolveFormDoc';
+import { headers } from 'next/headers';
+import {
+  loadEventBySlugForPage,
+  type EventForPage,
+} from '@/lib/events/loadEventBySlugForPage';
 
-interface EventDocument {
+export const dynamic = 'force-dynamic';
+
+interface EventDocument extends EventForPage {
   id: string;
   title: string;
   slug: string;
   status?: string;
+  eventAccess?: 'public' | 'members_only';
+  featured?: boolean;
   featuredImage?: {
     id: string;
     url: string;
@@ -90,41 +99,30 @@ function dateMatchesParams(
 export default async function ChildEventPage({ params }: ChildEventPageProps) {
   const { parentSlug, year, month, day, childSlug } = await params;
 
-  let parent = (await PayloadAPI.findBySlug(
-    'events',
-    parentSlug,
-    10,
-    false
-  )) as {
-    id: string;
-    title?: string;
-    slug: string;
-    status?: string;
-    children?: EventDocument[];
-  } | null;
+  const cookieHeader = (await headers()).get('cookie') ?? undefined;
+  const {
+    event: parent,
+    isPortalLoggedIn,
+  } = await loadEventBySlugForPage<EventDocument>({
+    slug: parentSlug,
+    cookieHeader,
+    depth: 10,
+  });
 
-  if (!parent && process.env.NODE_ENV === 'development') {
-    parent = (await PayloadAPI.findBySlug('events', parentSlug, 10, true)) as {
-      id: string;
-      title?: string;
-      slug: string;
-      status?: string;
-      children?: EventDocument[];
-    } | null;
-  }
-
-  if (!parent) {
-    notFound();
-  }
-
-  if (process.env.NODE_ENV === 'production' && parent.status !== 'published') {
-    notFound();
-  }
+  if (!parent) notFound();
 
   const children = Array.isArray(parent.children) ? parent.children : [];
   const childFromParent = children.find(e => e.slug === childSlug);
 
   if (!childFromParent || !childFromParent.startDateTime) {
+    notFound();
+  }
+
+  // Enforce members-only access for the child itself.
+  const childAccess = (childFromParent.eventAccess ?? 'public') as
+    | 'public'
+    | 'members_only';
+  if (childAccess === 'members_only' && !isPortalLoggedIn) {
     notFound();
   }
 
@@ -142,7 +140,7 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
   // Fetch child as full document so header and featuredImage are populated (same as parent events)
   let child: EventDocument;
   try {
-    const fullChild = await PayloadAPI.findByID<EventDocument>(
+    const fullChild = await PayloadAPI.findByIDFresh<EventDocument>(
       'events',
       childFromParent.id,
       10
@@ -152,7 +150,17 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
     child = childFromParent as EventDocument;
   }
 
-  const childFormDoc = child.form ? await resolveFormDoc(child.form) : null;
+  const fullChildAccess = (child.eventAccess ?? 'public') as
+    | 'public'
+    | 'members_only';
+  if (fullChildAccess === 'members_only' && !isPortalLoggedIn) {
+    notFound();
+  }
+
+  const hasReferencedForm = Boolean(child.form);
+  const childFormDoc = hasReferencedForm
+    ? await resolveFormDoc(child.form)
+    : null;
 
   return (
     <PageLayout contentType="article">
@@ -172,6 +180,8 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
         }}
         header={child.header}
         featuredImage={child.featuredImage}
+        eventId={child.id}
+        hasForm={hasReferencedForm}
       />
 
       {child.content && <EventContent content={child.content} />}

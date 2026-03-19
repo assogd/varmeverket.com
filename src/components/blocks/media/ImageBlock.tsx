@@ -24,7 +24,9 @@ export default function ImageBlock({ image, caption }: ImageBlockProps) {
         height={image.height || 800}
         className="object-contain max-h-full h-auto w-auto rounded-md sm:rounded-lg object-center"
       />
-      {caption && <p className="text-sm mt-1 px-1 w-full">{caption}</p>}
+      {caption && (
+        <p className="text-sm mt-1 px-1 w-full text-center">{caption}</p>
+      )}
     </div>
   );
 }
