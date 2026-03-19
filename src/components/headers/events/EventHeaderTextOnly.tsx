@@ -9,10 +9,13 @@ import { TagList } from '@/components/ui';
 import { Heading } from '@/components/headings';
 import { defaultConverter } from '@/utils/richTextConverters';
 import { EventMeta } from './EventMeta';
+import { EventParentTitleLink } from './EventParentTitleLink';
 
 interface EventHeaderTextOnlyProps {
   eventData: {
     title?: string;
+    parentTitle?: string;
+    parentSlug?: string;
     tags?: Array<{ id: string; name: string }>;
     startDateTime?: string;
     endDateTime?: string;
@@ -45,7 +48,14 @@ export default function EventHeaderTextOnly({
       <DevIndicator componentName="EventHeaderTextOnly" position="top-right" />
 
       <div className="grid gap-8 justify-center pt-32 text-center">
-        <TagList tags={eventData.tags} size="md" className="mb-4" />
+        {eventData.parentTitle && eventData.parentSlug ? (
+          <EventParentTitleLink
+            parentTitle={eventData.parentTitle}
+            parentSlug={eventData.parentSlug}
+          />
+        ) : (
+          <TagList tags={eventData.tags} size="md" className="mb-4" />
+        )}
 
         <FadeInUp as="div" timing="fast">
           <div className="px-4 grid gap-8 font-mono">
@@ -71,6 +81,7 @@ export default function EventHeaderTextOnly({
         )}
 
         <EventMeta
+          title={eventData.title}
           startDateTime={eventData.startDateTime}
           endDateTime={eventData.endDateTime}
           isAllDay={eventData.isAllDay}

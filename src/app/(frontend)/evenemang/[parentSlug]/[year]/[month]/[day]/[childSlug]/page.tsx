@@ -2,8 +2,9 @@ import { notFound } from 'next/navigation';
 import { PayloadAPI } from '@/lib/api';
 import PageLayout from '@/components/layout/PageLayout';
 import EventContent from '@/components/blocks/events/EventContent';
-import Link from 'next/link';
+import FormBlock from '@/components/blocks/interactive/FormBlock';
 import { EventHeader } from '@/components/headers/events/EventHeader';
+import { resolveFormDoc } from '@/utils/resolveFormDoc';
 
 interface EventDocument {
   id: string;
@@ -57,6 +58,7 @@ interface EventDocument {
       video?: { url: string; alt?: string; width?: number; height?: number };
     }>;
   };
+  form?: unknown;
 }
 
 interface ChildEventPageParams {
@@ -71,7 +73,12 @@ interface ChildEventPageProps {
   params: Promise<ChildEventPageParams>;
 }
 
-function dateMatchesParams(dateString: string, year: string, month: string, day: string) {
+function dateMatchesParams(
+  dateString: string,
+  year: string,
+  month: string,
+  day: string
+) {
   const date = new Date(dateString);
   const y = String(date.getFullYear());
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -90,6 +97,7 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
     false
   )) as {
     id: string;
+    title?: string;
     slug: string;
     status?: string;
     children?: EventDocument[];
@@ -98,6 +106,7 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
   if (!parent && process.env.NODE_ENV === 'development') {
     parent = (await PayloadAPI.findBySlug('events', parentSlug, 10, true)) as {
       id: string;
+      title?: string;
       slug: string;
       status?: string;
       children?: EventDocument[];
@@ -108,35 +117,49 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
     notFound();
   }
 
-  if (
-    process.env.NODE_ENV === 'production' &&
-    parent.status !== 'published'
-  ) {
+  if (process.env.NODE_ENV === 'production' && parent.status !== 'published') {
     notFound();
   }
 
   const children = Array.isArray(parent.children) ? parent.children : [];
-  const child = children.find(e => e.slug === childSlug);
+  const childFromParent = children.find(e => e.slug === childSlug);
 
-  if (!child || !child.startDateTime) {
+  if (!childFromParent || !childFromParent.startDateTime) {
     notFound();
   }
 
-  if (!dateMatchesParams(child.startDateTime, year, month, day)) {
+  if (!dateMatchesParams(childFromParent.startDateTime, year, month, day)) {
     notFound();
   }
 
   if (
     process.env.NODE_ENV === 'production' &&
-    child.status !== 'published'
+    childFromParent.status !== 'published'
   ) {
     notFound();
   }
+
+  // Fetch child as full document so header and featuredImage are populated (same as parent events)
+  let child: EventDocument;
+  try {
+    const fullChild = await PayloadAPI.findByID<EventDocument>(
+      'events',
+      childFromParent.id,
+      10
+    );
+    child = fullChild as EventDocument;
+  } catch {
+    child = childFromParent as EventDocument;
+  }
+
+  const childFormDoc = child.form ? await resolveFormDoc(child.form) : null;
 
   return (
     <PageLayout contentType="article">
       <EventHeader
         eventData={{
+          parentTitle: parent.title,
+          parentSlug,
           title: child.title,
           excerpt: child.excerpt,
           tags: child.tags,
@@ -150,14 +173,9 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
         header={child.header}
         featuredImage={child.featuredImage}
       />
-      <p className="mx-auto w-full max-w-3xl px-4 text-sm mb-4">
-        <Link href={`/evenemang/${parentSlug}`} className="underline">
-          Del av serien {parent.slug}
-        </Link>
-      </p>
 
       {child.content && <EventContent content={child.content} />}
+      {childFormDoc && <FormBlock form={childFormDoc} />}
     </PageLayout>
   );
 }
-

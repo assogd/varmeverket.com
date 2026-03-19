@@ -13,6 +13,7 @@ import VideoPlayer from '@/components/common/VideoPlayer';
 import { fixImageUrl } from '@/utils/imageUrl';
 import { defaultConverter } from '@/utils/richTextConverters';
 import { EventMeta } from './EventMeta';
+import { EventParentTitleLink } from './EventParentTitleLink';
 
 interface Asset {
   type: 'image' | 'mux' | 'video';
@@ -32,6 +33,8 @@ interface Asset {
 interface EventHeaderAssetsAboveProps {
   eventData: {
     title?: string;
+    parentTitle?: string;
+    parentSlug?: string;
     tags?: Array<{ id: string; name: string }>;
     startDateTime?: string;
     endDateTime?: string;
@@ -77,7 +80,14 @@ export default function EventHeaderAssetsAbove({
       />
 
       <div className="grid gap-4 justify-center pt-32 text-center">
-        <TagList tags={eventData.tags} size="md" />
+        {eventData.parentTitle && eventData.parentSlug ? (
+          <EventParentTitleLink
+            parentTitle={eventData.parentTitle}
+            parentSlug={eventData.parentSlug}
+          />
+        ) : (
+          <TagList tags={eventData.tags} size="md" />
+        )}
 
         <motion.div
           className="flex items-center justify-center py-4"
@@ -159,6 +169,7 @@ export default function EventHeaderAssetsAbove({
         )}
 
         <EventMeta
+          title={eventData.title}
           startDateTime={eventData.startDateTime}
           endDateTime={eventData.endDateTime}
           isAllDay={eventData.isAllDay}

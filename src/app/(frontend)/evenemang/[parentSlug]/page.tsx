@@ -2,8 +2,10 @@ import { PayloadAPI } from '@/lib/api';
 import PageLayout from '@/components/layout/PageLayout';
 import EventContent from '@/components/blocks/events/EventContent';
 import { EventChildrenCalendar } from '@/components/blocks/events/EventChildrenCalendar';
+import FormBlock from '@/components/blocks/interactive/FormBlock';
 import { notFound } from 'next/navigation';
 import { EventHeader } from '@/components/headers/events/EventHeader';
+import { resolveFormDoc } from '@/utils/resolveFormDoc';
 
 interface EventDocument {
   id: string;
@@ -60,6 +62,7 @@ interface EventDocument {
       video?: { url: string; alt?: string; width?: number; height?: number };
     }>;
   };
+  form?: unknown;
   children?: EventDocument[];
 }
 
@@ -103,6 +106,7 @@ export default async function ParentEventPage({
   }
 
   const children = Array.isArray(event.children) ? event.children : [];
+  const eventFormDoc = event.form ? await resolveFormDoc(event.form) : null;
 
   return (
     <PageLayout contentType="article">
@@ -136,6 +140,8 @@ export default async function ParentEventPage({
           parentSlug={parentSlug}
         />
       )}
+
+      {eventFormDoc && <FormBlock form={eventFormDoc} />}
     </PageLayout>
   );
 }

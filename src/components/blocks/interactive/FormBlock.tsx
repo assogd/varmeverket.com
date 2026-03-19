@@ -295,26 +295,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({
     !hasFields &&
     (actualForm.slug || actualForm.id)
   ) {
-    const slug = actualForm.slug || actualForm.id;
-    return (
-      <div className="relative px-4 pt-8 pb-12">
-        <DevIndicator componentName="FormBlock" />
-        <div className="max-w-2xl mx-auto text-center font-mono text-sm text-neutral-600 dark:text-neutral-400">
-          <p className="mb-2">
-            Formet <strong>{actualForm.title || slug}</strong> (
-            <code className="rounded bg-black/5 dark:bg-white/10 px-1">
-              {slug}
-            </code>
-            ) är kopplat till artikeln men har{' '}
-            <strong>inga fält</strong> i CMS.
-          </p>
-          <p>
-            Lägg till fält under Content → Forms → öppna formuläret → fält i
-            Content-blocken.
-          </p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   if (!actualForm || (!hasContent && !hasSections && !hasFields)) {
@@ -390,8 +371,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({
       !isRedirectConfirmation && {
         successMessage: 'Tack! Ditt meddelande har skickats.',
         showSuccessMessage:
-          formDoc.confirmationType === 'message' ||
-          !formDoc.confirmationType,
+          formDoc.confirmationType === 'message' || !formDoc.confirmationType,
       }),
     // Redirect: avoid toast flash before navigation
     ...(isRedirectConfirmation && { showSuccessMessage: false }),
@@ -402,9 +382,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({
     const converted = convertBlocksToFormConfig(formDoc.content);
     formConfig = { ...formConfig, ...converted };
   } else if (hasSections && formDoc.sections) {
-    formConfig.sections = formDoc.sections.map(
-      convertCMSSectionToFormSection
-    );
+    formConfig.sections = formDoc.sections.map(convertCMSSectionToFormSection);
   } else if (hasFields && formDoc.fields) {
     formConfig.fields = formDoc.fields.map(convertCMSFieldToFormField);
   }

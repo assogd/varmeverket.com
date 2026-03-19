@@ -11,6 +11,7 @@ import { Heading } from '@/components/headings';
 import MediaAsset from '@/components/common/MediaAsset';
 import { defaultConverter } from '@/utils/richTextConverters';
 import { EventMeta } from './EventMeta';
+import { EventParentTitleLink } from './EventParentTitleLink';
 
 interface Asset {
   type: 'image' | 'mux' | 'video';
@@ -30,6 +31,8 @@ interface Asset {
 interface EventHeaderStandardProps {
   eventData: {
     title?: string;
+    parentTitle?: string;
+    parentSlug?: string;
     tags?: Array<{ id: string; name: string }>;
     startDateTime?: string;
     endDateTime?: string;
@@ -71,7 +74,14 @@ export default function EventHeaderStandard({
       <DevIndicator componentName="EventHeaderStandard" position="top-right" />
 
       <div className="grid gap-8 justify-center pt-32 text-center">
-        <TagList tags={eventData.tags} size="md" className="mb-4" />
+        {eventData.parentTitle && eventData.parentSlug ? (
+          <EventParentTitleLink
+            parentTitle={eventData.parentTitle}
+            parentSlug={eventData.parentSlug}
+          />
+        ) : (
+          <TagList tags={eventData.tags} size="md" className="mb-4" />
+        )}
 
         <motion.div className="flex items-center justify-center" style={{}}>
           <FadeIn
@@ -96,6 +106,7 @@ export default function EventHeaderStandard({
         </motion.div>
 
         <EventMeta
+          title={eventData.title}
           startDateTime={eventData.startDateTime}
           endDateTime={eventData.endDateTime}
           isAllDay={eventData.isAllDay}

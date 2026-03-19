@@ -41,10 +41,10 @@ function toCalendarEvent(child: EventChildItem): CalendarEvent {
 export function EventChildrenCalendar({
   children,
   parentSlug,
-  headline = 'Tillfällen',
+  headline = 'Kalender',
 }: EventChildrenCalendarProps) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const isInView = useInView(ref, { once: true, margin: '-50px' });
   const [windowWidth, setWindowWidth] = useState(0);
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export function EventChildrenCalendar({
   const emptyCardsNeeded = remainder > 0 ? currentColumns - remainder : 0;
 
   return (
-    <section className="relative px-2 mb-24" ref={ref}>
+    <section className="relative px-2" ref={ref}>
       <BlockHeader headline={headline} />
       <div className="max-w-8xl mx-auto">
         <div className="grid xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">

@@ -20,6 +20,8 @@ interface Asset {
 
 export interface EventHeaderEventData {
   title?: string;
+  parentTitle?: string;
+  parentSlug?: string;
   excerpt?: string;
   tags?: Array<{ id: string; name: string }>;
   startDateTime?: string;
@@ -45,7 +47,11 @@ interface EventHeaderProps {
   };
 }
 
-export function EventHeader({ eventData, header, featuredImage }: EventHeaderProps) {
+export function EventHeader({
+  eventData,
+  header,
+  featuredImage,
+}: EventHeaderProps) {
   const validAssets = (header?.assets || []).filter(asset => {
     if (asset.type === 'image') {
       return asset.image?.url && asset.image.url.trim() !== '';
@@ -83,9 +89,7 @@ export function EventHeader({ eventData, header, featuredImage }: EventHeaderPro
   const hasAssets = assets.length > 0;
 
   if (!hasAssets) {
-    return (
-      <EventHeaderTextOnly eventData={eventData} text={header?.text} />
-    );
+    return <EventHeaderTextOnly eventData={eventData} text={header?.text} />;
   }
 
   if (beforeAssets.length > 0) {
