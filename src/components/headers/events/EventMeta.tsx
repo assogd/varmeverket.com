@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { formatEventDate, formatEventTime } from '@/utils/dateFormatting';
 import { downloadICS } from '@/utils/icsUtils';
+import BackendAPI from '@/lib/backendApi';
 import { useSession } from '@/hooks/useSession';
 import { useNotification } from '@/hooks/useNotification';
 
@@ -50,29 +51,14 @@ export function EventMeta({
       setSavedState('unknown');
 
       try {
-        const res = await fetch(
-          `/api/backend/saved-events?article_id=${encodeURIComponent(
-            eventId as string
-          )}`,
-          { method: 'GET' }
+        const savedEvents = await BackendAPI.getSavedEvents(
+          user?.email as string
         );
-
-        if (!res.ok) {
-          return;
-        }
-
-        const data = (await res.json().catch(() => ({}))) as
-          | { savedEvents?: unknown[] }
-          | unknown;
-
-        const savedEventsValue = (data as { savedEvents?: unknown[] })
-          .savedEvents;
-        const savedEvents = Array.isArray(savedEventsValue)
-          ? savedEventsValue
-          : [];
-
+        const isSaved = savedEvents.some(
+          se => se.article_id === (eventId as string)
+        );
         if (cancelled) return;
-        setSavedState(savedEvents.length > 0 ? 'saved' : 'not_saved');
+        setSavedState(isSaved ? 'saved' : 'not_saved');
       } catch {
         if (!cancelled) setSavedState('not_saved');
       }
@@ -82,7 +68,7 @@ export function EventMeta({
     return () => {
       cancelled = true;
     };
-  }, [canShowSparaButton, eventId]);
+  }, [canShowSparaButton, eventId, user?.email]);
 
   const hasTime = Boolean(startDateTime);
   const dateLabel =
@@ -138,20 +124,7 @@ export function EventMeta({
           if (!eventId) return;
           setSaving(true);
           try {
-            const res = await fetch('/api/backend/saved-events', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ articleId: eventId }),
-            });
-
-            if (!res.ok) {
-              const data = (await res.json().catch(() => ({}))) as
-                | { message?: string }
-                | unknown;
-              throw new Error(
-                (data as { message?: string }).message || 'Failed to save event'
-              );
-            }
+            await BackendAPI.saveSavedEvent(user?.email as string, eventId);
 
             setSavedState('saved');
             showSuccess('Event sparad i din kalender.');

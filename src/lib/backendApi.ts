@@ -870,6 +870,58 @@ export class BackendAPI {
   }
 
   /**
+   * Get saved events for a user
+   * GET /v3/users/:email/saved-events
+   */
+  static async getSavedEvents(email: string): Promise<SavedEventRow[]> {
+    return this.fetch<SavedEventRow[]>(
+      `/v3/users/${encodeURIComponent(email)}/saved-events`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Save an event
+   * POST /v3/users/:email/saved-events
+   * Body: article_id=<id>
+   */
+  static async saveSavedEvent(
+    email: string,
+    articleId: string
+  ): Promise<unknown> {
+    const body = `article_id=${encodeURIComponent(articleId)}`;
+    return this.fetch<unknown>(
+      `/v3/users/${encodeURIComponent(email)}/saved-events`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
+        body,
+      }
+    );
+  }
+
+  /**
+   * Remove a saved event
+   * DELETE /v3/users/:email/saved-events/:article_id
+   */
+  static async removeSavedEvent(
+    email: string,
+    articleId: string
+  ): Promise<unknown> {
+    return this.fetch<unknown>(
+      `/v3/users/${encodeURIComponent(
+        email
+      )}/saved-events/${encodeURIComponent(articleId)}`,
+      { method: 'DELETE', suppressErrorLog404: true }
+    );
+  }
+
+  /**
    * Get a list of spaces
    * GET /v2/spaces
    * Public endpoint - credentials may be omitted
@@ -917,3 +969,11 @@ export class BackendAPI {
 // Export the API class and configuration
 export { BACKEND_API_URL };
 export default BackendAPI;
+
+// Saved events
+export type SavedEventRow = {
+  id?: number | string;
+  user_id?: number | string;
+  article_id: string;
+  created_at?: string;
+};
