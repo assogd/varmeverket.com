@@ -1,8 +1,10 @@
 import { cookies } from 'next/headers';
 import { BACKEND_API_URL } from '@/lib/backendApi';
 
-export const buildCombinedCookieHeader = (headerCookie?: string): string => {
-  const cookieStore = cookies();
+export const buildCombinedCookieHeader = async (
+  headerCookie?: string
+): Promise<string> => {
+  const cookieStore = await cookies();
   const localCookieHeader = cookieStore
     .getAll()
     .map(c => `${c.name}=${c.value}`)
@@ -14,7 +16,7 @@ export const buildCombinedCookieHeader = (headerCookie?: string): string => {
 export const fetchServerSession = async (
   headerCookie?: string
 ): Promise<Record<string, unknown> | null> => {
-  const combinedCookieHeader = buildCombinedCookieHeader(headerCookie);
+  const combinedCookieHeader = await buildCombinedCookieHeader(headerCookie);
   const response = await fetch(`${BACKEND_API_URL}/session`, {
     method: 'GET',
     headers: {

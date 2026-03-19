@@ -157,10 +157,8 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
     notFound();
   }
 
-  const hasReferencedForm = Boolean(child.form);
-  const childFormDoc = hasReferencedForm
-    ? await resolveFormDoc(child.form)
-    : null;
+  const childFormDoc = child.form ? await resolveFormDoc(child.form) : null;
+  const hasForm = Boolean(childFormDoc);
 
   return (
     <PageLayout contentType="article">
@@ -181,7 +179,7 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
         header={child.header}
         featuredImage={child.featuredImage}
         eventId={child.id}
-        hasForm={hasReferencedForm}
+        hasForm={hasForm}
       />
 
       {child.content && <EventContent content={child.content} />}

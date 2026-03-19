@@ -9,7 +9,9 @@ import { fetchServerSession, buildCombinedCookieHeader } from '@/lib/serverSessi
 export async function GET(request: NextRequest) {
   try {
     const cookieHeader = request.headers.get('cookie') || '';
-    const combinedCookieHeader = buildCombinedCookieHeader(cookieHeader);
+    const combinedCookieHeader = await buildCombinedCookieHeader(
+      cookieHeader
+    );
 
     console.log('🔵 Server proxy - cookies received:', {
       fromHeader: cookieHeader,

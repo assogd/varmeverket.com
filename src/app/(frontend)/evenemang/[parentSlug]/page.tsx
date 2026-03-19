@@ -104,10 +104,8 @@ export default async function ParentEventPage({
     );
   }
 
-  const hasReferencedForm = Boolean(event.form);
-  const eventFormDoc = hasReferencedForm
-    ? await resolveFormDoc(event.form)
-    : null;
+  const eventFormDoc = event.form ? await resolveFormDoc(event.form) : null;
+  const hasForm = Boolean(eventFormDoc);
 
   return (
     <PageLayout contentType="article">
@@ -126,7 +124,7 @@ export default async function ParentEventPage({
         header={event.header}
         featuredImage={event.featuredImage}
         eventId={event.id}
-        hasForm={hasReferencedForm}
+        hasForm={hasForm}
       />
 
       {event.content && <EventContent content={event.content} />}

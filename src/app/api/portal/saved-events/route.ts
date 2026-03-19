@@ -19,7 +19,7 @@ type HydratedEvent = {
 export async function GET(request: NextRequest) {
   try {
     const cookieHeader = request.headers.get('cookie') || '';
-    const combinedCookieHeader = buildCombinedCookieHeader(cookieHeader);
+    const combinedCookieHeader = await buildCombinedCookieHeader(cookieHeader);
 
     const session = await fetchServerSession(cookieHeader);
     if (!session) {
