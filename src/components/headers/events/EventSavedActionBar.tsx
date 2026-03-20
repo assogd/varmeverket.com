@@ -43,9 +43,7 @@ export function EventSavedActionBar({
         const savedEvents = await BackendAPI.getSavedEvents(
           user?.email as string
         );
-        const isSaved = savedEvents.some(
-          se => se.article_id === eventId
-        );
+        const isSaved = savedEvents.some(se => se.article_id === eventId);
         if (cancelled) return;
         setSavedState(isSaved ? 'saved' : 'not_saved');
       } catch {
@@ -67,12 +65,13 @@ export function EventSavedActionBar({
 
   if (!canShow) return null;
 
-  const mainLabel = savedState === 'saved' ? 'Sparad' : 'Spara';
+  const mainLabel =
+    savedState === 'saved' ? (confirmingRemove ? 'Avbryt' : 'Sparad') : 'Spara';
   const showConfirmRemove =
     savedState === 'saved' && confirmingRemove && !saving && !sessionLoading;
 
   return (
-    <div className="fixed left-0 right-0 bottom-36 z-40 px-2">
+    <div className="fixed left-0 right-0 bottom-2 z-40 px-2">
       <div className="max-w-xl mx-auto space-y-2">
         {showConfirmRemove && (
           <Button
@@ -103,12 +102,18 @@ export function EventSavedActionBar({
 
         <Button
           variant="primary"
-          disabled={sessionLoading || saving || (savedState === 'saved' && confirmingRemove)}
+          disabled={sessionLoading || saving}
           className="w-full"
           onClick={async () => {
             if (!user?.email) return;
 
             if (savedState === 'saved') {
+              if (confirmingRemove) {
+                // Two-step removal: cancel confirmation.
+                setConfirmingRemove(false);
+                return;
+              }
+
               // Two-step removal: reveal confirmation button above.
               setConfirmingRemove(true);
               return;
@@ -135,4 +140,3 @@ export function EventSavedActionBar({
     </div>
   );
 }
-
