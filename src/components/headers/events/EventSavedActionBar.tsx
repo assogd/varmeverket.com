@@ -26,6 +26,7 @@ export function EventSavedActionBar({
   const [savedState, setSavedState] = useState<SavedState>('unknown');
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [hoveringSaved, setHoveringSaved] = useState(false);
 
   const canShow = Boolean(user?.email && eventId && !hasForm);
 
@@ -90,7 +91,14 @@ export function EventSavedActionBar({
 
   if (!canShow) return null;
 
-  const mainLabel = savedState === 'saved' ? 'Sparad' : 'Spara';
+  const mainLabel =
+    savedState === 'saved'
+      ? confirmingRemove
+        ? 'Avbryt'
+        : hoveringSaved
+          ? 'Ta bort markering'
+          : 'Sparad'
+      : 'Spara';
   const showConfirmRemove =
     savedState === 'saved' && confirmingRemove && !saving && !sessionLoading;
 
@@ -131,48 +139,69 @@ export function EventSavedActionBar({
                   }
                 }}
               >
-                Ta bort markering
+                Klicka för att bekräfta
               </Button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <Button
-          variant="primary"
-          disabled={sessionLoading || saving}
+        <div
+          onMouseEnter={() => {
+            if (savedState === 'saved' && !confirmingRemove) {
+              setHoveringSaved(true);
+            }
+          }}
+          onMouseLeave={() => setHoveringSaved(false)}
           className="w-full"
-          onClick={async () => {
-            if (!user?.email) return;
+        >
+          <Button
+            variant="primary"
+            disabled={sessionLoading || saving}
+            className="w-full flex items-center justify-center"
+            onClick={async () => {
+              if (!user?.email) return;
 
-            if (savedState === 'saved') {
-              if (confirmingRemove) {
-                // Two-step removal: cancel confirmation.
-                setConfirmingRemove(false);
+              if (savedState === 'saved') {
+                if (confirmingRemove) {
+                  // Two-step removal: cancel confirmation.
+                  setConfirmingRemove(false);
+                  return;
+                }
+
+                // Two-step removal: reveal confirmation button above.
+                setConfirmingRemove(true);
                 return;
               }
 
-              // Two-step removal: reveal confirmation button above.
-              setConfirmingRemove(true);
-              return;
-            }
-
-            setSaving(true);
-            try {
-              await BackendAPI.saveSavedEvent(user.email, eventId);
-              setSavedState('saved');
-              showSuccess('Event sparad i din kalender.');
-            } catch (e) {
-              const message =
-                e instanceof Error ? e.message : 'Failed to save event';
-              setSavedState('not_saved');
-              showError(message);
-            } finally {
-              setSaving(false);
-            }
-          }}
-        >
-          {mainLabel}
-        </Button>
+              setSaving(true);
+              try {
+                await BackendAPI.saveSavedEvent(user.email, eventId);
+                setSavedState('saved');
+                showSuccess('Event sparad i din kalender.');
+              } catch (e) {
+                const message =
+                  e instanceof Error ? e.message : 'Failed to save event';
+                setSavedState('not_saved');
+                showError(message);
+              } finally {
+                setSaving(false);
+              }
+            }}
+          >
+            <AnimatePresence initial={false} mode="wait">
+              <motion.span
+                key={mainLabel}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                className="whitespace-nowrap"
+              >
+                {mainLabel}
+              </motion.span>
+            </AnimatePresence>
+          </Button>
+        </div>
       </div>
     </div>
   );
