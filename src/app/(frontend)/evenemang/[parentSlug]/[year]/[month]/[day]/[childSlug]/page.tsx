@@ -10,6 +10,7 @@ import {
   loadEventBySlugForPage,
   type EventForPage,
 } from '@/lib/events/loadEventBySlugForPage';
+import { EventSavedActionBar } from '@/components/headers/events/EventSavedActionBar';
 
 export const dynamic = 'force-dynamic';
 
@@ -184,6 +185,8 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
 
       {child.content && <EventContent content={child.content} />}
       {childFormDoc && <FormBlock form={childFormDoc} />}
+
+      <EventSavedActionBar eventId={child.id} hasForm={hasForm} />
     </PageLayout>
   );
 }

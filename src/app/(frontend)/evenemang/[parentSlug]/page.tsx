@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { EventHeader } from '@/components/headers/events/EventHeader';
 import { resolveFormDoc } from '@/utils/resolveFormDoc';
+import { EventSavedActionBar } from '@/components/headers/events/EventSavedActionBar';
 import {
   loadEventBySlugForPage,
   type EventForPage,
@@ -143,6 +144,8 @@ export default async function ParentEventPage({
       )}
 
       {eventFormDoc && <FormBlock form={eventFormDoc} />}
+
+      <EventSavedActionBar eventId={event.id} hasForm={hasForm} />
     </PageLayout>
   );
 }
