@@ -72,18 +72,17 @@ export function EventSavedActionBar({
     savedState === 'saved' && confirmingRemove && !saving && !sessionLoading;
 
   return (
-    <div className="sticky left-0 right-0 bottom-2 z-20 px-2">
-      <div className="max-w-xl mx-auto space-y-2">
+    <div className="sticky left-0 right-0 bottom-2 z-20 px-2 mix-blend-multiply">
+      <div className="relative max-w-xs mx-auto">
         <AnimatePresence initial={false}>
           {showConfirmRemove && (
             <motion.div
               key="confirm-remove"
-              layout
               initial={{ opacity: 0, y: 10, scale: 0.99 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 6, scale: 0.99 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="w-full"
+              className="absolute left-0 right-0 bottom-full mb-2 w-full"
             >
               <Button
                 variant="secondary"
