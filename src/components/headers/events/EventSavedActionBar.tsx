@@ -96,7 +96,7 @@ export function EventSavedActionBar({
       ? confirmingRemove
         ? 'Avbryt'
         : hoveringSaved
-          ? 'Ta bort markering'
+          ? 'Ta bort'
           : 'Sparad'
       : 'Spara';
   const showConfirmRemove =
@@ -109,10 +109,10 @@ export function EventSavedActionBar({
           {showConfirmRemove && (
             <motion.div
               key="confirm-remove"
-              initial={{ y: 100 }}
-              animate={{ y: 0 }}
-              exit={{ y: -100 }}
-              transition={{ duration: 0.5, ease: 'linear' }}
+              initial={{ opacity: 0, y: 10, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.99 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
               className="absolute inset-0 mb-2 w-full"
             >
               <Button
@@ -139,7 +139,7 @@ export function EventSavedActionBar({
                   }
                 }}
               >
-                Klicka för att bekräfta
+                Ta bort markering
               </Button>
             </motion.div>
           )}
