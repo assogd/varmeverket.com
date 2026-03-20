@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import BackendAPI from '@/lib/backendApi';
 import { useSession } from '@/hooks/useSession';
 import { useNotification } from '@/hooks/useNotification';
@@ -71,34 +72,46 @@ export function EventSavedActionBar({
     savedState === 'saved' && confirmingRemove && !saving && !sessionLoading;
 
   return (
-    <div className="fixed left-0 right-0 bottom-2 z-40 px-2">
+    <div className="sticky left-0 right-0 bottom-2 z-20 px-2">
       <div className="max-w-xl mx-auto space-y-2">
-        {showConfirmRemove && (
-          <Button
-            variant="outline"
-            disabled={saving || sessionLoading}
-            className="w-full !border-red-600 !text-red-600 hover:!bg-red-600/10"
-            onClick={async () => {
-              if (!user?.email) return;
-              setSaving(true);
-              try {
-                await BackendAPI.removeSavedEvent(user.email, eventId);
-                setSavedState('not_saved');
-                setConfirmingRemove(false);
-                showSuccess('Event borttaget ur din kalender.');
-              } catch (e) {
-                const message =
-                  e instanceof Error ? e.message : 'Failed to remove event';
-                showError(message);
-                setConfirmingRemove(true);
-              } finally {
-                setSaving(false);
-              }
-            }}
-          >
-            Ta bort markering
-          </Button>
-        )}
+        <AnimatePresence initial={false}>
+          {showConfirmRemove && (
+            <motion.div
+              key="confirm-remove"
+              layout
+              initial={{ opacity: 0, y: 10, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 6, scale: 0.99 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="w-full"
+            >
+              <Button
+                variant="secondary"
+                disabled={saving || sessionLoading}
+                className="w-full !bg-red-600 rounded-md"
+                onClick={async () => {
+                  if (!user?.email) return;
+                  setSaving(true);
+                  try {
+                    await BackendAPI.removeSavedEvent(user.email, eventId);
+                    setSavedState('not_saved');
+                    setConfirmingRemove(false);
+                    showSuccess('Event borttaget ur din kalender.');
+                  } catch (e) {
+                    const message =
+                      e instanceof Error ? e.message : 'Failed to remove event';
+                    showError(message);
+                    setConfirmingRemove(true);
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+              >
+                Ta bort markering
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <Button
           variant="primary"

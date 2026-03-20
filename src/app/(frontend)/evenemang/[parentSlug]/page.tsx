@@ -87,13 +87,12 @@ export default async function ParentEventPage({
   const { parentSlug } = await params;
 
   const cookieHeader = (await headers()).get('cookie') ?? undefined;
-  const { event, isPortalLoggedIn } = await loadEventBySlugForPage<EventDocument>(
-    {
+  const { event, isPortalLoggedIn } =
+    await loadEventBySlugForPage<EventDocument>({
       slug: parentSlug,
       cookieHeader,
       depth: 10,
-    }
-  );
+    });
 
   if (!event) notFound();
 
@@ -130,6 +129,8 @@ export default async function ParentEventPage({
 
       {event.content && <EventContent content={event.content} />}
 
+      <EventSavedActionBar eventId={event.id} hasForm={hasForm} />
+
       {children.length > 0 && (
         <EventChildrenCalendar
           children={children.map(c => ({
@@ -144,8 +145,6 @@ export default async function ParentEventPage({
       )}
 
       {eventFormDoc && <FormBlock form={eventFormDoc} />}
-
-      <EventSavedActionBar eventId={event.id} hasForm={hasForm} />
     </PageLayout>
   );
 }
