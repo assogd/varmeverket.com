@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import BackendAPI from '@/lib/backendApi';
 import { useSession } from '@/hooks/useSession';
@@ -20,6 +20,8 @@ export function EventSavedActionBar({
 }: EventSavedActionBarProps) {
   const { user, loading: sessionLoading } = useSession();
   const { showError, showSuccess } = useNotification();
+
+  const barRef = useRef<HTMLDivElement | null>(null);
 
   const [savedState, setSavedState] = useState<SavedState>('unknown');
   const [confirmingRemove, setConfirmingRemove] = useState(false);
@@ -64,25 +66,46 @@ export function EventSavedActionBar({
     }
   }, [savedState]);
 
+  // When the confirmation step is open, clicking outside the sticky bar
+  // should dismiss it.
+  useEffect(() => {
+    if (!confirmingRemove) return;
+    if (saving || sessionLoading) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const el = barRef.current;
+      const target = e.target as Node | null;
+      if (!el || !target) return;
+
+      if (!el.contains(target)) {
+        setConfirmingRemove(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [confirmingRemove, saving, sessionLoading]);
+
   if (!canShow) return null;
 
-  const mainLabel =
-    savedState === 'saved' ? (confirmingRemove ? 'Avbryt' : 'Sparad') : 'Spara';
+  const mainLabel = savedState === 'saved' ? 'Sparad' : 'Spara';
   const showConfirmRemove =
     savedState === 'saved' && confirmingRemove && !saving && !sessionLoading;
 
   return (
-    <div className="sticky left-0 right-0 bottom-2 z-20 px-2 mix-blend-multiply">
-      <div className="relative max-w-xs mx-auto">
+    <div className="sticky left-0 right-0 bottom-2 z-20 px-2">
+      <div ref={barRef} className="relative max-w-xs mx-auto overflow-hidden">
         <AnimatePresence initial={false}>
           {showConfirmRemove && (
             <motion.div
               key="confirm-remove"
-              initial={{ opacity: 0, y: 10, scale: 0.99 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 6, scale: 0.99 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="absolute left-0 right-0 bottom-full mb-2 w-full"
+              initial={{ y: 100 }}
+              animate={{ y: 0 }}
+              exit={{ y: -100 }}
+              transition={{ duration: 0.5, ease: 'linear' }}
+              className="absolute inset-0 mb-2 w-full"
             >
               <Button
                 variant="secondary"
@@ -92,15 +115,17 @@ export function EventSavedActionBar({
                   if (!user?.email) return;
                   setSaving(true);
                   try {
-                    await BackendAPI.removeSavedEvent(user.email, eventId);
-                    setSavedState('not_saved');
+                    // Optimistic UI: fade out confirmation immediately.
                     setConfirmingRemove(false);
+                    setSavedState('not_saved');
+                    await BackendAPI.removeSavedEvent(user.email, eventId);
                     showSuccess('Event borttaget ur din kalender.');
                   } catch (e) {
                     const message =
                       e instanceof Error ? e.message : 'Failed to remove event';
                     showError(message);
                     setConfirmingRemove(true);
+                    setSavedState('saved');
                   } finally {
                     setSaving(false);
                   }
