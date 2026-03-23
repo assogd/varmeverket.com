@@ -67,12 +67,14 @@ interface CalendarItemCardProps {
 const ICAL_LOCATION = 'Värmeverket, Bredängsvägen 203, 127 34 Skärholmen';
 
 function CalendarItemCard({ item }: CalendarItemCardProps) {
-  const time = formatSingleTime(item.startsAt.toISOString());
+  const time = item.isAllDay
+    ? 'all day'
+    : formatSingleTime(item.startsAt.toISOString());
   const statusLabel = item.status ? getStatusLabel(item.status) : '';
   const tags = (
     <>
-      {item.type && <Tag name={getTypeLabel(item.type)} size="md" />}
       {item.status === 'featured' && <Tag name="🌟" size="md" />}
+      {item.type && <Tag name={getTypeLabel(item.type)} size="md" />}
       {item.status && item.status !== 'featured' && statusLabel && (
         <Tag name={statusLabel} size="md" />
       )}
@@ -83,6 +85,7 @@ function CalendarItemCard({ item }: CalendarItemCardProps) {
     <EventCard
       time={time}
       title={item.title}
+      href={item.href}
       tags={tags}
       showIcalButton
       icalEvent={{
@@ -113,7 +116,7 @@ function getTypeLabel(type: CalendarItem['type']): string {
 function getStatusLabel(status: CalendarItem['status']): string {
   switch (status) {
     case 'booked':
-      return 'Bokad';
+      return '';
     case 'saved':
       return 'Sparad';
     case 'registered':
