@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
 import BackendAPI from '@/lib/backendApi';
 import { useSession } from '@/hooks/useSession';
 import { useNotification } from '@/hooks/useNotification';
-import { Button } from '@/components/ui/buttons/Button';
+import {
+  MultiStepConfirmButton,
+  type MultiStepConfirmStep,
+} from '@/components/ui/buttons/MultiStepConfirmButton';
 
 type SavedState = 'unknown' | 'saved' | 'not_saved';
 
@@ -21,10 +23,7 @@ export function EventSavedActionBar({
   const { user, loading: sessionLoading } = useSession();
   const { showError, showSuccess } = useNotification();
 
-  const barRef = useRef<HTMLDivElement | null>(null);
-
   const [savedState, setSavedState] = useState<SavedState>('unknown');
-  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [saving, setSaving] = useState(false);
   const [hoveringSaved, setHoveringSaved] = useState(false);
 
@@ -36,12 +35,12 @@ export function EventSavedActionBar({
     const run = async () => {
       if (!canShow) {
         setSavedState('unknown');
-        setConfirmingRemove(false);
+        setHoveringSaved(false);
         return;
       }
 
       setSavedState('unknown');
-      setConfirmingRemove(false);
+      setHoveringSaved(false);
 
       try {
         const savedEvents = await BackendAPI.getSavedEvents(
@@ -61,148 +60,93 @@ export function EventSavedActionBar({
     };
   }, [canShow, eventId, user?.email]);
 
-  useEffect(() => {
-    if (savedState !== 'saved') {
-      setConfirmingRemove(false);
-    }
-  }, [savedState]);
+  if (!canShow || savedState === 'unknown') return null;
 
-  // When the confirmation step is open, clicking outside the sticky bar
-  // should dismiss it.
-  useEffect(() => {
-    if (!confirmingRemove) return;
-    if (saving || sessionLoading) return;
+  const initialStepIndex = savedState === 'saved' ? 0 : 2;
 
-    const onPointerDown = (e: PointerEvent) => {
-      const el = barRef.current;
-      const target = e.target as Node | null;
-      if (!el || !target) return;
+  // Fixed stack to guarantee slide animations within a constant buttons-height viewport.
+  // Order is important:
+  // - Sparad (0) -> Ta bort markering (1) -> Spara (2)
+  // - Wrap-forward ensures Spara (2) -> Sparad (0) with upward linear motion.
+  const steps: MultiStepConfirmStep[] = [
+    {
+      id: 'saved',
+      primary: {
+        label: hoveringSaved ? 'Ta bort markering' : 'Sparad',
+        variant: 'primary',
+        className: 'flex items-center justify-center',
+        disabled: saving || sessionLoading,
+        onPrimary: () => {
+          return { action: 'next' };
+        },
+        onHoverChange: isHovering => setHoveringSaved(isHovering),
+      },
+    },
+    {
+      id: 'remove-confirm',
+      primary: {
+        label: 'Bekräfta',
+        variant: 'secondary',
+        className: '!bg-red-600 rounded-md flex items-center justify-center',
+        disabled: saving || sessionLoading,
+        onPrimary: async () => {
+          if (!user?.email) return { action: 'stay' };
 
-      if (!el.contains(target)) {
-        setConfirmingRemove(false);
-      }
-    };
+          setSaving(true);
+          try {
+            await BackendAPI.removeSavedEvent(user.email, eventId);
+            setSavedState('not_saved');
+            showSuccess('Event borttaget ur din kalender.');
+            return { action: 'next' };
+          } catch (e) {
+            const message =
+              e instanceof Error ? e.message : 'Failed to remove event';
+            showError(message);
+            return { action: 'stay' };
+          } finally {
+            setSaving(false);
+          }
+        },
+      },
+    },
+    {
+      id: 'unsaved',
+      primary: {
+        label: 'Spara',
+        variant: 'primary',
+        className: 'flex items-center justify-center',
+        disabled: saving || sessionLoading,
+        onPrimary: async () => {
+          if (!user?.email) return { action: 'stay' };
 
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-    };
-  }, [confirmingRemove, saving, sessionLoading]);
-
-  if (!canShow) return null;
-
-  const mainLabel =
-    savedState === 'saved'
-      ? confirmingRemove
-        ? 'Avbryt'
-        : hoveringSaved
-          ? 'Ta bort'
-          : 'Sparad'
-      : 'Spara';
-  const showConfirmRemove =
-    savedState === 'saved' && confirmingRemove && !saving && !sessionLoading;
+          setSaving(true);
+          try {
+            await BackendAPI.saveSavedEvent(user.email, eventId);
+            setSavedState('saved');
+            showSuccess('Event sparad i din kalender.');
+            return { action: 'next' };
+          } catch (e) {
+            const message =
+              e instanceof Error ? e.message : 'Failed to save event';
+            showError(message);
+            return { action: 'stay' };
+          } finally {
+            setSaving(false);
+          }
+        },
+      },
+    },
+  ];
 
   return (
-    <div className="sticky left-0 right-0 bottom-2 z-20 px-2">
-      <div ref={barRef} className="relative max-w-xs mx-auto overflow-hidden">
-        <AnimatePresence initial={false}>
-          {showConfirmRemove && (
-            <motion.div
-              key="confirm-remove"
-              initial={{ opacity: 0, y: 10, scale: 0.99 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.99 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="absolute inset-0 mb-2 w-full"
-            >
-              <Button
-                variant="secondary"
-                disabled={saving || sessionLoading}
-                className="w-full !bg-red-600 rounded-md"
-                onClick={async () => {
-                  if (!user?.email) return;
-                  setSaving(true);
-                  try {
-                    // Optimistic UI: fade out confirmation immediately.
-                    setConfirmingRemove(false);
-                    setSavedState('not_saved');
-                    await BackendAPI.removeSavedEvent(user.email, eventId);
-                    showSuccess('Event borttaget ur din kalender.');
-                  } catch (e) {
-                    const message =
-                      e instanceof Error ? e.message : 'Failed to remove event';
-                    showError(message);
-                    setConfirmingRemove(true);
-                    setSavedState('saved');
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-              >
-                Ta bort markering
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div
-          onMouseEnter={() => {
-            if (savedState === 'saved' && !confirmingRemove) {
-              setHoveringSaved(true);
-            }
-          }}
-          onMouseLeave={() => setHoveringSaved(false)}
-          className="w-full"
-        >
-          <Button
-            variant="primary"
-            disabled={sessionLoading || saving}
-            className="w-full flex items-center justify-center"
-            onClick={async () => {
-              if (!user?.email) return;
-
-              if (savedState === 'saved') {
-                if (confirmingRemove) {
-                  // Two-step removal: cancel confirmation.
-                  setConfirmingRemove(false);
-                  return;
-                }
-
-                // Two-step removal: reveal confirmation button above.
-                setConfirmingRemove(true);
-                return;
-              }
-
-              setSaving(true);
-              try {
-                await BackendAPI.saveSavedEvent(user.email, eventId);
-                setSavedState('saved');
-                showSuccess('Event sparad i din kalender.');
-              } catch (e) {
-                const message =
-                  e instanceof Error ? e.message : 'Failed to save event';
-                setSavedState('not_saved');
-                showError(message);
-              } finally {
-                setSaving(false);
-              }
-            }}
-          >
-            <AnimatePresence initial={false} mode="wait">
-              <motion.span
-                key={mainLabel}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="whitespace-nowrap"
-              >
-                {mainLabel}
-              </motion.span>
-            </AnimatePresence>
-          </Button>
-        </div>
-      </div>
+    <div className="sticky left-0 right-0 bottom-12 md:bottom-2 z-20 px-2">
+      <MultiStepConfirmButton
+        steps={steps}
+        containerClassName="relative md:max-w-xs mx-auto w-full"
+        initialStepIndex={initialStepIndex}
+        wrapForward
+        outsideClickToDismiss={!saving && !sessionLoading}
+      />
     </div>
   );
 }
