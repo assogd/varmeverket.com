@@ -73,11 +73,11 @@ function CalendarItemCard({ item }: CalendarItemCardProps) {
   const statusLabel = item.status ? getStatusLabel(item.status) : '';
   const tags = (
     <>
-      {item.status === 'featured' && <Tag name="🌟" size="md" />}
       {item.type && <Tag name={getTypeLabel(item.type)} size="md" />}
       {item.status && item.status !== 'featured' && statusLabel && (
         <Tag name={statusLabel} size="md" />
       )}
+      {item.status === 'featured' && <Tag name="🌟" size="md" />}
     </>
   );
 
