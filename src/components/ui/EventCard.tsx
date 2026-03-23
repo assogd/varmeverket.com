@@ -1,7 +1,8 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import clsx from 'clsx';
-import { downloadICS } from '@/utils/icsUtils';
+import { IcalDownloadButton } from '@/components/ui/IcalDownloadButton';
 
 export interface IcalEventData {
   id: string;
@@ -26,6 +27,8 @@ export interface EventCardProps {
   icalEvent?: IcalEventData;
   /** Optional image shown on the right */
   image?: { src: string; alt: string };
+  /** Optional page link. When set, title and image become links. */
+  href?: string;
   className?: string;
 }
 
@@ -37,17 +40,12 @@ export function EventCard({
   showIcalButton = false,
   icalEvent,
   image,
+  href,
   className,
 }: EventCardProps) {
   const icalButton =
     showIcalButton && icalEvent ? (
-      <button
-        type="button"
-        onClick={() => downloadICS(icalEvent)}
-        className="rounded-sm border border-current leading-4 text-sm px-1 pt-[.1em] pb-[.1em] font-sans uppercase"
-      >
-        ICAL
-      </button>
+      <IcalDownloadButton event={icalEvent} />
     ) : null;
   const hasTagsOrActions =
     tags != null || actions != null || icalButton != null;
@@ -63,7 +61,15 @@ export function EventCard({
         )}
       >
         <div className="flex-1 min-w-0">
-          <h4 className="mb-2 text-md">{title}</h4>
+          <h4 className="mb-2 text-md">
+            {href ? (
+              <Link href={href} className="underline-offset-2 hover:underline">
+                {title}
+              </Link>
+            ) : (
+              title
+            )}
+          </h4>
           {hasTagsOrActions && (
             <div className="flex flex-wrap items-center gap-1">
               {tags}
@@ -73,14 +79,26 @@ export function EventCard({
           )}
         </div>
         {image && (
-          <div className="relative flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border border-text">
-            <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              sizes="48px"
-              className="object-cover"
-            />
+          <div className="relative flex-shrink-0 w-16 h-16 -m-2 rounded-lg overflow-hidden">
+            {href ? (
+              <Link href={href} className="block w-full h-full">
+                <Image
+                  src={image.src}
+                  alt={image.alt}
+                  fill
+                  sizes="48px"
+                  className="object-cover"
+                />
+              </Link>
+            ) : (
+              <Image
+                src={image.src}
+                alt={image.alt}
+                fill
+                sizes="48px"
+                className="object-cover"
+              />
+            )}
           </div>
         )}
       </div>

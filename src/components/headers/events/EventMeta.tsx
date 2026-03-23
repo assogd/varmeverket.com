@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { formatEventDate, formatEventTime } from '@/utils/dateFormatting';
-import { downloadICS } from '@/utils/icsUtils';
+import { IcalDownloadButton } from '@/components/ui';
 
 interface EventMetaProps {
   startDateTime?: string;
@@ -62,13 +62,7 @@ export function EventMeta({
       : null;
 
   const icalButton = icalEvent ? (
-    <button
-      type="button"
-      onClick={() => downloadICS(icalEvent)}
-      className="rounded-sm border border-current leading-4 text-sm px-1 pt-[.1em] pb-[.1em] font-sans uppercase"
-    >
-      ICAL
-    </button>
+    <IcalDownloadButton event={icalEvent} />
   ) : null;
 
   return (
