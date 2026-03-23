@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 import type { CalendarDayGroup, CalendarItem } from '@/lib/calendar';
 import { formatSingleTime } from '@/utils/dateFormatting';
-import { EventCard, Tag } from '@/components/ui';
+import { EventCard, IcalDownloadButton, Tag } from '@/components/ui';
 
 interface CalendarListProps {
   dayGroups: CalendarDayGroup[];
@@ -71,12 +71,20 @@ function CalendarItemCard({ item }: CalendarItemCardProps) {
     ? 'all day'
     : formatSingleTime(item.startsAt.toISOString());
   const statusLabel = item.status ? getStatusLabel(item.status) : '';
+  const icalEvent = {
+    id: item.id,
+    title: item.title,
+    startDate: item.startsAt.toISOString(),
+    endDate: item.endsAt.toISOString(),
+    location: ICAL_LOCATION,
+  };
   const tags = (
     <>
       {item.type && <Tag name={getTypeLabel(item.type)} size="md" />}
       {item.status && item.status !== 'featured' && statusLabel && (
         <Tag name={statusLabel} size="md" />
       )}
+      <IcalDownloadButton event={icalEvent} />
       {item.status === 'featured' && <Tag name="🌟" size="md" />}
     </>
   );
@@ -87,14 +95,6 @@ function CalendarItemCard({ item }: CalendarItemCardProps) {
       title={item.title}
       href={item.href}
       tags={tags}
-      showIcalButton
-      icalEvent={{
-        id: item.id,
-        title: item.title,
-        startDate: item.startsAt.toISOString(),
-        endDate: item.endsAt.toISOString(),
-        location: ICAL_LOCATION,
-      }}
       image={item.image ? { src: item.image, alt: item.title } : undefined}
     />
   );
