@@ -147,6 +147,16 @@ export class BackendAPIError extends Error {
  * Backend API Client
  */
 export class BackendAPI {
+  private static normalizeUserResponse(payload: unknown): User {
+    if (Array.isArray(payload)) {
+      const first = payload[0];
+      if (first && typeof first === 'object') return first as User;
+      throw new BackendAPIError('User response array was empty', 500, payload);
+    }
+    if (payload && typeof payload === 'object') return payload as User;
+    throw new BackendAPIError('Invalid user response shape', 500, payload);
+  }
+
   /**
    * Get the base URL for the backend API
    */
@@ -512,7 +522,10 @@ export class BackendAPI {
    * GET /v3/users/:email
    */
   static async getUserByEmail(email: string): Promise<User> {
-    return this.fetch<User>(`/v3/users/${encodeURIComponent(email)}`);
+    const response = await this.fetch<unknown>(
+      `/v3/users/${encodeURIComponent(email)}`
+    );
+    return this.normalizeUserResponse(response);
   }
 
   /**
@@ -539,10 +552,14 @@ export class BackendAPI {
       profileImage?: string;
     }
   ): Promise<User> {
-    return this.fetch<User>(`/v2/users/${encodeURIComponent(email)}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
+    const response = await this.fetch<unknown>(
+      `/v2/users/${encodeURIComponent(email)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }
+    );
+    return this.normalizeUserResponse(response);
   }
 
   /**

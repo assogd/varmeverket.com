@@ -98,28 +98,6 @@ export function createBusinessFormConfig(
     if (v !== undefined && v !== null) defaults[name] = String(v);
   }
 
-  // #region agent log
-  if (typeof window !== 'undefined') {
-    fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '95ada4' },
-      body: JSON.stringify({
-        sessionId: '95ada4',
-        hypothesisId: 'H5',
-        location: 'formConfigs.ts:createBusinessFormConfig',
-        message: 'business form defaults',
-        data: {
-          hasUser: !!user,
-          hasProfile: !!user?.profile,
-          profileKeys: user?.profile && typeof user.profile === 'object' ? Object.keys(user.profile as object) : [],
-          defaultsKeys: Object.keys(defaults),
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }
-  // #endregion
-
   const content = applyDefaultsToContent(base.content ?? [], defaults);
   return {
     ...base,

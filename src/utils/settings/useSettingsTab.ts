@@ -36,37 +36,11 @@ export function useSettingsTab(
   const user = fullUser ?? sessionUser ?? null;
   const loading = sessionLoading || (!!sessionUser?.email && userLoading);
 
-  // #region agent log
-  if (typeof window !== 'undefined') {
-    fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Debug-Session-Id': '95ada4',
-      },
-      body: JSON.stringify({
-        sessionId: '95ada4',
-        hypothesisId: 'H4',
-        location: 'useSettingsTab.ts',
-        message: 'session vs full user and formConfigKey',
-        data: {
-          sessionEmail: sessionUser?.email ?? null,
-          hasSessionProfile: !!(sessionUser as { profile?: unknown })?.profile,
-          hasFullUser: !!fullUser,
-          hasFullProfile: !!(fullUser as { profile?: unknown })?.profile,
-          formConfigKey: fullUser ? `full-${sessionUser?.email ?? ''}` : `session-${sessionUser?.email ?? ''}`,
-          sessionLoading,
-          userLoading,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-  }
-  // #endregion
-
   const handleSubmit = useCallback(
     async (data: Record<string, unknown>) => {
-      if (!user?.email) return;
+      if (!user?.email) {
+        throw new Error('Saknar användaridentitet. Ladda om sidan och försök igen.');
+      }
       const TIMEOUT_MS = 15000;
       try {
         await new Promise<void>((resolve, reject) => {

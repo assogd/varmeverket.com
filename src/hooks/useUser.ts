@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getUserByEmail, updateUser, type UpdateUserData } from '@/services/userService';
 import type { User } from '@/lib/backendApi';
-import { handleAPIError, isAuthError } from '@/utils/apiErrorHandler';
+import { handleAPIError } from '@/utils/apiErrorHandler';
 
 interface UseUserOptions {
   email: string | null;
@@ -49,22 +49,6 @@ export function useUser(options: UseUserOptions): UseUserResult {
     // Check cache first
     const cached = userCache.get(email);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      // #region agent log
-      if (typeof window !== 'undefined') {
-        fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '95ada4' },
-          body: JSON.stringify({
-            sessionId: '95ada4',
-            hypothesisId: 'H3',
-            location: 'useUser.ts:cache hit',
-            message: 'user from cache',
-            data: { email, fromCache: true, hasProfile: !!(cached.user as { profile?: unknown })?.profile },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-      }
-      // #endregion
       setUser(cached.user);
       setError(null);
       return;
@@ -81,28 +65,6 @@ export function useUser(options: UseUserOptions): UseUserResult {
 
     try {
       const userData = await getUserByEmail(email);
-      // #region agent log
-      if (typeof window !== 'undefined') {
-        const u = userData as { profile?: unknown };
-        fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '95ada4' },
-          body: JSON.stringify({
-            sessionId: '95ada4',
-            hypothesisId: 'H1_H2',
-            location: 'useUser.ts:after getUserByEmail',
-            message: 'full user from API',
-            data: {
-              email,
-              fromCache: false,
-              hasProfile: !!u?.profile,
-              profileKeys: u?.profile && typeof u.profile === 'object' ? Object.keys(u.profile as object) : [],
-            },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-      }
-      // #endregion
       setUser(userData);
       setError(null);
 
@@ -120,23 +82,6 @@ export function useUser(options: UseUserOptions): UseUserResult {
           userCache.delete(email);
         },
       });
-
-      // #region agent log
-      if (typeof window !== 'undefined') {
-        fetch('http://127.0.0.1:7245/ingest/a564f963-db4d-48ea-9945-48b3920d8b64', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '95ada4' },
-          body: JSON.stringify({
-            sessionId: '95ada4',
-            hypothesisId: 'H1',
-            location: 'useUser.ts:fetch error',
-            message: 'getUserByEmail failed',
-            data: { email, errorMessage: String(errorMessage) },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-      }
-      // #endregion
 
       setError(errorMessage);
       setUser(null);
