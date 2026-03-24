@@ -121,7 +121,7 @@ export function DashboardClient({
       {announcements.length > 0 && (
         <section className="grid gap-8">
           <Heading variant="section" as="h2" center>
-            Meddelanden
+            {announcements.length === 1 ? 'Meddelande' : 'Meddelanden'}
           </Heading>
           <AnnouncementsList announcements={announcements} />
         </section>
