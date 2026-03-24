@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackendAPI, { type Subscription } from '@/lib/backendApi';
 import { FormRenderer } from '@/components/forms';
-import { AppLink, Button } from '@/components/ui';
+import { AppLink, Button, LoadingState } from '@/components/ui';
 import { SectionFrame } from '@/components/layout/SectionFrame';
 import { useNotification } from '@/hooks/useNotification';
 import { createAccountFormConfig } from '@/utils/settings/formConfigs';
@@ -22,7 +22,7 @@ function getProductNameFromSubscription(
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { showError } = useNotification();
-  const { formConfig: accountFormConfig, user } = useSettingsTab(
+  const { formConfig: accountFormConfig, user, loading: settingsLoading } = useSettingsTab(
     createAccountFormConfig,
     (user, data) => handleAccountFormSubmit(user!.email, data)
   );
@@ -110,9 +110,12 @@ export default function AccountSettingsPage() {
         </AppLink>
       </SectionFrame>
 
-      {(accountFormConfig?.content?.length ?? 0) > 0 && (
-        <FormRenderer config={accountFormConfig} />
-      )}
+      {(accountFormConfig?.content?.length ?? 0) > 0 &&
+        (settingsLoading ? (
+          <LoadingState message="Laddar dina uppgifter…" />
+        ) : (
+          <FormRenderer config={accountFormConfig} />
+        ))}
     </>
   );
 }

@@ -4,7 +4,7 @@
  * Hook for fetching and managing user data with caching and error handling
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useLayoutEffect, useCallback, useRef } from 'react';
 import { getUserByEmail, updateUser, type UpdateUserData } from '@/services/userService';
 import type { User } from '@/lib/backendApi';
 import { handleAPIError } from '@/utils/apiErrorHandler';
@@ -43,6 +43,7 @@ export function useUser(options: UseUserOptions): UseUserResult {
     if (!email || !enabled) {
       setUser(null);
       setError(null);
+      setLoading(false);
       return;
     }
 
@@ -51,6 +52,7 @@ export function useUser(options: UseUserOptions): UseUserResult {
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
       setUser(cached.user);
       setError(null);
+      setLoading(false);
       return;
     }
 
@@ -119,18 +121,25 @@ export function useUser(options: UseUserOptions): UseUserResult {
     [email]
   );
 
-  useEffect(() => {
-    if (refetchOnMount) {
-      fetchUser();
+  // Run before paint so settings forms don't flash empty before /v3/users resolves.
+  useLayoutEffect(() => {
+    if (!refetchOnMount) {
+      return;
+    }
+    if (!email || !enabled) {
+      setLoading(false);
+      return;
     }
 
+    setLoading(true);
+    fetchUser();
+
     return () => {
-      // Cleanup: abort pending requests
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
     };
-  }, [fetchUser, refetchOnMount]);
+  }, [email, enabled, fetchUser, refetchOnMount]);
 
   return {
     user,

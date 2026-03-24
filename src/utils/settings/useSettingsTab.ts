@@ -15,7 +15,7 @@ export type SettingsSubmitHandler = (
 /**
  * Shared hook for settings tab pages. Provides session, notifications,
  * a submit handler that shows toasts and rethrows, and a memoized form config.
- * Fetches full user (GET /v2/users/:email) so form configs get profile and other
+ * Fetches full user (GET /v3/users/:email) so form configs get profile and other
  * extended fields; session alone may not include them.
  */
 export function useSettingsTab(
@@ -74,8 +74,8 @@ export function useSettingsTab(
     [user, handleSubmit]
   );
 
-  /** Changes when full user loads so form remounts and applies profile/defaults */
-  const formConfigKey = fullUser ? `full-${sessionUser?.email ?? ''}` : `session-${sessionUser?.email ?? ''}`;
+  /** Stable once user is resolved; avoids remount flash when session vs full user swap */
+  const formConfigKey = `settings-${sessionUser?.email ?? 'anon'}`;
 
   return { formConfig, user, loading, formConfigKey };
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { FormRenderer } from '@/components/forms';
+import { LoadingState } from '@/components/ui';
 import { ProfilePictureUpload } from '@/components/portal/settings/components/ProfilePictureUpload';
 import { useSession } from '@/hooks/useSession';
 import { createPersonalFormConfig } from '@/utils/settings/formConfigs';
@@ -11,7 +12,7 @@ import { useSettingsTab } from '@/utils/settings/useSettingsTab';
 export default function PersonalSettingsPage() {
   const { refetch: refetchSession, profilePhotoUrl: sessionProfilePhotoUrl } =
     useSession();
-  const { formConfig: personalFormConfig, user, formConfigKey } = useSettingsTab(
+  const { formConfig: personalFormConfig, user, loading, formConfigKey } = useSettingsTab(
     createPersonalFormConfig,
     async (user, data) => {
       await handlePersonalFormSubmit(user!.email, data, user?.profile);
@@ -23,6 +24,10 @@ export default function PersonalSettingsPage() {
   >(undefined);
 
   const profileImage = profileImageOverride ?? sessionProfilePhotoUrl ?? undefined;
+
+  if (loading) {
+    return <LoadingState message="Laddar dina uppgifter…" />;
+  }
 
   return (
     <FormRenderer
