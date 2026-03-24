@@ -128,6 +128,47 @@ async function fetchFromExternalAPI<T>(
   }
 }
 
+/**
+ * Fetch data from external Payload API without cache (fresh).
+ */
+async function fetchFromExternalAPIFresh<T>(
+  options: FindOptions
+): Promise<ApiResponse<T>> {
+  const {
+    collection,
+    where,
+    depth = 2,
+    limit = 10,
+    page = 1,
+    sort,
+    draft = false,
+  } = options;
+
+  const params = new URLSearchParams();
+  if (where) params.append('where', JSON.stringify(where));
+  if (draft) params.append('draft', 'true');
+  params.append('depth', depth.toString());
+  params.append('limit', limit.toString());
+  params.append('page', page.toString());
+  if (sort) params.append('sort', sort);
+
+  const path = `/${collection}?${params.toString()}`;
+  try {
+    return await fetchPayloadPath<ApiResponse<T>>(path, {
+      next: { revalidate: 0 },
+      cache: 'no-store',
+    } as RequestInit);
+  } catch (error) {
+    if (SERVER_API_DEBUG) {
+      console.error(
+        `❌ Failed to fetch fresh from external API (${collection}):`,
+        error
+      );
+    }
+    throw error;
+  }
+}
+
 // Request deduplication cache
 const requestCache = new Map<string, Promise<unknown>>();
 
@@ -173,6 +214,16 @@ export class PayloadAPI {
         return fetchFromExternalAPI<T>(options);
       }
     });
+  }
+
+  /**
+   * Find documents in a collection without cross-request cache/dedupe.
+   */
+  static async findFresh<T>(options: FindOptions): Promise<ApiResponse<T>> {
+    if (USE_EXTERNAL_BACKEND) {
+      return fetchFromExternalAPIFresh<T>(options);
+    }
+    return fetchFromExternalAPIFresh<T>(options);
   }
 
   /**

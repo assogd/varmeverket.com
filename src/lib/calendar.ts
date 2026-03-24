@@ -1,13 +1,16 @@
 import type { Booking } from '@/components/ui/BookingsList';
 import { formatSingleTime } from '@/utils/dateFormatting';
+import { fixImageUrl } from '@/utils/imageUrl';
 
 export interface CalendarItem {
   id: string;
   startsAt: Date;
   endsAt: Date;
   title: string;
+  href?: string;
   type: 'booking' | 'event' | 'course';
   status?: 'booked' | 'saved' | 'registered' | 'featured';
+  isAllDay?: boolean;
   space?: string;
   image?: string;
 }
@@ -49,14 +52,18 @@ export function bookingsToCalendarItems(
 export interface CalendarEvent {
   id: string;
   title?: string | null;
+  slug?: string | null;
+  href?: string;
   startDateTime?: string | null;
   endDateTime?: string | null;
+  isAllDay?: boolean | null;
   featuredImage?: { url: string; alt?: string | null } | null;
 }
 
-function isUpcoming(startsAt: Date): boolean {
+function isUpcoming(startsAt: Date, endsAt: Date): boolean {
   const now = new Date();
-  return startsAt >= now;
+  // Include ongoing events (already started but not ended yet).
+  return endsAt >= now;
 }
 
 export function eventsToCalendarItems(
@@ -78,12 +85,14 @@ export function eventsToCalendarItems(
         startsAt,
         endsAt,
         title: e.title || e.id,
+        href: e.href ?? (e.slug ? `/evenemang/${e.slug}` : undefined),
         type: 'event' as const,
         status,
-        image: e.featuredImage?.url,
+        isAllDay: Boolean(e.isAllDay),
+        image: fixImageUrl(e.featuredImage?.url),
       };
     })
-    .filter(item => isUpcoming(item.startsAt));
+    .filter(item => isUpcoming(item.startsAt, item.endsAt));
 }
 
 function statusPriority(status: CalendarItem['status']): number {
@@ -114,7 +123,7 @@ export function mergeCalendarItems(
 
   const combined = [...bookings, ...featured, ...saved].filter(item => {
     // Always filter out past items.
-    return item.startsAt >= now;
+    return item.endsAt >= now;
   });
 
   const dedupedById = new Map<string, CalendarItem>();

@@ -34,7 +34,7 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
         const [bookingsData, featuredRes, savedRes] = await Promise.all([
           BackendAPI.getBookings(user.email),
           fetch('/api/portal/featured-events'),
-          fetch('/api/portal/saved-events'),
+          fetch(`/api/portal/saved-events?email=${encodeURIComponent(user.email)}`),
         ]);
 
         if (cancelled) return;

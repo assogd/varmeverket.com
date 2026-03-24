@@ -61,7 +61,7 @@ export function EventCard({
         )}
       >
         <div className="flex-1 min-w-0">
-          <h4 className="mb-2 text-md">
+          <h4 className="mb-3 text-md">
             {href ? (
               <Link href={href} className="underline-offset-2 hover:underline">
                 {title}
