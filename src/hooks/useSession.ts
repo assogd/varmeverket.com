@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import BackendAPI, { type SessionResponse } from '@/lib/backendApi';
 import {
   profilePhotoUrl,
@@ -27,6 +28,7 @@ interface UseSessionResult {
  * Hook to check if user is logged in and get session data
  */
 export function useSession(): UseSessionResult {
+  const pathname = usePathname();
   const [session, setSession] = useState<SessionResponse | null>(null);
   const [profilePhotoUrlState, setProfilePhotoUrlState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,14 +125,14 @@ export function useSession(): UseSessionResult {
   };
 
   useEffect(() => {
-    // Add a small delay after page load to ensure cookies are available
-    // This handles the case where we just landed from a redirect
+    // Re-check session whenever the route changes so header/avatar updates
+    // immediately after login redirects without requiring a manual refresh.
     const timer = setTimeout(() => {
       fetchSession();
     }, 100);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [pathname]);
 
   return {
     session,
