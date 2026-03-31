@@ -21,6 +21,7 @@ export interface EventForPage {
     startDateTime?: string;
     endDateTime?: string;
     eventAccess?: EventAccess | string | null;
+    form?: unknown;
   }>;
   // Allow other fields used by the page header/content.
   [key: string]: unknown;
