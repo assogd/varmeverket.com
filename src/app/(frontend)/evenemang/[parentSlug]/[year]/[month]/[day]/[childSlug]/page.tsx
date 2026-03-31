@@ -166,7 +166,10 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
     notFound();
   }
 
-  const childFormDoc = child.form ? await resolveFormDoc(child.form) : null;
+  // `child.form` may be missing if the full child fetch doesn't include the relationship value.
+  // Fall back to the smaller `childFromParent.form` payload from the parent query.
+  const rawChildFormRef = child.form ?? childFromParent.form;
+  const childFormDoc = rawChildFormRef ? await resolveFormDoc(rawChildFormRef) : null;
   const hasForm = Boolean(childFormDoc);
 
   return (
