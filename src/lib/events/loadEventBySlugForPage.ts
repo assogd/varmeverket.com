@@ -81,9 +81,15 @@ export async function loadEventBySlugForPage<T extends EventForPage>(params: {
     return { event: null, isPortalLoggedIn };
   }
 
-  // Enforce portal access for members-only events.
+  // Enforce portal access for members-only events in production.
+  // In local development, backend session cookies may not round-trip in SSR,
+  // so we avoid false 404s for logged-in users.
   const access = (event.eventAccess ?? 'public') as EventAccess;
-  if (access === 'members_only' && !isPortalLoggedIn) {
+  const shouldDenyMembersOnly =
+    access === 'members_only' &&
+    !isPortalLoggedIn &&
+    process.env.NODE_ENV === 'production';
+  if (shouldDenyMembersOnly) {
     return { event: null, isPortalLoggedIn };
   }
 
