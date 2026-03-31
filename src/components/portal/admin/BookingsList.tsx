@@ -14,29 +14,23 @@ interface Booking {
 
 export function BookingsList() {
   const [email, setEmail] = useState('');
-  const [space, setSpace] = useState('');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchType, setSearchType] = useState<'email' | 'space' | 'all'>(
-    'email'
-  );
 
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      let url = '/api/admin/bookings?';
-      if (searchType === 'email' && email.trim()) {
-        url += `email=${encodeURIComponent(email)}`;
-      } else if (searchType === 'space' && space.trim()) {
-        url += `space=${encodeURIComponent(space)}`;
-      } else if (searchType === 'all') {
-        url = '/api/admin/bookings';
-      } else {
-        throw new Error('Please enter an email or space name');
+      const trimmedEmail = email.trim();
+      if (!trimmedEmail) {
+        throw new Error('Please enter an email address to search for bookings');
       }
+
+      const url = `/api/admin/bookings?email=${encodeURIComponent(
+        trimmedEmail
+      )}`;
 
       const response = await fetch(url);
 
@@ -58,97 +52,29 @@ export function BookingsList() {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Search Type
-          </label>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="searchType"
-                value="email"
-                checked={searchType === 'email'}
-                onChange={() => setSearchType('email')}
-              />
-              By Email
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="searchType"
-                value="space"
-                checked={searchType === 'space'}
-                onChange={() => setSearchType('space')}
-              />
-              By Space
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="searchType"
-                value="all"
-                checked={searchType === 'all'}
-                onChange={() => setSearchType('all')}
-              />
-              All Bookings
-            </label>
-          </div>
-        </div>
-
         <div className="flex gap-4 items-end">
           <div className="flex-1">
-            {searchType === 'email' && (
-              <>
-                <label
-                  htmlFor="bookingEmail"
-                  className="block text-sm font-medium mb-2"
-                >
-                  User Email
-                </label>
-                <input
-                  id="bookingEmail"
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      handleSearch();
-                    }
-                  }}
-                  placeholder="user@example.com"
-                  className="w-full px-4 py-2 border border-text/20 dark:border-dark-text/20 rounded bg-bg dark:bg-dark-bg text-text dark:text-dark-text"
-                />
-              </>
-            )}
-            {searchType === 'space' && (
-              <>
-                <label
-                  htmlFor="bookingSpace"
-                  className="block text-sm font-medium mb-2"
-                >
-                  Space Name
-                </label>
-                <input
-                  id="bookingSpace"
-                  type="text"
-                  value={space}
-                  onChange={e => setSpace(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      handleSearch();
-                    }
-                  }}
-                  placeholder="studio-o"
-                  className="w-full px-4 py-2 border border-text/20 dark:border-dark-text/20 rounded bg-bg dark:bg-dark-bg text-text dark:text-dark-text"
-                />
-              </>
-            )}
-            {searchType === 'all' && (
-              <div className="text-sm text-text/70 dark:text-dark-text/70">
-                Will fetch all bookings from all spaces
-              </div>
-            )}
+            <>
+              <label
+                htmlFor="bookingEmail"
+                className="block text-sm font-medium mb-2"
+              >
+                User Email
+              </label>
+              <input
+                id="bookingEmail"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
+                placeholder="user@example.com"
+                className="w-full px-4 py-2 border border-text/20 dark:border-dark-text/20 rounded bg-bg dark:bg-dark-bg text-text dark:text-dark-text"
+              />
+            </>
           </div>
           <button
             onClick={handleSearch}
