@@ -54,6 +54,8 @@ export interface CalendarEventCardProps {
   isInView?: boolean;
   /** When set, the card renders as a link instead of opening the overlay. */
   href?: string;
+  /** When true, the card represents the current/active event and is visually disabled. */
+  isActive?: boolean;
 }
 
 export interface CalendarEventOverlayProps {

@@ -207,7 +207,7 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
             endDateTime: c.endDateTime,
           }))}
           parentSlug={parentSlug}
-          headline="Övriga datum"
+          activeChildSlug={childSlug}
         />
       )}
 

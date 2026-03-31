@@ -12,9 +12,12 @@ const CalendarEventCard: React.FC<CalendarEventCardProps> = ({
   onClick,
   isInView = false,
   href,
+  isActive = false,
 }) => {
   // Check if this is an empty placeholder event
   const isEmpty = event.id === 'empty' && !event.title && !event.startDate;
+
+  const isInteractive = !isEmpty && !isActive;
 
   const content = (
     <>
@@ -34,11 +37,16 @@ const CalendarEventCard: React.FC<CalendarEventCardProps> = ({
     </>
   );
 
-  const className = `bg-surface-dark rounded-md py-4 px-6 flex flex-col gap-2 text-center justify-between items-center w-full h-full ${
-    isEmpty ? 'cursor-default opacity-0' : 'cursor-pointer'
-  }`;
+  const baseClasses =
+    'bg-surface-dark rounded-md py-4 px-6 flex flex-col gap-2 text-center justify-between items-center w-full h-full';
+  const stateClasses = isEmpty
+    ? 'cursor-default opacity-0'
+    : isInteractive
+      ? 'cursor-pointer'
+      : 'cursor-default opacity-60';
+  const className = `${baseClasses} ${stateClasses}`;
 
-  if (href && !isEmpty) {
+  if (href && isInteractive) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}

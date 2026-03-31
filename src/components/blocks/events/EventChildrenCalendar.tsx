@@ -18,6 +18,8 @@ interface EventChildrenCalendarProps {
   children: EventChildItem[];
   parentSlug: string;
   headline?: string;
+   /** Optional slug of the currently active child event; disables its card. */
+  activeChildSlug?: string;
 }
 
 function buildHref(parentSlug: string, child: EventChildItem): string {
@@ -42,6 +44,7 @@ export function EventChildrenCalendar({
   children,
   parentSlug,
   headline = 'Kalender',
+  activeChildSlug,
 }: EventChildrenCalendarProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
@@ -79,7 +82,10 @@ export function EventChildrenCalendar({
         <div className="grid xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
           {events.map((event, index) => {
             const child = children[index];
-            const href = child ? buildHref(parentSlug, child) : undefined;
+            const isActive =
+              !!activeChildSlug && child && child.slug === activeChildSlug;
+            const href =
+              child && !isActive ? buildHref(parentSlug, child) : undefined;
             return (
               <div className="aspect-video w-full" key={event.id}>
                 <CalendarEventCard
@@ -88,6 +94,7 @@ export function EventChildrenCalendar({
                   onClick={() => {}}
                   isInView={isInView}
                   href={href}
+                  isActive={isActive}
                 />
               </div>
             );
