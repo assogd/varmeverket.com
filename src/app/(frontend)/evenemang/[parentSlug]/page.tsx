@@ -144,7 +144,9 @@ export default async function ParentEventPage({
         />
       )}
 
-      {eventFormDoc && <FormBlock form={eventFormDoc} />}
+      {eventFormDoc && (
+        <FormBlock form={eventFormDoc} headlineVariant="section" />
+      )}
     </PageLayout>
   );
 }

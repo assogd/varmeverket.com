@@ -196,7 +196,9 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
       />
 
       {child.content && <EventContent content={child.content} />}
-      {childFormDoc && <FormBlock form={childFormDoc} />}
+      {childFormDoc && (
+        <FormBlock form={childFormDoc} headlineVariant="section" />
+      )}
 
       {children.length > 0 && (
         <EventChildrenCalendar

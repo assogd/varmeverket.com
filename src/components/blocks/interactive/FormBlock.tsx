@@ -94,6 +94,8 @@ interface FormBlockProps {
   headline?: string;
   /** Optional block description rich text — rendered like FAQBlock */
   description?: BlockDescription;
+  /** Override BlockHeader variant; defaults to 'content-h2' (article-style). */
+  headlineVariant?: 'section' | 'content-h2';
   form:
     | CMSFormData
     | string
@@ -240,6 +242,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({
   form,
   headline,
   description,
+  headlineVariant = 'content-h2',
 }) => {
   // Handle different relationship formats from Payload
   let actualForm: CMSFormData | null = null;
@@ -393,6 +396,7 @@ export const FormBlock: React.FC<FormBlockProps> = ({
       formConfig={formConfig}
       headline={headline}
       description={description}
+      headlineVariant={headlineVariant}
     />
   );
 };
@@ -402,11 +406,13 @@ function FormBlockInner({
   formConfig,
   headline,
   description,
+  headlineVariant,
 }: {
   actualForm: CMSFormData;
   formConfig: FormConfig;
   headline?: string;
   description?: BlockDescription;
+  headlineVariant?: 'section' | 'content-h2';
 }) {
   // Header stays visible after submit success (confirmation overlays form only)
   return (
@@ -417,7 +423,7 @@ function FormBlockInner({
         headline={headline || actualForm.title}
         description={description}
         className="mb-12"
-        headlineVariant="content-h2"
+        headlineVariant={headlineVariant}
       />
 
       <div className="border-t border-b border-text py-2">
