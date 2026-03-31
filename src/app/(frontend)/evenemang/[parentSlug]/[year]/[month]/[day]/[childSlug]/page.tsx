@@ -102,14 +102,12 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
   const { parentSlug, year, month, day, childSlug } = await params;
 
   const cookieHeader = (await headers()).get('cookie') ?? undefined;
-  const {
-    event: parent,
-    isPortalLoggedIn,
-  } = await loadEventBySlugForPage<EventDocument>({
-    slug: parentSlug,
-    cookieHeader,
-    depth: 10,
-  });
+  const { event: parent, isPortalLoggedIn } =
+    await loadEventBySlugForPage<EventDocument>({
+      slug: parentSlug,
+      cookieHeader,
+      depth: 10,
+    });
 
   if (!parent) notFound();
 
@@ -168,8 +166,11 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
 
   // `child.form` may be missing if the full child fetch doesn't include the relationship value.
   // Fall back to the smaller `childFromParent.form` payload from the parent query.
-  const rawChildFormRef = child.form ?? childFromParent.form;
-  const childFormDoc = rawChildFormRef ? await resolveFormDoc(rawChildFormRef) : null;
+  const rawChildFormRef =
+    child.form ?? (childFromParent as { form?: unknown }).form;
+  const childFormDoc = rawChildFormRef
+    ? await resolveFormDoc(rawChildFormRef)
+    : null;
   const hasForm = Boolean(childFormDoc);
 
   return (
