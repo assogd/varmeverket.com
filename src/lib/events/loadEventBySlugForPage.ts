@@ -39,17 +39,39 @@ export async function loadEventBySlugForPage<T extends EventForPage>(params: {
   const session = await fetchServerSession(cookieHeader);
   const isPortalLoggedIn = Boolean(session);
 
-  let event = (await PayloadAPI.findBySlugFresh<T>(
-    'events',
-    slug,
-    depth,
-    false
-  )) as T | null;
+  let event: T | null = null;
+  try {
+    event = (await PayloadAPI.findBySlugFresh<T>(
+      'events',
+      slug,
+      depth,
+      false
+    )) as T | null;
+  } catch (error) {
+    // Avoid crashing route rendering for access/look-up failures.
+    // The page callers already translate `null` into `notFound()`.
+    console.warn('loadEventBySlugForPage: public lookup failed', {
+      slug,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { event: null, isPortalLoggedIn };
+  }
 
   if (!event && process.env.NODE_ENV === 'development') {
-    event = (await PayloadAPI.findBySlugFresh<T>('events', slug, depth, true)) as
-      | T
-      | null;
+    try {
+      event = (await PayloadAPI.findBySlugFresh<T>(
+        'events',
+        slug,
+        depth,
+        true
+      )) as T | null;
+    } catch (error) {
+      console.warn('loadEventBySlugForPage: draft lookup failed', {
+        slug,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { event: null, isPortalLoggedIn };
+    }
   }
 
   if (!event) return { event: null, isPortalLoggedIn };
