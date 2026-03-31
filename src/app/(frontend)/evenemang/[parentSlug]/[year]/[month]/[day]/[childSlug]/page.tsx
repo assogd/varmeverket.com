@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { PayloadAPI } from '@/lib/api';
 import PageLayout from '@/components/layout/PageLayout';
 import EventContent from '@/components/blocks/events/EventContent';
+import { EventChildrenCalendar } from '@/components/blocks/events/EventChildrenCalendar';
 import FormBlock from '@/components/blocks/interactive/FormBlock';
 import { EventHeader } from '@/components/headers/events/EventHeader';
 import { resolveFormDoc } from '@/utils/resolveFormDoc';
@@ -112,7 +113,14 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
 
   if (!parent) notFound();
 
-  const children = Array.isArray(parent.children) ? parent.children : [];
+  let children = Array.isArray(parent.children) ? parent.children : [];
+  if (!isPortalLoggedIn) {
+    // Prevent anonymous users from seeing members-only children in the calendar/list.
+    children = children.filter(
+      c => (c.eventAccess ?? 'public') !== 'members_only'
+    );
+  }
+
   const childFromParent = children.find(e => e.slug === childSlug);
 
   if (!childFromParent || !childFromParent.startDateTime) {
@@ -185,6 +193,20 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
 
       {child.content && <EventContent content={child.content} />}
       {childFormDoc && <FormBlock form={childFormDoc} />}
+
+      {children.length > 0 && (
+        <EventChildrenCalendar
+          children={children.map(c => ({
+            id: c.id,
+            title: c.title ?? '',
+            slug: c.slug,
+            startDateTime: c.startDateTime,
+            endDateTime: c.endDateTime,
+          }))}
+          parentSlug={parentSlug}
+          headline="Övriga datum"
+        />
+      )}
 
       <EventSavedActionBar eventId={child.id} hasForm={hasForm} />
     </PageLayout>
