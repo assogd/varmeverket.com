@@ -43,14 +43,18 @@ const CalendarEventCard: React.FC<CalendarEventCardProps> = ({
     ? 'cursor-default opacity-0'
     : isInteractive
       ? 'cursor-pointer'
-      : 'cursor-default opacity-60';
+      : 'cursor-default';
   const className = `${baseClasses} ${stateClasses}`;
 
   if (href && isInteractive) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
-        animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+        animate={
+          isInView
+            ? { opacity: isInteractive ? 1 : 0.6, y: 0 }
+            : { opacity: 0, y: 20 }
+        }
         transition={{ delay: index * 0.1, duration: 0.5 }}
         className="w-full h-full"
       >
@@ -64,7 +68,11 @@ const CalendarEventCard: React.FC<CalendarEventCardProps> = ({
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+      animate={
+        isInView
+          ? { opacity: isInteractive ? 1 : 0.6, y: 0 }
+          : { opacity: 0, y: 20 }
+      }
       transition={{ delay: index * 0.1, duration: 0.5 }}
       className={className}
       onClick={() => !isEmpty && onClick(event)}
