@@ -7,6 +7,7 @@ import { headers } from 'next/headers';
 import { EventHeader } from '@/components/headers/events/EventHeader';
 import { resolveFormDoc } from '@/utils/resolveFormDoc';
 import { EventSavedActionBar } from '@/components/headers/events/EventSavedActionBar';
+import { MembersOnlyEventGate } from '@/components/auth/MembersOnlyEventGate';
 import {
   loadEventBySlugForPage,
   type EventForPage,
@@ -106,47 +107,50 @@ export default async function ParentEventPage({
 
   const eventFormDoc = event.form ? await resolveFormDoc(event.form) : null;
   const hasForm = Boolean(eventFormDoc);
+  const isMembersOnlyEvent = (event.eventAccess ?? 'public') === 'members_only';
 
   return (
-    <PageLayout contentType="article">
-      <EventHeader
-        eventData={{
-          title: event.title,
-          excerpt: event.excerpt,
-          tags: event.tags,
-          startDateTime: event.startDateTime,
-          endDateTime: event.endDateTime,
-          isAllDay: event.isAllDay,
-          format: event.format,
-          locationName: event.locationName,
-          space: event.space,
-        }}
-        header={event.header}
-        featuredImage={event.featuredImage}
-        eventId={event.id}
-        hasForm={hasForm}
-      />
-
-      {event.content && <EventContent content={event.content} />}
-
-      <EventSavedActionBar eventId={event.id} hasForm={hasForm} />
-
-      {children.length > 0 && (
-        <EventChildrenCalendar
-          children={children.map(c => ({
-            id: c.id,
-            title: c.title ?? '',
-            slug: c.slug,
-            startDateTime: c.startDateTime,
-            endDateTime: c.endDateTime,
-          }))}
-          parentSlug={parentSlug}
+    <MembersOnlyEventGate enabled={isMembersOnlyEvent}>
+      <PageLayout contentType="article">
+        <EventHeader
+          eventData={{
+            title: event.title,
+            excerpt: event.excerpt,
+            tags: event.tags,
+            startDateTime: event.startDateTime,
+            endDateTime: event.endDateTime,
+            isAllDay: event.isAllDay,
+            format: event.format,
+            locationName: event.locationName,
+            space: event.space,
+          }}
+          header={event.header}
+          featuredImage={event.featuredImage}
+          eventId={event.id}
+          hasForm={hasForm}
         />
-      )}
 
-      {eventFormDoc && (
-        <FormBlock form={eventFormDoc} headlineVariant="section" />
-      )}
-    </PageLayout>
+        {event.content && <EventContent content={event.content} />}
+
+        <EventSavedActionBar eventId={event.id} hasForm={hasForm} />
+
+        {children.length > 0 && (
+          <EventChildrenCalendar
+            children={children.map(c => ({
+              id: c.id,
+              title: c.title ?? '',
+              slug: c.slug,
+              startDateTime: c.startDateTime,
+              endDateTime: c.endDateTime,
+            }))}
+            parentSlug={parentSlug}
+          />
+        )}
+
+        {eventFormDoc && (
+          <FormBlock form={eventFormDoc} headlineVariant="section" />
+        )}
+      </PageLayout>
+    </MembersOnlyEventGate>
   );
 }

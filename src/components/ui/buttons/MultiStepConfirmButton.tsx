@@ -35,6 +35,7 @@ interface MultiStepConfirmButtonProps {
   containerClassName?: string;
   innerClassName?: string;
   outsideClickToDismiss?: boolean;
+  outsideClickDismissToStepIndex?: number;
   initialStepIndex?: number;
   wrapForward?: boolean;
   slideDurationMs?: number;
@@ -45,6 +46,7 @@ export function MultiStepConfirmButton({
   containerClassName,
   innerClassName,
   outsideClickToDismiss = true,
+  outsideClickDismissToStepIndex = 0,
   initialStepIndex = 0,
   wrapForward = false,
   slideDurationMs = 250,
@@ -57,10 +59,15 @@ export function MultiStepConfirmButton({
     0,
     Math.min(initialStepIndex, stepsLen - 1)
   );
+  const safeOutsideDismissIndex = Math.max(
+    0,
+    Math.min(outsideClickDismissToStepIndex, stepsLen - 1)
+  );
 
   const [buttonHeight, setButtonHeight] = useState<number>(0);
   const [isSliding, setIsSliding] = useState(false);
   const [disableTransition, setDisableTransition] = useState(false);
+  const [isPositionInitialized, setIsPositionInitialized] = useState(false);
 
   // Logical active step index.
   const [stepIndex, setStepIndex] = useState(safeInitialIndex);
@@ -82,12 +89,18 @@ export function MultiStepConfirmButton({
     measure();
   }, [measure]);
 
-  // Outside-click dismissal: always go back to step 0.
+  useEffect(() => {
+    if (isPositionInitialized) return;
+    if (buttonHeight <= 0) return;
+    setIsPositionInitialized(true);
+  }, [buttonHeight, isPositionInitialized]);
+
+  // Outside-click dismissal: return to configured baseline step.
   useEffect(() => {
     if (!outsideClickToDismiss) return;
 
     const onPointerDown = (e: PointerEvent) => {
-      if (stepIndex === 0) return;
+      if (stepIndex === safeOutsideDismissIndex) return;
       if (isSliding) return;
 
       const el = viewportRef.current;
@@ -97,8 +110,8 @@ export function MultiStepConfirmButton({
       if (!el.contains(target)) {
         setDisableTransition(false);
         setIsSliding(true);
-        setStepIndex(0);
-        setRenderIndex(0);
+        setStepIndex(safeOutsideDismissIndex);
+        setRenderIndex(safeOutsideDismissIndex);
         window.setTimeout(() => setIsSliding(false), slideDurationMs);
       }
     };
@@ -107,12 +120,20 @@ export function MultiStepConfirmButton({
     return () => {
       document.removeEventListener('pointerdown', onPointerDown);
     };
-  }, [outsideClickToDismiss, stepIndex, isSliding, slideDurationMs]);
+  }, [
+    outsideClickToDismiss,
+    safeOutsideDismissIndex,
+    stepIndex,
+    isSliding,
+    slideDurationMs,
+  ]);
 
   const currentStep = steps[stepIndex];
   if (!currentStep) return null;
 
   const translateY = buttonHeight ? -renderIndex * buttonHeight : 0;
+  const shouldAnimateTransform =
+    !disableTransition && isPositionInitialized && buttonHeight > 0;
 
   const onPrimaryClick = async () => {
     if (isSliding) return;
@@ -166,9 +187,9 @@ export function MultiStepConfirmButton({
           className={clsx('flex flex-col', isSliding && 'pointer-events-none')}
           style={{
             transform: `translate3d(0, ${translateY}px, 0)`,
-            transition: disableTransition
-              ? 'none'
-              : `transform ${slideDurationMs}ms linear`,
+            transition: shouldAnimateTransform
+              ? `transform ${slideDurationMs}ms linear`
+              : 'none',
           }}
         >
           {effectiveSteps.map((step, idx) => (

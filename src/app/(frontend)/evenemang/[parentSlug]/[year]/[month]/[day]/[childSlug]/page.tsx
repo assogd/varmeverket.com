@@ -12,6 +12,7 @@ import {
   type EventForPage,
 } from '@/lib/events/loadEventBySlugForPage';
 import { EventSavedActionBar } from '@/components/headers/events/EventSavedActionBar';
+import { MembersOnlyEventGate } from '@/components/auth/MembersOnlyEventGate';
 
 export const dynamic = 'force-dynamic';
 
@@ -129,7 +130,11 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
   const childAccess = (childFromParent.eventAccess ?? 'public') as
     | 'public'
     | 'members_only';
-  if (childAccess === 'members_only' && !isPortalLoggedIn) {
+  if (
+    childAccess === 'members_only' &&
+    !isPortalLoggedIn &&
+    process.env.NODE_ENV === 'production'
+  ) {
     notFound();
   }
 
@@ -160,7 +165,11 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
   const fullChildAccess = (child.eventAccess ?? 'public') as
     | 'public'
     | 'members_only';
-  if (fullChildAccess === 'members_only' && !isPortalLoggedIn) {
+  if (
+    fullChildAccess === 'members_only' &&
+    !isPortalLoggedIn &&
+    process.env.NODE_ENV === 'production'
+  ) {
     notFound();
   }
 
@@ -172,49 +181,52 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
     ? await resolveFormDoc(rawChildFormRef)
     : null;
   const hasForm = Boolean(childFormDoc);
+  const isMembersOnlyEvent = fullChildAccess === 'members_only';
 
   return (
-    <PageLayout contentType="article">
-      <EventHeader
-        eventData={{
-          parentTitle: parent.title,
-          parentSlug,
-          title: child.title,
-          excerpt: child.excerpt,
-          tags: child.tags,
-          startDateTime: child.startDateTime,
-          endDateTime: child.endDateTime,
-          isAllDay: child.isAllDay,
-          format: child.format,
-          locationName: child.locationName,
-          space: child.space,
-        }}
-        header={child.header}
-        featuredImage={child.featuredImage}
-        eventId={child.id}
-        hasForm={hasForm}
-      />
-
-      {child.content && <EventContent content={child.content} />}
-      {childFormDoc && (
-        <FormBlock form={childFormDoc} headlineVariant="section" />
-      )}
-
-      {children.length > 0 && (
-        <EventChildrenCalendar
-          children={children.map(c => ({
-            id: c.id,
-            title: c.title ?? '',
-            slug: c.slug,
-            startDateTime: c.startDateTime,
-            endDateTime: c.endDateTime,
-          }))}
-          parentSlug={parentSlug}
-          activeChildSlug={childSlug}
+    <MembersOnlyEventGate enabled={isMembersOnlyEvent}>
+      <PageLayout contentType="article">
+        <EventHeader
+          eventData={{
+            parentTitle: parent.title,
+            parentSlug,
+            title: child.title,
+            excerpt: child.excerpt,
+            tags: child.tags,
+            startDateTime: child.startDateTime,
+            endDateTime: child.endDateTime,
+            isAllDay: child.isAllDay,
+            format: child.format,
+            locationName: child.locationName,
+            space: child.space,
+          }}
+          header={child.header}
+          featuredImage={child.featuredImage}
+          eventId={child.id}
+          hasForm={hasForm}
         />
-      )}
 
-      <EventSavedActionBar eventId={child.id} hasForm={hasForm} />
-    </PageLayout>
+        {child.content && <EventContent content={child.content} />}
+        {childFormDoc && (
+          <FormBlock form={childFormDoc} headlineVariant="section" />
+        )}
+
+        {children.length > 0 && (
+          <EventChildrenCalendar
+            children={children.map(c => ({
+              id: c.id,
+              title: c.title ?? '',
+              slug: c.slug,
+              startDateTime: c.startDateTime,
+              endDateTime: c.endDateTime,
+            }))}
+            parentSlug={parentSlug}
+            activeChildSlug={childSlug}
+          />
+        )}
+
+        <EventSavedActionBar eventId={child.id} hasForm={hasForm} />
+      </PageLayout>
+    </MembersOnlyEventGate>
   );
 }

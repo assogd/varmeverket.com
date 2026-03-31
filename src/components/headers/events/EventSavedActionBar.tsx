@@ -144,6 +144,7 @@ export function EventSavedActionBar({
         steps={steps}
         containerClassName="relative md:max-w-xs mx-auto w-full"
         initialStepIndex={initialStepIndex}
+        outsideClickDismissToStepIndex={initialStepIndex}
         wrapForward
         outsideClickToDismiss={!saving && !sessionLoading}
       />
