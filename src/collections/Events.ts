@@ -109,6 +109,114 @@ const Events: CollectionConfig = {
       type: 'tabs',
       tabs: [
         {
+          label: 'Time & Location',
+          fields: [
+            {
+              name: 'startDateTime',
+              type: 'date',
+              required: true,
+              admin: {
+                description: 'When the event starts',
+                date: {
+                  pickerAppearance: 'dayAndTime',
+                  timeFormat: 'HH:mm',
+                  displayFormat: 'MMM dd, yyyy HH:mm',
+                },
+              },
+            },
+            {
+              name: 'endDateTime',
+              type: 'date',
+              required: false,
+              admin: {
+                description: 'When the event ends (optional)',
+                date: {
+                  pickerAppearance: 'dayAndTime',
+                  timeFormat: 'HH:mm',
+                  displayFormat: 'MMM dd, yyyy HH:mm',
+                },
+              },
+            },
+            {
+              name: 'isAllDay',
+              type: 'checkbox',
+              required: false,
+              admin: {
+                description: 'Mark as an all-day event',
+              },
+            },
+            {
+              name: 'format',
+              type: 'select',
+              required: false,
+              defaultValue: 'in_person',
+              options: [
+                { label: 'In person', value: 'in_person' },
+                { label: 'Online', value: 'online' },
+                { label: 'Hybrid', value: 'hybrid' },
+              ],
+              admin: {
+                description: 'How the event is delivered',
+              },
+            },
+            {
+              name: 'locationSource',
+              type: 'select',
+              required: false,
+              defaultValue: 'space',
+              options: [
+                { label: 'Choose a space', value: 'space' },
+                { label: 'Custom field', value: 'custom' },
+              ],
+              admin: {
+                description:
+                  'Choose whether to link to a space or write a custom location',
+              },
+            },
+            {
+              name: 'space',
+              type: 'relationship',
+              relationTo: 'spaces',
+              required: false,
+              admin: {
+                description: 'Choose a space for this event',
+                condition: (
+                  data: unknown,
+                  siblingData: { locationSource?: 'space' | 'custom' } = {}
+                ) => siblingData?.locationSource !== 'custom',
+              },
+            },
+            {
+              name: 'locationName',
+              type: 'text',
+              required: false,
+              admin: {
+                description:
+                  'Location name or venue (shown when using custom field)',
+                condition: (
+                  data: unknown,
+                  siblingData: { locationSource?: 'space' | 'custom' } = {}
+                ) => siblingData?.locationSource === 'custom',
+              },
+            },
+            {
+              name: 'onlineUrl',
+              type: 'text',
+              required: false,
+              admin: {
+                description:
+                  'Link to online meeting / stream (shown for online or hybrid events)',
+                condition: (
+                  data: unknown,
+                  siblingData: { format?: string } = {}
+                ) =>
+                  siblingData?.format === 'online' ||
+                  siblingData?.format === 'hybrid',
+              },
+            },
+          ],
+        },
+        {
           label: 'Content',
           fields: [
             {
@@ -186,8 +294,7 @@ const Events: CollectionConfig = {
               },
               maxDepth: 0,
               admin: {
-                description:
-                  'Optional form to display on this event.',
+                description: 'Optional form to display on this event.',
               },
             },
           ],
@@ -277,114 +384,6 @@ const Events: CollectionConfig = {
                   ],
                 },
               ],
-            },
-          ],
-        },
-        {
-          label: 'Time & Location',
-          fields: [
-            {
-              name: 'startDateTime',
-              type: 'date',
-              required: true,
-              admin: {
-                description: 'When the event starts',
-                date: {
-                  pickerAppearance: 'dayAndTime',
-                  timeFormat: 'HH:mm',
-                  displayFormat: 'MMM dd, yyyy HH:mm',
-                },
-              },
-            },
-            {
-              name: 'endDateTime',
-              type: 'date',
-              required: false,
-              admin: {
-                description: 'When the event ends (optional)',
-                date: {
-                  pickerAppearance: 'dayAndTime',
-                  timeFormat: 'HH:mm',
-                  displayFormat: 'MMM dd, yyyy HH:mm',
-                },
-              },
-            },
-            {
-              name: 'isAllDay',
-              type: 'checkbox',
-              required: false,
-              admin: {
-                description: 'Mark as an all-day event',
-              },
-            },
-            {
-              name: 'format',
-              type: 'select',
-              required: true,
-              defaultValue: 'in_person',
-              options: [
-                { label: 'In person', value: 'in_person' },
-                { label: 'Online', value: 'online' },
-                { label: 'Hybrid', value: 'hybrid' },
-              ],
-              admin: {
-                description: 'How the event is delivered',
-              },
-            },
-            {
-              name: 'locationSource',
-              type: 'select',
-              required: false,
-              defaultValue: 'space',
-              options: [
-                { label: 'Choose a space', value: 'space' },
-                { label: 'Custom field', value: 'custom' },
-              ],
-              admin: {
-                description:
-                  'Choose whether to link to a space or write a custom location',
-              },
-            },
-            {
-              name: 'space',
-              type: 'relationship',
-              relationTo: 'spaces',
-              required: false,
-              admin: {
-                description: 'Choose a space for this event',
-                condition: (
-                  data: unknown,
-                  siblingData: { locationSource?: 'space' | 'custom' } = {}
-                ) => siblingData?.locationSource !== 'custom',
-              },
-            },
-            {
-              name: 'locationName',
-              type: 'text',
-              required: false,
-              admin: {
-                description:
-                  'Location name or venue (shown when using custom field)',
-                condition: (
-                  data: unknown,
-                  siblingData: { locationSource?: 'space' | 'custom' } = {}
-                ) => siblingData?.locationSource === 'custom',
-              },
-            },
-            {
-              name: 'onlineUrl',
-              type: 'text',
-              required: false,
-              admin: {
-                description:
-                  'Link to online meeting / stream (shown for online or hybrid events)',
-                condition: (
-                  data: unknown,
-                  siblingData: { format?: string } = {}
-                ) =>
-                  siblingData?.format === 'online' ||
-                  siblingData?.format === 'hybrid',
-              },
             },
           ],
         },
