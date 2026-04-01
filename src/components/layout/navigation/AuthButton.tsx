@@ -64,10 +64,10 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     return null;
   }
 
-  // Keep a neutral placeholder while session is resolving to avoid
-  // flickering between logged-out and logged-in UI during route changes.
+  // Keep button hidden while session is resolving to avoid
+  // showing a placeholder box before avatar is known.
   if (loading && !user) {
-    return <div aria-hidden className={borderedButtonClasses} />;
+    return null;
   }
 
   // Show lock icon when confirmed logged out
