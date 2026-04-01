@@ -64,8 +64,14 @@ const AuthButton: React.FC<AuthButtonProps> = ({
     return null;
   }
 
-  // Show lock icon while loading or not logged in
-  if (loading || !user) {
+  // Keep a neutral placeholder while session is resolving to avoid
+  // flickering between logged-out and logged-in UI during route changes.
+  if (loading && !user) {
+    return <div aria-hidden className={borderedButtonClasses} />;
+  }
+
+  // Show lock icon when confirmed logged out
+  if (!user) {
     return (
       <FadeIn
         variant="fadeDown"

@@ -217,89 +217,6 @@ const Events: CollectionConfig = {
           ],
         },
         {
-          label: 'Content',
-          fields: [
-            {
-              name: 'featuredImage',
-              type: 'upload',
-              relationTo: 'media',
-              required: false,
-              admin: {
-                description:
-                  'Main image displayed at the top of the event page',
-              },
-            },
-            {
-              name: 'excerpt',
-              type: 'textarea',
-              required: false,
-              admin: {
-                description:
-                  'A brief summary or excerpt of the event (used in listings and social media)',
-              },
-            },
-            {
-              name: 'tags',
-              type: 'relationship',
-              relationTo: 'tags' as const,
-              hasMany: true,
-              required: false,
-              admin: {
-                description: 'Select one or more tags for this event',
-              },
-            },
-            {
-              name: 'introduction',
-              type: 'richText',
-              required: false,
-              admin: {
-                description:
-                  'Optional introduction section (appears before main content)',
-              },
-            },
-            {
-              name: 'content',
-              type: 'richText',
-              required: false,
-              editor: lexicalEditor({
-                features: ({ defaultFeatures }) => [
-                  ...defaultFeatures,
-                  BlocksFeature({
-                    blocks: [
-                      Image,
-                      Video,
-                      CTA,
-                      QA,
-                      LogotypeWall,
-                      PartnerBlock,
-                      Model3D,
-                      MinimalCarousel,
-                      CardGrid,
-                    ],
-                  }),
-                ],
-              }),
-              admin: {
-                description:
-                  'The main content of the event. You can insert blocks (images, videos, etc.) anywhere within the content using the block button.',
-              },
-            },
-            {
-              name: 'form',
-              type: 'relationship',
-              relationTo: 'forms',
-              required: false,
-              access: {
-                read: () => true,
-              },
-              maxDepth: 0,
-              admin: {
-                description: 'Optional form to display on this event.',
-              },
-            },
-          ],
-        },
-        {
           label: 'Header',
           fields: [
             {
@@ -384,6 +301,88 @@ const Events: CollectionConfig = {
                   ],
                 },
               ],
+            },
+          ],
+        },
+        {
+          label: 'Content',
+          fields: [
+            {
+              name: 'featuredImage',
+              type: 'upload',
+              relationTo: 'media',
+              required: false,
+              admin: {
+                description:
+                  'Main image displayed at the top of the event page',
+              },
+            },
+            {
+              name: 'excerpt',
+              type: 'textarea',
+              required: false,
+              admin: {
+                description:
+                  'A brief summary or excerpt of the event (used in listings and social media)',
+              },
+            },
+            {
+              name: 'tags',
+              type: 'relationship',
+              relationTo: 'tags' as const,
+              hasMany: true,
+              required: false,
+              admin: {
+                description: 'Select one or more tags for this event',
+              },
+            },
+            {
+              name: 'introduction',
+              type: 'richText',
+              required: false,
+              admin: {
+                hidden: true,
+              },
+            },
+            {
+              name: 'content',
+              type: 'richText',
+              required: false,
+              editor: lexicalEditor({
+                features: ({ defaultFeatures }) => [
+                  ...defaultFeatures,
+                  BlocksFeature({
+                    blocks: [
+                      Image,
+                      Video,
+                      CTA,
+                      QA,
+                      LogotypeWall,
+                      PartnerBlock,
+                      Model3D,
+                      MinimalCarousel,
+                      CardGrid,
+                    ],
+                  }),
+                ],
+              }),
+              admin: {
+                description:
+                  'The main content of the event. You can insert blocks (images, videos, etc.) anywhere within the content using the block button.',
+              },
+            },
+            {
+              name: 'form',
+              type: 'relationship',
+              relationTo: 'forms',
+              required: false,
+              access: {
+                read: () => true,
+              },
+              maxDepth: 0,
+              admin: {
+                description: 'Optional form to display on this event.',
+              },
             },
           ],
         },

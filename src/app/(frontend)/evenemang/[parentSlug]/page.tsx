@@ -8,6 +8,7 @@ import { EventHeader } from '@/components/headers/events/EventHeader';
 import { resolveFormDoc } from '@/utils/resolveFormDoc';
 import { EventSavedActionBar } from '@/components/headers/events/EventSavedActionBar';
 import { MembersOnlyEventGate } from '@/components/auth/MembersOnlyEventGate';
+import { ScrollToTopOnMount } from '@/components/layout/ScrollToTopOnMount';
 import {
   loadEventBySlugForPage,
   type EventForPage,
@@ -112,6 +113,7 @@ export default async function ParentEventPage({
   return (
     <MembersOnlyEventGate enabled={isMembersOnlyEvent}>
       <PageLayout contentType="article">
+        <ScrollToTopOnMount />
         <EventHeader
           eventData={{
             title: event.title,

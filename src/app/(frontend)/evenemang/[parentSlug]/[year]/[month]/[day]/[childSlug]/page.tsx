@@ -13,6 +13,7 @@ import {
 } from '@/lib/events/loadEventBySlugForPage';
 import { EventSavedActionBar } from '@/components/headers/events/EventSavedActionBar';
 import { MembersOnlyEventGate } from '@/components/auth/MembersOnlyEventGate';
+import { ScrollToTopOnMount } from '@/components/layout/ScrollToTopOnMount';
 
 export const dynamic = 'force-dynamic';
 
@@ -186,6 +187,7 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
   return (
     <MembersOnlyEventGate enabled={isMembersOnlyEvent}>
       <PageLayout contentType="article">
+        <ScrollToTopOnMount />
         <EventHeader
           eventData={{
             parentTitle: parent.title,
