@@ -63,7 +63,7 @@ export async function processDynamicBlocks(
           // Ensure contentTypes is an array
           const contentTypes = Array.isArray(block.contentTypes)
             ? block.contentTypes
-            : ['articles'];
+            : ['articles', 'events'];
 
           // Fetch dynamic content
           const generatedContent = await DynamicContentAPI.getContentByTags(
@@ -89,6 +89,7 @@ export async function processDynamicBlocks(
             generatedContent: {
               articles: [],
               showcases: [],
+              events: [],
               totalCount: 0,
             },
           };

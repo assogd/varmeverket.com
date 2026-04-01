@@ -25,12 +25,12 @@ const LinkGroup: Field = {
     {
       name: 'doc',
       type: 'relationship',
-      relationTo: ['pages', 'spaces', 'articles'],
+      relationTo: ['pages', 'spaces', 'articles', 'events'],
       required: false,
       admin: {
         condition: (data: unknown, siblingData: Record<string, unknown>) =>
           siblingData?.type === 'internal',
-        description: 'Select a page, space, or article to link to',
+        description: 'Select a page, space, article, or event to link to',
         allowCreate: false,
         isClearable: true,
         appearance: 'drawer',

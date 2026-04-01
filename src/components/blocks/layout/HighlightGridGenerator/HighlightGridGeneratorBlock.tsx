@@ -8,6 +8,8 @@ import {
   ShowcaseCard,
   ArticleCardWithImage,
   ArticleCardWithoutImage,
+  EventCardWithImage,
+  EventCardWithoutImage,
   findImageInAssets,
   type ContentItem,
 } from './index';
@@ -27,6 +29,7 @@ interface HighlightGridGeneratorProps {
   generatedContent: {
     articles: Record<string, unknown>[];
     showcases: Record<string, unknown>[];
+    events: Record<string, unknown>[];
     totalCount: number;
   };
 }
@@ -39,7 +42,7 @@ export default function HighlightGridGeneratorBlock({
     useState<ContentItem | null>(null);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
-  const { articles, showcases } = generatedContent;
+  const { articles, showcases, events } = generatedContent;
 
   // Combine content for display (API already handles sorting and limiting)
   const allContent: ContentItem[] = [
@@ -48,6 +51,9 @@ export default function HighlightGridGeneratorBlock({
     ),
     ...showcases.map(
       item => ({ ...item, _contentType: 'showcase' as const }) as ContentItem
+    ),
+    ...events.map(
+      item => ({ ...item, _contentType: 'event' as const }) as ContentItem
     ),
   ];
 
@@ -134,6 +140,27 @@ export default function HighlightGridGeneratorBlock({
                   item={item}
                   index={index}
                   onClick={() => {}} // No-op since Link handles navigation
+                />
+              );
+            } else if (item._contentType === 'event' && hasImage) {
+              return (
+                <EventCardWithImage
+                  key={cardId}
+                  item={item}
+                  index={index}
+                  isHovered={isHovered}
+                  onHoverStart={() => setHoveredCard(cardId)}
+                  onHoverEnd={() => setHoveredCard(null)}
+                  onClick={() => {}}
+                />
+              );
+            } else if (item._contentType === 'event' && !hasImage) {
+              return (
+                <EventCardWithoutImage
+                  key={cardId}
+                  item={item}
+                  index={index}
+                  onClick={() => {}}
                 />
               );
             }

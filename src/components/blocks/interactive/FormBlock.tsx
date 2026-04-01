@@ -16,6 +16,7 @@ import type {
 } from '@/components/forms';
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import { articleConverter } from '@/utils/richTextConverters/index';
+import { buildEventUrl } from '@/utils/eventUrl';
 
 /**
  * Confirmation RichText wrapper — body mono/centered; headings overridden to
@@ -352,6 +353,23 @@ export const FormBlock: React.FC<FormBlockProps> = ({
             window.location.href = `/spaces/${value}`;
           } else if (relationTo === 'articles' && value) {
             window.location.href = `/artikel/${value}`;
+          } else if (relationTo === 'events' && value) {
+            const reference = formDoc.redirect?.reference as
+              | {
+                  value?: string | { slug?: string; startDateTime?: string; parentSlug?: string; href?: string };
+                }
+              | undefined;
+            const refValue = reference?.value;
+            if (typeof refValue === 'object' && refValue) {
+              window.location.href = buildEventUrl({
+                slug: refValue.slug ?? value,
+                startDateTime: refValue.startDateTime,
+                parentSlug: refValue.parentSlug,
+                href: refValue.href,
+              });
+            } else {
+              window.location.href = buildEventUrl({ slug: value });
+            }
           }
         }
       }

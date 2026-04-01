@@ -7,6 +7,8 @@
  * - Copy actions
  */
 
+import { buildEventUrl } from '@/utils/eventUrl';
+
 export interface LinkGroup {
   type: 'internal' | 'external' | 'copy';
   doc?: unknown; // Payload reference object
@@ -42,6 +44,17 @@ function resolveReference(reference: unknown): string | undefined {
         return `/spaces/${slug}`;
       case 'articles':
         return `/artikel/${slug}`;
+      case 'events':
+        return buildEventUrl({
+          slug,
+          startDateTime:
+            (reference as { value?: { startDateTime?: string } })?.value
+              ?.startDateTime,
+          parentSlug:
+            (reference as { value?: { parentSlug?: string } })?.value
+              ?.parentSlug,
+          href: (reference as { value?: { href?: string } })?.value?.href,
+        });
       case 'pages':
       default:
         // Always redirect homepage to root
@@ -63,6 +76,13 @@ function resolveReference(reference: unknown): string | undefined {
         return `/spaces/${slug}`;
       case 'articles':
         return `/artikel/${slug}`;
+      case 'events':
+        return buildEventUrl({
+          slug,
+          startDateTime: (reference as { startDateTime?: string }).startDateTime,
+          parentSlug: (reference as { parentSlug?: string }).parentSlug,
+          href: (reference as { href?: string }).href,
+        });
       case 'pages':
       default:
         // Always redirect homepage to root

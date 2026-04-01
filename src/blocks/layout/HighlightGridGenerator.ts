@@ -25,6 +25,7 @@ const HighlightGridGenerator: Block = {
       options: [
         { label: 'Articles', value: 'articles' },
         { label: 'Showcases', value: 'showcases' },
+        { label: 'Events', value: 'events' },
       ],
       defaultValue: ['articles'],
       admin: {

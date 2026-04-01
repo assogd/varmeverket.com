@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { fixImageUrl } from '@/utils/imageUrl';
 import { ShowcaseOverlay } from '@/components/ui/overlays';
 import { AnimatePresence } from 'framer-motion';
+import { buildEventUrl } from '@/utils/eventUrl';
 
 interface HighlightGridBlockProps {
   headline: string;
@@ -15,6 +17,9 @@ interface HighlightGridBlockProps {
       id: string;
       title: string;
       slug: string;
+      href?: string;
+      parentSlug?: string;
+      startDateTime?: string;
       // Showcase fields
       featuredImage?: {
         id: string;
@@ -103,6 +108,16 @@ const HighlightGridBlock: React.FC<HighlightGridBlockProps> = ({
           {validHighlights.map(highlight => {
             // Extract the actual highlight data from the relationship structure
             const highlightData = highlight.value;
+            const isShowcase = highlight.relationTo === 'showcases';
+            const isEvent = highlight.relationTo === 'events';
+            const eventHref = isEvent
+              ? buildEventUrl({
+                  slug: highlightData.slug,
+                  startDateTime: highlightData.startDateTime,
+                  parentSlug: highlightData.parentSlug,
+                  href: highlightData.href,
+                })
+              : undefined;
 
             // Get image from either showcase (featuredImage) or article (heroAsset.image)
             const image =
@@ -110,6 +125,37 @@ const HighlightGridBlock: React.FC<HighlightGridBlockProps> = ({
               (highlightData?.heroAsset?.type === 'image'
                 ? highlightData.heroAsset.image
                 : null);
+
+            const CardWrapper = isShowcase ? 'button' : isEvent ? 'link' : 'button';
+
+            if (CardWrapper === 'link') {
+              return (
+                <Link
+                  key={highlightData.id}
+                  href={eventHref || '#'}
+                  className="basis-64 grow shrink-0 text-left w-full max-w-80"
+                  style={{ scrollSnapAlign: 'center' }}
+                >
+                  <div className="relative">
+                    {image?.url && (
+                      <div className="relative aspect-[4/6] overflow-hidden">
+                        <Image
+                          src={fixImageUrl(image.url)}
+                          alt={
+                            image.alt || highlightData.title || 'Highlight image'
+                          }
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
+                    )}
+                    <div className="pt-1 leading-4">
+                      <h3 className="uppercase">{highlightData.title}</h3>
+                    </div>
+                  </div>
+                </Link>
+              );
+            }
 
             return (
               <button

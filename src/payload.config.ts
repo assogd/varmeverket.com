@@ -12,6 +12,7 @@ import path from 'path';
 import { buildConfig } from 'payload';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
+import { buildEventUrl } from '@/utils/eventUrl';
 
 import { Users, collections } from './schema/index';
 import { globals } from './globals/index';
@@ -87,6 +88,13 @@ export default buildConfig({
                 return `/spaces/${doc.value.slug}`;
               } else if (doc.relationTo === 'articles') {
                 return `/artikel/${doc.value.slug}`;
+              } else if (doc.relationTo === 'events') {
+                return buildEventUrl({
+                  slug: doc.value.slug,
+                  startDateTime: doc.value.startDateTime,
+                  parentSlug: doc.value.parentSlug,
+                  href: doc.value.href,
+                });
               } else {
                 return `/${doc.value.slug}`;
               }
@@ -147,7 +155,7 @@ export default buildConfig({
         message: true,
         payment: false, // Disable payment fields for now
       },
-      redirectRelationships: ['pages'], // Collections to use for form redirects
+      redirectRelationships: ['pages', 'spaces', 'articles', 'events'], // Collections to use for form redirects
       // Submissions go to backend API (/v3/forms/...); hide Payload form-submissions
       // from admin so editors aren’t confused. Collection + data stay in DB untouched.
       formSubmissionOverrides: {

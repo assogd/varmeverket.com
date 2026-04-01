@@ -1,3 +1,5 @@
+import { buildEventUrl } from '@/utils/eventUrl';
+
 /**
  * Utility functions for transforming rich text data
  */
@@ -115,6 +117,20 @@ export function transformRichTextLinks(data: unknown): unknown {
               correctUrl = `/spaces/${slug}`;
             } else if (relationTo === 'articles') {
               correctUrl = `/artikel/${slug}`;
+            } else if (relationTo === 'events') {
+              const valueObj =
+                (docObj.value as {
+                  slug?: string;
+                  startDateTime?: string;
+                  parentSlug?: string;
+                  href?: string;
+                }) || {};
+              correctUrl = buildEventUrl({
+                slug,
+                startDateTime: valueObj.startDateTime,
+                parentSlug: valueObj.parentSlug,
+                href: valueObj.href,
+              });
             } else {
               correctUrl = `/${slug}`;
             }

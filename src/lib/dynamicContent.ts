@@ -10,6 +10,7 @@ export interface DynamicContentOptions {
 export interface DynamicContentResult {
   articles: Record<string, unknown>[];
   showcases: Record<string, unknown>[];
+  events: Record<string, unknown>[];
   totalCount: number;
 }
 
@@ -45,6 +46,7 @@ export class DynamicContentAPI {
       return {
         articles: result.articles as Record<string, unknown>[],
         showcases: result.showcases as Record<string, unknown>[],
+        events: result.events as Record<string, unknown>[],
         totalCount: result.totalCount,
       };
     } catch (error) {
@@ -53,6 +55,7 @@ export class DynamicContentAPI {
       return {
         articles: [],
         showcases: [],
+        events: [],
         totalCount: 0,
       };
     }
@@ -87,7 +90,11 @@ export class DynamicContentAPI {
     tagIds: string[],
     options: DynamicContentOptions = {}
   ) {
-    return this.getContentByTags(tagIds, ['articles', 'showcases'], options);
+    return this.getContentByTags(
+      tagIds,
+      ['articles', 'showcases', 'events'],
+      options
+    );
   }
 
   /**
