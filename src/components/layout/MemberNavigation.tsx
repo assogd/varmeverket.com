@@ -76,6 +76,7 @@ export const MemberNavigation: React.FC = () => {
                   href={item.href}
                   className={clsx(
                     'relative flex items-center justify-center h-full px-4 font-medium whitespace-nowrap first:pl-5 first:pr-4 last:pl-4 last:pr-5 min-w-24',
+                    item.href === '/portal/admin' && 'hidden sm:flex',
                     isActive || isHovered
                       ? 'text-text dark:text-dark-text'
                       : 'text-text/70 dark:text-dark-text/70'
