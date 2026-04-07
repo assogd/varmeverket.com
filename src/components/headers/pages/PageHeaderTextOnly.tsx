@@ -30,7 +30,7 @@ export default function PageHeaderTextOnly({
       <FadeInUp as="div" timing="fast" className="grid gap-6">
         {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
         {title ? (
-          <h1 className="font-display uppercase text-2xl leading-[0.95em] tracking-[-0.01em] px-4 flex flex-col gap-3 justify-center items-center">
+          <h1 className="font-display uppercase text-2xl leading-[0.95em] tracking-[-0.01em] px-4 flex flex-col gap-3 justify-center items-center hyphens-auto">
             {title}
           </h1>
         ) : text != null ? (

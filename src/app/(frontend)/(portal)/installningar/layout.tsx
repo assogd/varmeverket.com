@@ -12,7 +12,11 @@ export default function SettingsLayout({
 }) {
   return (
     <ProtectedRoute>
-      <PageLayout contentType="page" paddingBottom={false}>
+      <PageLayout
+        contentType="page"
+        paddingBottom={false}
+        className="pb-20 sm:pb-0"
+      >
         <PageHeaderTextOnly title="Inställningar" />
         <SettingsNavigation />
         {children}

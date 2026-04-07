@@ -253,7 +253,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       (type === 'day' && (!month || !year));
 
     return (
-      <div className="relative flex-1" data-date-picker={id}>
+      <div className="relative flex-1 min-w-0" data-date-picker={id}>
         {/* Hidden native select for form submission */}
         <select
           id={`${id}-${type}`}
@@ -279,7 +279,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           onClick={() => handleToggle(type)}
           disabled={isSelectDisabled}
           className={clsx(
-            'w-full px-4 py-4 border bg-bg text-text font-sans rounded focus:outline-none focus:border-1 transition-all text-left flex items-center justify-between',
+            'w-full px-3 sm:px-4 py-4 border bg-bg text-text font-sans rounded focus:outline-none focus:border-1 transition-all text-left flex items-center justify-between',
             {
               'border-text focus:border-text': true,
               'opacity-50 cursor-not-allowed': isSelectDisabled,
@@ -348,7 +348,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         aria-hidden="true"
       />
 
-      <div className="flex gap-2">
+      <div className="flex gap-1.5 sm:gap-2">
         {renderSelect('year', 'År')}
         {renderSelect('month', 'Månad')}
         {renderSelect('day', 'Dag')}

@@ -15,7 +15,7 @@ export function SettingsNavigation() {
 
   return (
     <div className="p-2">
-      <div className="flex mb-8 border border-text max-w-4xl mx-auto">
+      <div className="flex flex-col sm:flex-row mb-8 border border-text max-w-4xl mx-auto">
         {settingsNavItems.map((item, index) => {
           const isActive = pathname === item.href;
           const isLast = index === settingsNavItems.length - 1;
@@ -26,9 +26,9 @@ export function SettingsNavigation() {
               href={item.href}
               className={clsx(
                 'flex items-center justify-center uppercase',
-                'border-r border-text dark:border-dark-text',
+                'border-b sm:border-r border-text dark:border-dark-text',
                 'p-4 flex-1', // Equal growth for all buttons
-                isLast && 'border-r-0', // Remove border on last item
+                isLast && 'border-b-0 border-r-0', // Remove border on last item
                 isActive
                   ? 'text-text dark:text-dark-text underline'
                   : 'text-text dark:text-dark-text'
