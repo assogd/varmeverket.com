@@ -84,7 +84,11 @@ export function DashboardClient({
   };
 
   return (
-    <PageLayout contentType="page" className="px-2" paddingBottom={false}>
+    <PageLayout
+      contentType="page"
+      className="px-2 pb-28 sm:pb-0"
+      paddingBottom={false}
+    >
       <PageHeaderTextOnly
         text={{
           root: {

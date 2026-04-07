@@ -52,16 +52,16 @@ export function EventCard({
 
   return (
     <div className={clsx('flex items-start gap-4', className)}>
-      <div className="flex-shrink-0 w-24 flex items-center font-mono mt-6">
+      <div className="flex-shrink-0 w-16 sm:w-24 flex items-center font-mono mt-5 sm:mt-6">
         {time}
       </div>
       <div
         className={clsx(
-          'flex-1 min-w-0 flex items-center justify-between gap-4 rounded-xl border border-text px-6 py-5'
+          'flex-1 min-w-0 flex flex-row items-center justify-between gap-4 rounded-xl border border-text px-4 sm:px-6 py-4 sm:py-5'
         )}
       >
         <div className="flex-1 min-w-0">
-          <h4 className="mb-3 text-md">
+          <h4 className="mb-2 sm:mb-3 text-md">
             {href ? (
               <Link href={href} className="underline-offset-2 hover:underline">
                 {title}
@@ -79,7 +79,7 @@ export function EventCard({
           )}
         </div>
         {image && (
-          <div className="relative flex-shrink-0 w-16 h-16 -m-2 rounded-lg overflow-hidden">
+          <div className="relative flex-shrink-0 w-16 h-16 sm:-m-2 rounded-lg overflow-hidden hidden xs:block sm:block">
             {href ? (
               <Link href={href} className="block w-full h-full">
                 <Image
