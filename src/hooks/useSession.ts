@@ -53,19 +53,31 @@ export function useSession(): UseSessionResult {
 
         // Only check profile photo once per email in this browser session.
         if (!emailsCheckedForProfilePhoto.has(email)) {
-          emailsCheckedForProfilePhoto.add(email);
-          BackendAPI.getProfilePhoto(email)
-            .then(photo => {
-              const url =
-                photo?.url ?? (photo ? profilePhotoUrl(photo.file_key) : null);
-              setProfilePhotoUrlState(url);
-              if (url) setCachedProfilePhotoUrl(email, url);
-              else clearCachedProfilePhotoUrl(email);
-            })
-            .catch(() => {
-              setProfilePhotoUrlState(null);
-              clearCachedProfilePhotoUrl(email);
-            });
+          const fetchProfilePhotoWithRetry = (remainingAttempts = 2) => {
+            BackendAPI.getProfilePhoto(email)
+              .then(photo => {
+                const url =
+                  photo?.url ?? (photo ? profilePhotoUrl(photo.file_key) : null);
+                setProfilePhotoUrlState(url);
+                if (url) setCachedProfilePhotoUrl(email, url);
+                else clearCachedProfilePhotoUrl(email);
+                // Mark as checked only after a successful API response.
+                emailsCheckedForProfilePhoto.add(email);
+              })
+              .catch(() => {
+                if (remainingAttempts > 0) {
+                  setTimeout(() => {
+                    fetchProfilePhotoWithRetry(remainingAttempts - 1);
+                  }, 700);
+                  return;
+                }
+                // Keep any cached URL on repeated transient failures and allow
+                // future route-driven session checks to retry.
+                emailsCheckedForProfilePhoto.delete(email);
+              });
+          };
+
+          fetchProfilePhotoWithRetry();
         }
       } else {
         setProfilePhotoUrlState(null);
