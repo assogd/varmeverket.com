@@ -108,9 +108,9 @@ export default function AnsokOmMedlemskapPage() {
   }
 
   return (
-    <PageLayout contentType="page" paddingBottom={true}>
+    <PageLayout contentType="page" paddingBottom={false}>
       <PageHeaderTextOnly text={PAGE_HEADER_TEXT} />
-      <div className="">
+      <div className="pb-20 sm:pb-0">
         <FormRenderer config={{ ...formConfig, title: undefined }} />
       </div>
     </PageLayout>

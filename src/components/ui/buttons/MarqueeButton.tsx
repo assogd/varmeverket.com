@@ -33,7 +33,7 @@ export const MarqueeButton: React.FC<MarqueeButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
       className={clsx(
-        'w-full px-0 uppercase border border-text rounded-sm inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none transition-transform duration-75 ease-out active:scale-[0.99]',
+        'px-0 uppercase border border-text rounded-sm block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none transition-transform duration-75 ease-out active:scale-[0.99]',
         size === 'lg' ? 'h-[2.75em]' : 'h-[2.333em]',
         isDark
           ? 'border border-text'

@@ -1,7 +1,7 @@
 {
   "submitButtonLabel": "Ansök",
   "submitButtonVariant": "marquee",
-  "submitSectionTitle": "Har du fyllt i alla uppgifter?",
+  "submitSectionTitle": "Har du fyllt i allt?",
   "submitButtonClassName": "text-[color:var(--color-bg)]",
   "submitButtonSize": "lg",
   "showSuccessMessage": false,

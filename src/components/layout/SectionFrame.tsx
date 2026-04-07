@@ -17,8 +17,8 @@ export const SectionFrame: React.FC<SectionFrameProps> = ({
   const hasHeader = !!title || !!description;
   const bodyClasses =
     variant === 'compact'
-      ? 'max-w-2xl mx-auto border-r border-l border-text px-10 py-8'
-      : 'max-w-2xl mx-auto border-r border-l border-text p-12 pb-16 my-2';
+      ? 'w-full max-w-2xl mx-auto sm:border-r sm:border-l border-text px-0 sm:px-10 py-6 sm:py-8'
+      : 'w-full max-w-2xl mx-auto sm:border-r sm:border-l border-text px-0 sm:px-12 pt-8 sm:pt-12 sm:pb-12 my-2';
 
   const renderTitle = () => {
     if (!title) return null;
@@ -42,15 +42,15 @@ export const SectionFrame: React.FC<SectionFrameProps> = ({
 
   return (
     <section
-      className={clsx('space-y-3 border-b last:border-b-0 pb-2 border-text')}
+      className={clsx('space-y-3 sm:border-b last:border-b-0 pb-2 border-text')}
     >
       {hasHeader && (
-        <div className={clsx('pb-6 text-center')}>
+        <div className={clsx('sm:pb-6 text-center')}>
           {renderTitle()}
           {renderDescription()}
         </div>
       )}
-      <hr />
+      <hr className="hidden sm:block" />
       <div className={clsx(bodyClasses)}>{children}</div>
     </section>
   );

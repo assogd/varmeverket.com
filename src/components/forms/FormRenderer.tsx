@@ -449,8 +449,6 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
         {convertedConfig.sections ? (
           <div className="space-y-16">
             {convertedConfig.sections.map((section, sectionIndex) => {
-              const isLastSection =
-                sectionIndex === convertedConfig.sections!.length - 1;
               return (
                 <SectionFrame
                   key={section.id || sectionIndex}
@@ -490,42 +488,48 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                         />
                       ))}
                   </div>
-                  {isLastSection && (
-                    <div className="mt-8">
-                      {convertedConfig.submitButtonVariant === 'marquee' ? (
-                        <MarqueeButton
-                          type="submit"
-                          disabled={isLoading}
-                          size={convertedConfig.submitButtonSize}
-                          className={clsx(
-                            'w-full',
-                            convertedConfig.submitButtonClassName
-                          )}
-                        >
-                          {isLoading
-                            ? 'Skickar...'
-                            : convertedConfig.submitButtonLabel || 'Skicka'}
-                        </MarqueeButton>
-                      ) : (
-                        <Button
-                          type="submit"
-                          disabled={isLoading}
-                          variant="outline"
-                          className={clsx(
-                            'w-full',
-                            convertedConfig.submitButtonClassName
-                          )}
-                        >
-                          {isLoading
-                            ? 'Skickar...'
-                            : convertedConfig.submitButtonLabel || 'Skicka'}
-                        </Button>
-                      )}
-                    </div>
-                  )}
                 </SectionFrame>
               );
             })}
+            <SectionFrame
+              title={
+                <Heading variant="section" as="h2" className="text-center">
+                  {convertedConfig.submitSectionTitle || 'Har du fyllt i allt?'}
+                </Heading>
+              }
+            >
+              <div className="flex justify-center">
+                {convertedConfig.submitButtonVariant === 'marquee' ? (
+                  <MarqueeButton
+                    type="submit"
+                    disabled={isLoading}
+                    size={convertedConfig.submitButtonSize}
+                    className={clsx(
+                      'max-w-[85vw]',
+                      convertedConfig.submitButtonClassName
+                    )}
+                  >
+                    {isLoading
+                      ? 'Skickar...'
+                      : convertedConfig.submitButtonLabel || 'Skicka'}
+                  </MarqueeButton>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    variant="outline"
+                    className={clsx(
+                      'w-full',
+                      convertedConfig.submitButtonClassName
+                    )}
+                  >
+                    {isLoading
+                      ? 'Skickar...'
+                      : convertedConfig.submitButtonLabel || 'Skicka'}
+                  </Button>
+                )}
+              </div>
+            </SectionFrame>
           </div>
         ) : (
           // Render flat fields (backward compatibility)
