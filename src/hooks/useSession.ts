@@ -1,7 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  createContext,
+  useContext,
+  createElement,
+} from 'react';
 import BackendAPI, { type SessionResponse } from '@/lib/backendApi';
 import {
   profilePhotoUrl,
@@ -24,17 +30,28 @@ interface UseSessionResult {
   refetch: () => Promise<void>;
 }
 
-/**
- * Hook to check if user is logged in and get session data
- */
-export function useSession(): UseSessionResult {
-  const pathname = usePathname();
+const SESSION_REFRESH_EVENT = 'varmeverket:session-refresh';
+const SESSION_DEBUG = process.env.NEXT_PUBLIC_SESSION_DEBUG === 'true';
+
+const SessionContext = createContext<UseSessionResult | undefined>(undefined);
+const noopRefetch = async () => {};
+const noopContext: UseSessionResult = {
+  session: null,
+  user: null,
+  profilePhotoUrl: null,
+  loading: false,
+  error: null,
+  refetch: noopRefetch,
+};
+
+function useSessionController(): UseSessionResult {
   const [session, setSession] = useState<SessionResponse | null>(null);
   const [profilePhotoUrlState, setProfilePhotoUrlState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSession = async (retries = 2) => {
+  const fetchSession = useCallback(async (reason: 'initial' | 'event' | 'manual' = 'manual') => {
+    const startedAt = performance.now();
     try {
       setLoading(true);
       setError(null);
@@ -47,7 +64,7 @@ export function useSession(): UseSessionResult {
 
       const email = sessionData?.user?.email;
       if (email) {
-        // Show cached photo immediately to avoid flash (U → initials → image)
+        // Show cached photo immediately to avoid flash (U -> initials -> image)
         const cached = getCachedProfilePhotoUrl(email);
         if (cached) setProfilePhotoUrlState(cached);
 
@@ -72,7 +89,7 @@ export function useSession(): UseSessionResult {
                   return;
                 }
                 // Keep any cached URL on repeated transient failures and allow
-                // future route-driven session checks to retry.
+                // future explicit refreshes to retry.
                 emailsCheckedForProfilePhoto.delete(email);
               });
           };
@@ -132,19 +149,28 @@ export function useSession(): UseSessionResult {
         setProfilePhotoUrlState(null);
       }
     } finally {
+      if (SESSION_DEBUG) {
+        const elapsedMs = Math.round(performance.now() - startedAt);
+        console.info(`[session] fetch (${reason}) ${elapsedMs}ms`);
+      }
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    // Re-check session whenever the route changes so header/avatar updates
-    // immediately after login redirects without requiring a manual refresh.
-    const timer = setTimeout(() => {
-      fetchSession();
-    }, 100);
+    fetchSession('initial');
+  }, [fetchSession]);
 
-    return () => clearTimeout(timer);
-  }, [pathname]);
+  useEffect(() => {
+    const onRefresh = () => {
+      fetchSession('event');
+    };
+
+    window.addEventListener(SESSION_REFRESH_EVENT, onRefresh);
+    return () => {
+      window.removeEventListener(SESSION_REFRESH_EVENT, onRefresh);
+    };
+  }, [fetchSession]);
 
   return {
     session,
@@ -152,6 +178,32 @@ export function useSession(): UseSessionResult {
     profilePhotoUrl: profilePhotoUrlState,
     loading,
     error,
-    refetch: fetchSession,
+    refetch: () => fetchSession('manual'),
   };
+}
+
+export function SessionProvider({ children }: { children: React.ReactNode }) {
+  const value = useSessionController();
+  return createElement(SessionContext.Provider, { value }, children);
+}
+
+export function triggerSessionRefresh(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(SESSION_REFRESH_EVENT));
+}
+
+/**
+ * Hook to check if user is logged in and get session data
+ */
+export function useSession(): UseSessionResult {
+  const context = useContext(SessionContext);
+  if (!context) {
+    if (typeof window !== 'undefined') {
+      console.warn(
+        'useSession must be used within SessionProvider; returning no-op session state.'
+      );
+    }
+    return noopContext;
+  }
+  return context;
 }

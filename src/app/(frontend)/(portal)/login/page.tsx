@@ -10,8 +10,11 @@ import { Button } from '@/components/ui';
 import { LoginNotifications } from '@/components/auth/LoginNotifications';
 import clsx from 'clsx';
 
+const LOGIN_FLOW_DEBUG = process.env.LOGIN_FLOW_DEBUG === 'true';
+
 async function signOnAction(formData: FormData) {
   'use server';
+  const startedAt = Date.now();
   const email = String(formData.get('email') || '').trim();
   if (!email) {
     redirect('/login?error=' + encodeURIComponent('Email är obligatorisk.'));
@@ -45,6 +48,10 @@ async function signOnAction(formData: FormData) {
     redirect('/login?error=' + encodeURIComponent(message));
   }
 
+  if (LOGIN_FLOW_DEBUG) {
+    console.info(`[login-flow] sign-on request ok ${Date.now() - startedAt}ms`);
+  }
+
   redirect('/login?sent=1');
 }
 
@@ -53,9 +60,14 @@ export default async function LoginPage({
 }: {
   searchParams?: { sent?: string; error?: string };
 }) {
+  const startedAt = Date.now();
   const headerList = await headers();
   const headerCookie = headerList.get('cookie') || '';
   const session = await fetchServerSession(headerCookie);
+
+  if (LOGIN_FLOW_DEBUG) {
+    console.info(`[login-flow] login-page session-check ${Date.now() - startedAt}ms`);
+  }
 
   if (session?.user) {
     redirect('/dashboard');

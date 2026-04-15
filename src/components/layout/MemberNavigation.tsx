@@ -18,7 +18,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard' },
   { label: 'Bokningar', href: '/bokningar' },
-  { label: 'Inställningar', href: '/installningar' },
+  { label: 'Inställningar', href: '/installningar/personligt' },
   { label: 'Admin', href: '/portal/admin' },
 ];
 

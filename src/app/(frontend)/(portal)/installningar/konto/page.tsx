@@ -7,6 +7,7 @@ import { FormRenderer } from '@/components/forms';
 import { AppLink, Button, LoadingState } from '@/components/ui';
 import { SectionFrame } from '@/components/layout/SectionFrame';
 import { useNotification } from '@/hooks/useNotification';
+import { triggerSessionRefresh } from '@/hooks/useSession';
 import { createAccountFormConfig } from '@/utils/settings/formConfigs';
 import { handleAccountFormSubmit } from '@/utils/settings/handlers';
 import { useSettingsTab } from '@/utils/settings/useSettingsTab';
@@ -57,11 +58,13 @@ export default function AccountSettingsPage() {
     setLoggingOut(true);
     try {
       await BackendAPI.logout();
+      triggerSessionRefresh();
       router.push('/login');
       router.refresh();
     } catch (error) {
       console.error('Logout failed:', error);
       showError('Kunde inte logga ut. Försök igen.');
+      triggerSessionRefresh();
       router.push('/login');
       router.refresh();
     } finally {

@@ -12,9 +12,15 @@ import type { CalendarEvent } from '@/lib/calendar';
 
 interface DashboardGateProps {
   announcements: Announcement[];
+  initialUserEmail?: string | null;
 }
 
-export function DashboardGate({ announcements }: DashboardGateProps) {
+const DASHBOARD_DEBUG = process.env.NEXT_PUBLIC_DASHBOARD_DEBUG === 'true';
+
+export function DashboardGate({
+  announcements,
+  initialUserEmail = null,
+}: DashboardGateProps) {
   const { user, loading } = useSession();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -24,17 +30,20 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
   const [eventsLoading, setEventsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.email) return;
+    const effectiveEmail = user?.email ?? initialUserEmail;
+    if (!effectiveEmail) return;
+
     let cancelled = false;
+    const startedAt = performance.now();
     setBookingsLoading(true);
     setEventsLoading(true);
 
     const loadDashboardData = async () => {
       try {
         const [bookingsData, featuredRes, savedRes] = await Promise.all([
-          BackendAPI.getBookings(user.email),
+          BackendAPI.getBookings(effectiveEmail),
           fetch('/api/portal/featured-events'),
-          fetch(`/api/portal/saved-events?email=${encodeURIComponent(user.email)}`),
+          fetch(`/api/portal/saved-events?email=${encodeURIComponent(effectiveEmail)}`),
         ]);
 
         if (cancelled) return;
@@ -62,6 +71,10 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
         setSavedEvents([]);
       } finally {
         if (!cancelled) {
+          if (DASHBOARD_DEBUG) {
+            const elapsedMs = Math.round(performance.now() - startedAt);
+            console.info(`[dashboard] data-ready ${elapsedMs}ms`);
+          }
           setBookingsLoading(false);
           setEventsLoading(false);
         }
@@ -72,20 +85,21 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
     return () => {
       cancelled = true;
     };
-  }, [user?.email]);
+  }, [initialUserEmail, user?.email]);
 
   useEffect(() => {
-    if (loading) return;
-    if (!user) {
+    if (loading && !initialUserEmail) return;
+    if (!user && !initialUserEmail) {
       router.replace('/login');
     }
-  }, [loading, user, router]);
+  }, [initialUserEmail, loading, user, router]);
 
-  if (loading) {
+  if (loading && !initialUserEmail) {
     return <LoadingState className="min-h-[40vh]" />;
   }
 
-  if (!user?.email) {
+  const effectiveEmail = user?.email ?? initialUserEmail;
+  if (!effectiveEmail) {
     return null;
   }
 
@@ -104,7 +118,7 @@ export function DashboardGate({ announcements }: DashboardGateProps) {
       bookings={bookings}
       featuredEvents={featuredEvents}
       savedEvents={savedEvents}
-      userEmail={user.email}
+      userEmail={effectiveEmail}
     />
   );
 }

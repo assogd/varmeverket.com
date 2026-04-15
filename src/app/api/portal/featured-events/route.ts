@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PayloadAPI } from '@/lib/api';
+import { buildEventHref } from '@/lib/events/buildEventHref';
+import { getChildParentSlugMap } from '@/lib/events/childParentSlugMap';
 
 type FeaturedEvent = {
   id: string;
@@ -15,26 +17,15 @@ type FeaturedEvent = {
   featuredImage?: { url: string; alt?: string | null } | null;
 };
 
-function buildEventHref(
-  event: Pick<FeaturedEvent, 'slug' | 'startDateTime'>,
-  parentSlug?: string
-): string | undefined {
-  if (!event.slug) return undefined;
-  if (!parentSlug || !event.startDateTime) return `/evenemang/${event.slug}`;
-
-  const date = new Date(event.startDateTime);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `/evenemang/${parentSlug}/${year}/${month}/${day}/${event.slug}`;
-}
+const DASHBOARD_API_DEBUG = process.env.DASHBOARD_API_DEBUG === 'true';
 
 export async function GET() {
+  const startedAt = Date.now();
   try {
     const now = new Date();
     const nowMs = now.getTime();
 
-    const result = await PayloadAPI.findFresh<FeaturedEvent>({
+    const result = await PayloadAPI.find<FeaturedEvent>({
       collection: 'events',
       depth: 1,
       limit: 500,
@@ -63,24 +54,7 @@ export async function GET() {
       })
       .slice(0, 1);
 
-    // Build a child->parent slug map to generate child event hrefs.
-    const parentsResult = await PayloadAPI.findFresh<FeaturedEvent>({
-      collection: 'events',
-      depth: 1,
-      limit: 500,
-    });
-    const childParentMap = new Map<string, string>();
-    for (const parent of parentsResult.docs || []) {
-      const parentSlug = parent.slug || undefined;
-      if (!parentSlug || !Array.isArray(parent.children)) continue;
-
-      for (const child of parent.children) {
-        const childId =
-          typeof child === 'string' ? child : child?.id ? String(child.id) : '';
-        if (!childId) continue;
-        childParentMap.set(childId, parentSlug);
-      }
-    }
+    const childParentMap = await getChildParentSlugMap();
 
     const mappedEvents = events
       .map(e => ({
@@ -93,6 +67,12 @@ export async function GET() {
         isAllDay: Boolean(e.isAllDay),
         featuredImage: e.featuredImage,
       }));
+
+    if (DASHBOARD_API_DEBUG) {
+      console.info(
+        `[dashboard-api] featured-events ${Date.now() - startedAt}ms`
+      );
+    }
 
     return NextResponse.json({
       success: true,

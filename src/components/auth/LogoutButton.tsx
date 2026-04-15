@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackendAPI from '@/lib/backendApi';
+import { triggerSessionRefresh } from '@/hooks/useSession';
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -12,11 +13,13 @@ export default function LogoutButton() {
     setLoading(true);
     try {
       await BackendAPI.logout();
+      triggerSessionRefresh();
       router.push('/login');
       router.refresh();
     } catch (error) {
       console.error('Logout failed:', error);
       // Still redirect even if logout request fails
+      triggerSessionRefresh();
       router.push('/login');
       router.refresh();
     } finally {

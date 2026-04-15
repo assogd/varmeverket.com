@@ -9,6 +9,7 @@ import Chrome from '@/components/layout/Chrome';
 import { PathBasedThemeProvider } from '@/components/layout/PathBasedThemeProvider';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { NotificationContainer } from '@/components/notifications';
+import { SessionProvider } from '@/hooks/useSession';
 import {
   AdminContainer,
   RevalidateButton,
@@ -130,8 +131,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
 
   // Initialize cache warming in the background
   initializeCacheWarming();
-  const navigation = await getNavigation();
-  const footer = await getFooter();
+  const [navigation, footer] = await Promise.all([getNavigation(), getFooter()]);
   const useCustomFonts = true;
   const htmlClass = useCustomFonts
     ? `${sans.variable} ${mono.variable} ${display.variable} ${ballPill.variable} font-sans bg-bg dark:bg-dark-bg text-text dark:text-dark-text`
@@ -147,22 +147,24 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
     <html lang="sv" className={finalHtmlClass} suppressHydrationWarning>
       <body>
         <PathBasedThemeProvider initialThemeFromHeader={themeFromHeader as 'light' | 'dark' | 'orange'}>
-          <NotificationProvider>
-            <BackgroundLoader>
-                <Chrome
-                  navigation={navigation}
-                  footerLinks={footer?.links}
-                  mainClassName={mainClassName}
-                >
-                  {children}
-                </Chrome>
-                <AdminContainer>
-                  <RevalidateButton />
-                  <ExitPreviewButton />
-                </AdminContainer>
-                <NotificationContainer />
-              </BackgroundLoader>
-          </NotificationProvider>
+          <SessionProvider>
+            <NotificationProvider>
+              <BackgroundLoader>
+                  <Chrome
+                    navigation={navigation}
+                    footerLinks={footer?.links}
+                    mainClassName={mainClassName}
+                  >
+                    {children}
+                  </Chrome>
+                  <AdminContainer>
+                    <RevalidateButton />
+                    <ExitPreviewButton />
+                  </AdminContainer>
+                  <NotificationContainer />
+                </BackgroundLoader>
+            </NotificationProvider>
+          </SessionProvider>
         </PathBasedThemeProvider>
       </body>
     </html>

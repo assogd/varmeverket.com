@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BACKEND_API_URL } from '@/lib/backendApi';
 import { PayloadAPI } from '@/lib/api';
+import { buildEventHref } from '@/lib/events/buildEventHref';
+import { getChildParentSlugMap } from '@/lib/events/childParentSlugMap';
 
 type SavedEventRow = {
   article_id: string;
@@ -19,21 +21,10 @@ type HydratedEvent = {
   children?: Array<string | { id?: string | null }>;
 };
 
-function buildEventHref(
-  event: Pick<HydratedEvent, 'slug' | 'startDateTime'>,
-  parentSlug?: string
-): string | undefined {
-  if (!event.slug) return undefined;
-  if (!parentSlug || !event.startDateTime) return `/evenemang/${event.slug}`;
-
-  const date = new Date(event.startDateTime);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `/evenemang/${parentSlug}/${year}/${month}/${day}/${event.slug}`;
-}
+const DASHBOARD_API_DEBUG = process.env.DASHBOARD_API_DEBUG === 'true';
 
 export async function GET(request: NextRequest) {
+  const startedAt = Date.now();
   try {
     const email = request.nextUrl.searchParams.get('email')?.trim();
     if (!email) {
@@ -96,55 +87,17 @@ export async function GET(request: NextRequest) {
       new Set(savedRows.map(r => String(r.article_id)).filter(Boolean))
     );
 
-    const hydratedEvents: HydratedEvent[] = [];
-
-    // Hydrate each event; keep it simple (typical saved list is small).
-    await Promise.all(
-      ids.map(async id => {
-        try {
-          const doc = await PayloadAPI.findByIDFresh<HydratedEvent>(
-            'events',
-            id,
-            1
-          );
-
-          // Only show published items in production.
-          if (process.env.NODE_ENV === 'production' && doc.status !== 'published') {
-            return;
-          }
-
-          if (!doc.startDateTime) return;
-
-          hydratedEvents.push(doc);
-        } catch {
-          // Ignore missing/invalid ids.
-        }
-      })
-    );
-
-    // Build a child->parent slug map to generate child event hrefs.
-    const parentsResult = await PayloadAPI.findFresh<HydratedEvent>({
-      collection: 'events',
-      depth: 1,
-      limit: 500,
-    });
-    const childParentMap = new Map<string, string>();
-    for (const parent of parentsResult.docs || []) {
-      const parentSlug = parent.slug || undefined;
-      if (!parentSlug || !Array.isArray(parent.children)) continue;
-
-      for (const child of parent.children) {
-        const childId =
-          typeof child === 'string' ? child : child?.id ? String(child.id) : '';
-        if (!childId) continue;
-        childParentMap.set(childId, parentSlug);
-      }
-    }
+    const hydratedEvents = await hydrateSavedEvents(ids);
+    const childParentMap = await getChildParentSlugMap();
 
     const mappedEvents = hydratedEvents.map(event => ({
       ...event,
       href: buildEventHref(event, childParentMap.get(event.id)),
     }));
+
+    if (DASHBOARD_API_DEBUG) {
+      console.info(`[dashboard-api] saved-events ${Date.now() - startedAt}ms`);
+    }
 
     return NextResponse.json({
       success: true,
@@ -160,5 +113,53 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+async function hydrateSavedEvents(ids: string[]): Promise<HydratedEvent[]> {
+  if (ids.length === 0) return [];
+
+  // Prefer one bulk query over N+1 lookups.
+  try {
+    const result = await PayloadAPI.findFresh<HydratedEvent>({
+      collection: 'events',
+      depth: 1,
+      limit: ids.length,
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+
+    const byId = new Map(result.docs.map(doc => [String(doc.id), doc]));
+    return ids
+      .map(id => byId.get(String(id)))
+      .filter((doc): doc is HydratedEvent => Boolean(doc))
+      .filter(doc => doc.startDateTime)
+      .filter(
+        doc =>
+          process.env.NODE_ENV !== 'production' || doc.status === 'published'
+      );
+  } catch {
+    // Fallback to per-id hydration if backend query operators differ.
+  }
+
+  const hydratedEvents: HydratedEvent[] = [];
+  await Promise.all(
+    ids.map(async id => {
+      try {
+        const doc = await PayloadAPI.findByIDFresh<HydratedEvent>('events', id, 1);
+        if (process.env.NODE_ENV === 'production' && doc.status !== 'published') {
+          return;
+        }
+        if (!doc.startDateTime) return;
+        hydratedEvents.push(doc);
+      } catch {
+        // Ignore missing/invalid ids.
+      }
+    })
+  );
+
+  return hydratedEvents;
 }
 
