@@ -74,6 +74,10 @@ interface EventDocument extends EventForPage {
     }>;
   };
   form?: unknown;
+  externalCta?: {
+    url?: string | null;
+    text?: string | null;
+  } | null;
   children?: EventDocument[];
 }
 
@@ -134,7 +138,11 @@ export default async function ParentEventPage({
 
         {event.content && <EventContent content={event.content} />}
 
-        <EventSavedActionBar eventId={event.id} hasForm={hasForm} />
+        <EventSavedActionBar
+          eventId={event.id}
+          hasForm={hasForm}
+          externalCta={event.externalCta}
+        />
 
         {children.length > 0 && (
           <EventChildrenCalendar

@@ -214,6 +214,33 @@ const Events: CollectionConfig = {
                   siblingData?.format === 'hybrid',
               },
             },
+            {
+              name: 'externalCta',
+              type: 'group',
+              label: 'External CTA',
+              admin: {
+                description:
+                  'Optional sticky event action shown together with SPARA, for example "Köp biljetter".',
+              },
+              fields: [
+                {
+                  name: 'url',
+                  type: 'text',
+                  required: false,
+                  admin: {
+                    description: 'External URL for the event action.',
+                  },
+                },
+                {
+                  name: 'text',
+                  type: 'text',
+                  required: false,
+                  admin: {
+                    description: 'Button label shown in the sticky event action area.',
+                  },
+                },
+              ],
+            },
           ],
         },
         {

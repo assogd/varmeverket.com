@@ -72,6 +72,10 @@ interface EventDocument extends EventForPage {
     }>;
   };
   form?: unknown;
+  externalCta?: {
+    url?: string | null;
+    text?: string | null;
+  } | null;
 }
 
 interface ChildEventPageParams {
@@ -227,7 +231,11 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
           />
         )}
 
-        <EventSavedActionBar eventId={child.id} hasForm={hasForm} />
+        <EventSavedActionBar
+          eventId={child.id}
+          hasForm={hasForm}
+          externalCta={child.externalCta}
+        />
       </PageLayout>
     </MembersOnlyEventGate>
   );

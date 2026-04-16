@@ -9,6 +9,10 @@ export interface EventForPage {
   title?: string;
   status?: string;
   eventAccess?: EventAccess | string | null;
+  externalCta?: {
+    url?: string | null;
+    text?: string | null;
+  } | null;
   startDateTime?: string;
   endDateTime?: string;
   featuredImage?: { url: string; alt?: string; width?: number; height?: number } | null;
