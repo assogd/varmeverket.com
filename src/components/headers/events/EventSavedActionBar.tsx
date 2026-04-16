@@ -152,19 +152,21 @@ export function EventSavedActionBar({
 
   return (
     <div className="sticky left-0 right-0 bottom-12 md:bottom-2 z-20 px-2">
-      <div
-        className={clsx(
-          'mx-auto w-full',
-          showSaveButton && showExternalCta ? 'md:max-w-2xl' : 'md:max-w-xs'
-        )}
-      >
-        <div className="grid gap-2 md:grid-cols-2">
+      <div className="mx-auto w-full md:max-w-2xl">
+        <div
+          className={clsx(
+            'flex flex-col gap-2 items-stretch',
+            showSaveButton && showExternalCta
+              ? 'md:flex-row md:justify-center'
+              : 'md:items-center'
+          )}
+        >
           {showExternalCta && (
             <a
               href={externalCtaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full"
+              className="w-full md:max-w-xs"
             >
               <Button variant="outline" className="w-full">
                 {externalCtaLabel}
@@ -175,7 +177,7 @@ export function EventSavedActionBar({
           {showSaveButton && (
             <MultiStepConfirmButton
               steps={steps}
-              containerClassName="relative w-full"
+              containerClassName="relative w-full md:max-w-xs"
               initialStepIndex={initialStepIndex}
               outsideClickDismissToStepIndex={initialStepIndex}
               wrapForward

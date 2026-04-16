@@ -6,6 +6,7 @@ import { AppAction } from '@/components/ui';
 import { PageHeaderLabel } from '@/components/headings';
 import { jsxConverter } from '@/utils/richTextConverters/index';
 import { routeLink, type LinkGroup } from '@/utils/linkRouter';
+import { convertHeadlineHyphenToEnDash } from '@/utils/typography';
 
 interface PageHeaderTextOnlyProps {
   /** When set, renders a simple h1 instead of RichText. Use for plain string titles. */
@@ -31,7 +32,7 @@ export default function PageHeaderTextOnly({
         {label && <PageHeaderLabel>{label}</PageHeaderLabel>}
         {title ? (
           <h1 className="font-display uppercase text-2xl leading-[0.95em] tracking-[-0.01em] px-4 flex flex-col gap-3 justify-center items-center hyphens-auto">
-            {title}
+            {convertHeadlineHyphenToEnDash(title)}
           </h1>
         ) : text != null ? (
           <RichText
