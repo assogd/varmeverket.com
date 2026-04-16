@@ -18,6 +18,7 @@ import {
   eventsToCalendarItems,
   mergeCalendarItems,
   groupCalendarItemsByDay,
+  countCalendarCards,
 } from '@/lib/calendar';
 import type { CalendarEvent } from '@/lib/calendar';
 
@@ -51,17 +52,14 @@ export function DashboardClient({
     const savedItems = eventsToCalendarItems(savedEvents, 'saved');
     return mergeCalendarItems(bookingItems, featuredItems, savedItems);
   }, [bookings, featuredEvents, savedEvents]);
-  const displayedItems = useMemo(
-    () => allItems.slice(0, visibleCount),
+  const totalCardCount = useMemo(() => countCalendarCards(allItems), [allItems]);
+  const dayGroups = useMemo(
+    () => groupCalendarItemsByDay(allItems, visibleCount),
     [allItems, visibleCount]
   );
-  const dayGroups = useMemo(
-    () => groupCalendarItemsByDay(displayedItems),
-    [displayedItems]
-  );
-  const hasMore = visibleCount < allItems.length;
+  const hasMore = visibleCount < totalCardCount;
   const loadMore = () =>
-    setVisibleCount(prev => Math.min(prev + LOAD_MORE_STEP, allItems.length));
+    setVisibleCount(prev => Math.min(prev + LOAD_MORE_STEP, totalCardCount));
 
   const handleRetryBookings = async () => {
     setBookingsLoading(true);
@@ -166,10 +164,10 @@ export function DashboardClient({
                 <button
                   type="button"
                   onClick={loadMore}
-                  className="inline-flex items-center justify-center gap-2 uppercase [&>span]:underline"
+                  className="inline-flex items-center justify-center gap-2 uppercase"
                 >
                   <PlusIcon size={10} className="flex-shrink-0 no-underline" />
-                  <span>Ladda fler bokningar</span>
+                  <span>Ladda mer</span>
                 </button>
               </div>
             )}

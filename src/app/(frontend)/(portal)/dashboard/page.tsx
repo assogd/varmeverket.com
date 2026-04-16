@@ -10,7 +10,13 @@ export default async function DashboardPage() {
   const startedAt = Date.now();
   const headerList = await headers();
   const headerCookie = headerList.get('cookie') || '';
-  const serverSession = await fetchServerSession(headerCookie);
+  const [serverSession, announcementsResult] = await Promise.all([
+    fetchServerSession(headerCookie),
+    getActiveAnnouncements().catch(error => {
+      console.error('Failed to fetch announcements:', error);
+      return [] as Announcement[];
+    }),
+  ]);
   const initialUserEmail =
     typeof (serverSession?.user as { email?: unknown } | undefined)?.email === 'string'
       ? ((serverSession?.user as { email: string }).email ?? null)
@@ -24,13 +30,7 @@ export default async function DashboardPage() {
     );
   }
 
-  let announcements: Announcement[] = [];
-
-  try {
-    announcements = await getActiveAnnouncements();
-  } catch (error) {
-    console.error('Failed to fetch announcements:', error);
-  }
+  const announcements = announcementsResult;
 
   return (
     <DashboardGate

@@ -150,7 +150,8 @@ export function mergeCalendarItems(
  * Group calendar items by day
  */
 export function groupCalendarItemsByDay(
-  items: CalendarItem[]
+  items: CalendarItem[],
+  maxCards?: number
 ): CalendarDayGroup[] {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -163,14 +164,14 @@ export function groupCalendarItemsByDay(
   );
 
   for (const item of sortedItems) {
-    const itemDate = new Date(item.startsAt);
-    itemDate.setHours(0, 0, 0, 0);
-    const dateKey = itemDate.toISOString();
-
-    if (!groups.has(dateKey)) {
-      groups.set(dateKey, []);
+    const spanDays = getItemSpanDays(item.startsAt, item.endsAt);
+    for (const dayDate of spanDays) {
+      const dateKey = dayDate.toISOString();
+      if (!groups.has(dateKey)) {
+        groups.set(dateKey, []);
+      }
+      groups.get(dateKey)!.push(item);
     }
-    groups.get(dateKey)!.push(item);
   }
 
   // Convert to array and format labels
@@ -185,7 +186,61 @@ export function groupCalendarItemsByDay(
   // Sort by date
   dayGroups.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  return dayGroups;
+  if (typeof maxCards !== 'number' || maxCards <= 0) {
+    return dayGroups;
+  }
+
+  let remaining = maxCards;
+  const limitedGroups: CalendarDayGroup[] = [];
+  for (const group of dayGroups) {
+    if (remaining <= 0) break;
+    const takenItems = group.items.slice(0, remaining);
+    if (takenItems.length > 0) {
+      limitedGroups.push({ ...group, items: takenItems });
+      remaining -= takenItems.length;
+    }
+  }
+
+  return limitedGroups;
+}
+
+export function countCalendarCards(items: CalendarItem[]): number {
+  return items.reduce((total, item) => {
+    return total + getItemSpanDays(item.startsAt, item.endsAt).length;
+  }, 0);
+}
+
+/**
+ * Expand an item across each day it spans (inclusive).
+ * If an event ends exactly at midnight on a later day, treat that midnight as
+ * the boundary of the previous day to avoid showing it one day too long.
+ */
+function getItemSpanDays(startsAt: Date, endsAt: Date): Date[] {
+  const startDay = new Date(startsAt);
+  startDay.setHours(0, 0, 0, 0);
+
+  const adjustedEnd = new Date(endsAt);
+  const isExactMidnight =
+    adjustedEnd.getHours() === 0 &&
+    adjustedEnd.getMinutes() === 0 &&
+    adjustedEnd.getSeconds() === 0 &&
+    adjustedEnd.getMilliseconds() === 0;
+
+  if (isExactMidnight && adjustedEnd.getTime() > startsAt.getTime()) {
+    adjustedEnd.setMilliseconds(adjustedEnd.getMilliseconds() - 1);
+  }
+
+  const endDay = new Date(adjustedEnd);
+  endDay.setHours(0, 0, 0, 0);
+
+  const days: Date[] = [];
+  const cursor = new Date(startDay);
+  while (cursor.getTime() <= endDay.getTime()) {
+    days.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return days;
 }
 
 /**
@@ -225,7 +280,10 @@ function formatDayLabel(date: Date, today: Date): string {
   const dayOfWeek = dayNames[date.getDay()];
   const day = date.getDate();
   const month = monthNames[date.getMonth()];
-  const dateLine = `${dayOfWeek} ${day} ${month}`;
+  const isCurrentYear = date.getFullYear() === today.getFullYear();
+  const dateLine = isCurrentYear
+    ? `${dayOfWeek} ${day} ${month}`
+    : `${dayOfWeek} ${day} ${month} ${date.getFullYear()}`;
 
   if (date.toDateString() === today.toDateString()) {
     return `idag\n${dateLine}`;

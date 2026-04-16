@@ -50,8 +50,10 @@ export function DashboardGate({
 
         setBookings(bookingsData as unknown as Booking[]);
 
-        const featuredJson = await featuredRes.json().catch(() => ({}));
-        const savedJson = await savedRes.json().catch(() => ({}));
+        const [featuredJson, savedJson] = await Promise.all([
+          featuredRes.json().catch(() => ({})),
+          savedRes.json().catch(() => ({})),
+        ]);
 
         setFeaturedEvents(
           Array.isArray((featuredJson as { events?: unknown[] }).events)
