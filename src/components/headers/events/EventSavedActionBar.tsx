@@ -151,11 +151,11 @@ export function EventSavedActionBar({
   ];
 
   return (
-    <div className="sticky left-0 right-0 bottom-12 md:bottom-2 z-20 px-2">
-      <div className="mx-auto w-full md:max-w-2xl">
+    <div className="sticky left-0 right-0 bottom-12 md:bottom-0 z-20 px-2 py-1">
+      <div className="mx-auto w-full md:max-w-xl">
         <div
           className={clsx(
-            'flex flex-col gap-2 items-stretch',
+            'flex flex-col gap-1 items-stretch',
             showSaveButton && showExternalCta
               ? 'md:flex-row md:justify-center'
               : 'md:items-center'
@@ -168,7 +168,7 @@ export function EventSavedActionBar({
               rel="noopener noreferrer"
               className="w-full md:max-w-xs"
             >
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full bg-bg">
                 {externalCtaLabel}
               </Button>
             </a>

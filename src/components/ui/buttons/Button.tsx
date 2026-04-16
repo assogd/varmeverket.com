@@ -30,12 +30,12 @@ export const Button: React.FC<ButtonProps> = ({
     switch (variant) {
       case 'primary':
         return isDark
-          ? 'uppercase border border-text text-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none'
-          : 'uppercase bg-text text-bg rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none';
+          ? 'uppercase border border-text text-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none py-3.5'
+          : 'uppercase bg-text text-bg rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none py-3.5';
       case 'secondary':
-        return 'uppercase bg-accent rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none';
+        return 'uppercase bg-accent rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none py-3.5';
       case 'outline':
-        return 'uppercase border border-text text-text rounded-md inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none';
+        return 'uppercase border border-text text-text rounded-md inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none py-[calc(0.875rem-1px)]';
       default:
         return '';
     }
@@ -48,7 +48,7 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       className={clsx(
         getVariantStyles(),
-        'px-4 py-3.5 transition-transform duration-75 ease-out active:scale-[0.99]',
+        'px-4 transition-transform duration-75 ease-out active:scale-[0.99]',
         disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-opacity-90',
         solidContrast && '!bg-black !text-[#e68456] isolate hover:!bg-black/90',
         className
