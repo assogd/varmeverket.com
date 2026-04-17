@@ -447,7 +447,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     <div className={clsx('w-full', className)}>
       <form onSubmit={handleSubmit} className="space-y-6 px-2">
         {convertedConfig.sections ? (
-          <div className="space-y-16">
+          <div className="space-y-20">
             {convertedConfig.sections.map((section, sectionIndex) => {
               return (
                 <SectionFrame

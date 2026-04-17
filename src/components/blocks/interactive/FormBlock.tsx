@@ -356,7 +356,14 @@ export const FormBlock: React.FC<FormBlockProps> = ({
           } else if (relationTo === 'events' && value) {
             const reference = formDoc.redirect?.reference as
               | {
-                  value?: string | { slug?: string; startDateTime?: string; parentSlug?: string; href?: string };
+                  value?:
+                    | string
+                    | {
+                        slug?: string;
+                        startDateTime?: string;
+                        parentSlug?: string;
+                        href?: string;
+                      };
                 }
               | undefined;
             const refValue = reference?.value;
@@ -434,19 +441,16 @@ function FormBlockInner({
 }) {
   // Header stays visible after submit success (confirmation overlays form only)
   return (
-    <div className="relative px-4 pt-8 pb-12">
+    <div className="relative pt-8 mb-12 border-b border-text">
       <DevIndicator componentName="FormBlock" />
 
       <BlockHeader
         headline={headline || actualForm.title}
         description={description}
-        className="mb-12"
+        className="mb-16"
         headlineVariant={headlineVariant}
       />
-
-      <div className="border-t border-b border-text py-2">
-        <FormRenderer config={formConfig} />
-      </div>
+      <FormRenderer config={formConfig} />
     </div>
   );
 }
