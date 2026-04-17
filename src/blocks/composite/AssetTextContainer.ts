@@ -3,6 +3,8 @@ import AssetText from '@/blocks/composite/AssetText';
 
 const AssetTextContainer: Block = {
   slug: 'assetTextContainer',
+  imageURL: '/block-thumbnails/asset-text-container.png',
+  imageAltText: 'Asset Text Container Block',
   labels: {
     singular: 'Asset Text Container',
     plural: 'Asset Text Containers',

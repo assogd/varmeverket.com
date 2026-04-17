@@ -4,6 +4,8 @@ import { InlineHeader } from '@/fields/InlineHeader';
 
 const Carousel: Block = {
   slug: 'carousel',
+  imageURL: '/block-thumbnails/carousel.png',
+  imageAltText: 'Carousel Block',
   fields: [
     ...InlineHeader,
     {

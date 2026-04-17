@@ -13,8 +13,6 @@ import HighlightGridGenerator from '@/blocks/layout/HighlightGridGenerator';
 import FAQ from '@/blocks/interactive/FAQ';
 import HighlightGrid from '@/blocks/layout/HighlightGrid';
 import Calendar from '@/blocks/interactive/Calendar';
-import InfoOverlay from '@/blocks/interactive/InfoOverlay';
-import HorizontalMarqueeBlock from '@/blocks/interactive/HorizontalMarqueeBlock';
 import TextBlock from '@/blocks/content/TextBlock';
 import CTA from '@/blocks/interactive/CTA';
 import Form from '@/blocks/interactive/Form';
@@ -202,8 +200,6 @@ const Pages: CollectionConfig = {
                 List,
                 FAQ,
                 Calendar,
-                InfoOverlay,
-                HorizontalMarqueeBlock,
                 TextBlock,
                 CTA,
                 Form,

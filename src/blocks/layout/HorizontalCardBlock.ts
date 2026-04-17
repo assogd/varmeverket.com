@@ -5,6 +5,8 @@ import InfoOverlay from '@/blocks/interactive/InfoOverlay';
 
 const HorizontalCardBlock: Block = {
   slug: 'horizontal-card-block',
+  imageURL: '/block-thumbnails/horizontal-card-block.png',
+  imageAltText: 'Horizontal Card Block',
   fields: [
     // Only use headline from InlineHeader, not description
     {
