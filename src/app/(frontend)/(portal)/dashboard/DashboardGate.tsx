@@ -11,23 +11,45 @@ import type { Booking } from '@/components/ui';
 import type { CalendarEvent } from '@/lib/calendar';
 
 interface DashboardGateProps {
-  announcements: Announcement[];
+  initialAnnouncements?: Announcement[];
   initialUserEmail?: string | null;
 }
 
 const DASHBOARD_DEBUG = process.env.NEXT_PUBLIC_DASHBOARD_DEBUG === 'true';
 
 export function DashboardGate({
-  announcements,
+  initialAnnouncements = [],
   initialUserEmail = null,
 }: DashboardGateProps) {
   const { user, loading } = useSession();
   const router = useRouter();
+  const [announcements, setAnnouncements] =
+    useState<Announcement[]>(initialAnnouncements);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(true);
   const [featuredEvents, setFeaturedEvents] = useState<CalendarEvent[]>([]);
   const [savedEvents, setSavedEvents] = useState<CalendarEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadAnnouncements = async () => {
+      try {
+        const response = await fetch('/api/announcements');
+        const json = await response.json().catch(() => []);
+        if (cancelled) return;
+        setAnnouncements(Array.isArray(json) ? (json as Announcement[]) : []);
+      } catch {
+        if (!cancelled) setAnnouncements([]);
+      }
+    };
+
+    loadAnnouncements();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const effectiveEmail = user?.email ?? initialUserEmail;
