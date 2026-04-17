@@ -441,7 +441,7 @@ function FormBlockInner({
 }) {
   // Header stays visible after submit success (confirmation overlays form only)
   return (
-    <div className="relative pt-8 mb-12 border-b border-text">
+    <div className="relative pt-8 mb-12">
       <DevIndicator componentName="FormBlock" />
 
       <BlockHeader

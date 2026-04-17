@@ -77,6 +77,7 @@ export default function AccountSettingsPage() {
       <SectionFrame
         title="Din access"
         description="Vill du uppgradera din access? Ansök via detta formulär."
+        hideBorderOnLast
       >
         <p className="">Din aktuella access</p>
         <div className="mt-2 border border-text rounded-sm uppercase px-4 py-3 bg-text/10 dark:bg-dark-text/10">
@@ -90,7 +91,7 @@ export default function AccountSettingsPage() {
         </div>
       </SectionFrame>
 
-      <SectionFrame title="Logga ut" variant="compact">
+      <SectionFrame title="Logga ut" variant="compact" hideBorderOnLast>
         <Button
           onClick={handleLogout}
           disabled={loggingOut}
@@ -104,6 +105,7 @@ export default function AccountSettingsPage() {
       <SectionFrame
         title="Ta bort konto"
         description="Kontakta oss om du vill ta bort ditt konto."
+        hideBorderOnLast
       >
         <AppLink
           link={{ type: 'external', url: 'benji@varmeverket.com' }}

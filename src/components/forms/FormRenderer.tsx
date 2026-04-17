@@ -445,7 +445,13 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
   const formTree = (
     <div className={clsx('w-full', className)}>
-      <form onSubmit={handleSubmit} className="space-y-6 px-2">
+      <form
+        onSubmit={handleSubmit}
+        className={clsx(
+          'space-y-6 mx-2',
+          !convertedConfig.sections && 'border-t border-b border-text py-2'
+        )}
+      >
         {convertedConfig.sections ? (
           <div className="space-y-20">
             {convertedConfig.sections.map((section, sectionIndex) => {
@@ -533,7 +539,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
           </div>
         ) : (
           // Render flat fields (backward compatibility)
-          <div className="max-w-2xl mx-auto border-r border-l border-text p-12">
+          <div className="max-w-2xl mx-auto sm:border-r sm:border-l border-text sm:px-12 sm:py-12 px-4 py-10">
             <div className="grid gap-6">
               {(convertedConfig.fields || allFields)
                 .filter(field => !field.showIf || field.showIf(formValues))

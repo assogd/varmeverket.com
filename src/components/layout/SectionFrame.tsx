@@ -6,6 +6,7 @@ interface SectionFrameProps {
   description?: React.ReactNode;
   children?: React.ReactNode;
   variant?: 'default' | 'compact';
+  hideBorderOnLast?: boolean;
 }
 
 export const SectionFrame: React.FC<SectionFrameProps> = ({
@@ -13,6 +14,7 @@ export const SectionFrame: React.FC<SectionFrameProps> = ({
   description,
   children,
   variant = 'default',
+  hideBorderOnLast = false,
 }) => {
   const hasHeader = !!title || !!description;
   const bodyClasses =
@@ -42,7 +44,10 @@ export const SectionFrame: React.FC<SectionFrameProps> = ({
 
   return (
     <section
-      className={clsx('space-y-3 sm:border-b last:border-b-0 pb-2 border-text')}
+      className={clsx(
+        'space-y-3 sm:border-b pb-2 border-text',
+        hideBorderOnLast && 'last:border-b-0'
+      )}
     >
       {hasHeader && (
         <div className={clsx('sm:pb-6 text-center')}>
