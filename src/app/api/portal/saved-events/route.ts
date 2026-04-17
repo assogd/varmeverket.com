@@ -88,6 +88,17 @@ export async function GET(request: NextRequest) {
     );
 
     const hydratedEvents = await hydrateSavedEvents(ids);
+    if (hydratedEvents.length === 0) {
+      if (DASHBOARD_API_DEBUG) {
+        console.info(`[dashboard-api] saved-events ${Date.now() - startedAt}ms`);
+      }
+      return NextResponse.json({
+        success: true,
+        events: [],
+        count: 0,
+      });
+    }
+
     const childParentMap = await getChildParentSlugMap();
 
     const mappedEvents = hydratedEvents.map(event => ({
@@ -120,7 +131,7 @@ async function hydrateSavedEvents(ids: string[]): Promise<HydratedEvent[]> {
 
   // Prefer one bulk query over N+1 lookups.
   try {
-    const result = await PayloadAPI.findFresh<HydratedEvent>({
+    const result = await PayloadAPI.find<HydratedEvent>({
       collection: 'events',
       depth: 1,
       limit: ids.length,
@@ -148,7 +159,7 @@ async function hydrateSavedEvents(ids: string[]): Promise<HydratedEvent[]> {
   await Promise.all(
     ids.map(async id => {
       try {
-        const doc = await PayloadAPI.findByIDFresh<HydratedEvent>('events', id, 1);
+        const doc = await PayloadAPI.findByID<HydratedEvent>('events', id, 1);
         if (process.env.NODE_ENV === 'production' && doc.status !== 'published') {
           return;
         }

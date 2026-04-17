@@ -105,7 +105,7 @@ export function DashboardGate({
     return null;
   }
 
-  if (bookingsLoading || eventsLoading) {
+  if (bookingsLoading) {
     return (
       <LoadingState
         message="Laddar bokningar..."

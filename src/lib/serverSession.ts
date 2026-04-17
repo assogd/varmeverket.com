@@ -15,18 +15,44 @@ export const buildCombinedCookieHeader = async (
 };
 
 export const fetchServerSession = async (
-  headerCookie?: string
+  headerCookie?: string,
+  options?: { timeoutMs?: number }
 ): Promise<Record<string, unknown> | null> => {
   const startedAt = Date.now();
   const combinedCookieHeader = await buildCombinedCookieHeader(headerCookie);
-  const response = await fetch(`${BACKEND_API_URL}/session`, {
-    method: 'GET',
-    headers: {
-      ...(combinedCookieHeader ? { Cookie: combinedCookieHeader } : {}),
-      Accept: 'application/json',
-    },
-    cache: 'no-store',
-  });
+  const controller =
+    typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutMs = options?.timeoutMs ?? 0;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  if (controller && timeoutMs > 0) {
+    timeout = setTimeout(() => controller.abort(), timeoutMs);
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${BACKEND_API_URL}/session`, {
+      method: 'GET',
+      headers: {
+        ...(combinedCookieHeader ? { Cookie: combinedCookieHeader } : {}),
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+      signal: controller?.signal,
+    });
+  } catch (error) {
+    if (timeout) clearTimeout(timeout);
+    if (LOGIN_FLOW_DEBUG) {
+      const label =
+        error instanceof Error && error.name === 'AbortError'
+          ? 'server-session timeout'
+          : 'server-session error';
+      console.info(`[login-flow] ${label} ${Date.now() - startedAt}ms`);
+    }
+    return null;
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     if (LOGIN_FLOW_DEBUG) {

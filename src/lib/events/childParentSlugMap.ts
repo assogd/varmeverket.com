@@ -9,7 +9,9 @@ let cachedMap: Map<string, string> | null = null;
 let cachedAt = 0;
 let inFlight: Promise<Map<string, string>> | null = null;
 
-const MAP_TTL_MS = 60 * 1000;
+// Parent-child mappings change rarely; keep a longer in-memory TTL to avoid
+// repeated full event scans on high-traffic dashboard routes.
+const MAP_TTL_MS = 15 * 60 * 1000;
 
 export async function getChildParentSlugMap(): Promise<Map<string, string>> {
   const now = Date.now();
