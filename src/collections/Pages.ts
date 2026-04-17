@@ -5,7 +5,6 @@ import Spotlight from '@/blocks/interactive/Spotlight';
 import HorizontalCardBlock from '@/blocks/layout/HorizontalCardBlock';
 import CardGrid from '@/blocks/layout/CardGrid';
 import LogotypeWall from '@/blocks/brand/LogotypeWall';
-import PartnerBlock from '@/blocks/brand/PartnerBlock';
 import Router from '@/blocks/layout/Router';
 import Carousel from '@/blocks/layout/Carousel';
 import List from '@/blocks/layout/List';
@@ -192,7 +191,6 @@ const Pages: CollectionConfig = {
                 HighlightGrid,
                 CardGrid,
                 LogotypeWall,
-                PartnerBlock,
                 Carousel,
                 CourseCatalog,
                 HighlightGridGenerator,

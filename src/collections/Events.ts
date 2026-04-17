@@ -6,7 +6,6 @@ import Video from '@/blocks/media/Video';
 import CTA from '@/blocks/interactive/CTA';
 import QA from '@/blocks/interactive/QA';
 import LogotypeWall from '@/blocks/brand/LogotypeWall';
-import PartnerBlock from '@/blocks/brand/PartnerBlock';
 import Model3D from '@/blocks/media/Model3D';
 import MinimalCarousel from '@/blocks/layout/MinimalCarousel';
 import CardGrid from '@/blocks/layout/CardGrid';
@@ -385,7 +384,6 @@ const Events: CollectionConfig = {
                       CTA,
                       QA,
                       LogotypeWall,
-                      PartnerBlock,
                       Model3D,
                       MinimalCarousel,
                       CardGrid,
