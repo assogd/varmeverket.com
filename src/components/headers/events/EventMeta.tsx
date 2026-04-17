@@ -3,7 +3,8 @@
 
 import React from 'react';
 import { formatEventDate, formatEventTime } from '@/utils/dateFormatting';
-import { IcalDownloadButton } from '@/components/ui';
+import { PlusIcon } from '@/components/icons';
+import { downloadICS } from '@/utils/icsUtils';
 
 interface EventMetaProps {
   startDateTime?: string;
@@ -62,7 +63,17 @@ export function EventMeta({
       : null;
 
   const icalButton = icalEvent ? (
-    <IcalDownloadButton event={icalEvent} />
+    <button
+      type="button"
+      onClick={() => downloadICS(icalEvent)}
+      className="inline-flex items-center justify-center gap-2"
+    >
+      <PlusIcon
+        size={10}
+        className="flex-shrink-0 no-underline translate-y-[-0.025em]"
+      />
+      <span>Importera till kalender</span>
+    </button>
   ) : null;
 
   return (
@@ -76,7 +87,7 @@ export function EventMeta({
           </span>
         </div>
       )}
-      <div className="mt-1">{icalButton}</div>
+      <div className="mt-2">{icalButton}</div>
     </div>
   );
 }
