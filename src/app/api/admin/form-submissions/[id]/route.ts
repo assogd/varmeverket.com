@@ -6,7 +6,7 @@
  * status_history (needed after PATCH status, which only returns status_message).
  *
  * PATCH — see below.
- * Proxies PATCH /v3/forms/<id> with API key — see API_GUIDE §7.4.
+ * Proxies PATCH /v3/forms/<id> with API key per backend contract.
  *
  * PATCH /api/admin/form-submissions/[id]
  * Body (JSON): { archived?: 1 | 0 } | { status: string }

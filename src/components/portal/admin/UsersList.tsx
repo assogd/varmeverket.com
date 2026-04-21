@@ -302,7 +302,7 @@ export function UsersList() {
     }
   };
 
-  /** PATCH /v2/email via /api/admin/users — API_GUIDE §8.2 */
+  /** PATCH /v2/email via /api/admin/users (backend contract). */
   const setLoginEnabled = async (enabled: 0 | 1) => {
     const targetEmail =
       userData?.emailStatus?.email ?? userData?.user?.email ?? email.trim();

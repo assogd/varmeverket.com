@@ -320,7 +320,7 @@ export class BackendAPI {
     email: string,
     redirect: string
   ): Promise<SignOnResponse> {
-    // Ensure redirect is a full URL (API guide requires this)
+    // Ensure redirect is a full URL per backend contract.
     const redirectUrl =
       redirect.startsWith('http://') || redirect.startsWith('https://')
         ? redirect
@@ -540,7 +540,7 @@ export class BackendAPI {
    * PATCH /v2/users/:email
    * Body may include: name, password, username, email (if changing address)
    * Extended fields: phone, birthdate, address_street, address_code, address_city, profile, profileImage
-   * Note: Backend may return 403 "No permission" — see API_GUIDE or contact backend if this persists.
+   * Note: Backend may return 403 "No permission" — contact backend if this persists.
    */
   static async updateUser(
     email: string,
@@ -810,8 +810,8 @@ export class BackendAPI {
    * Submit a form to Backend API
    * POST /v3/forms/<formSlug>
    *
-   * According to API_GUIDE.md, all form submissions should go to /v3/forms/<form>
-   * on the backend API. The form parameter can be either a slug or the name of the form.
+   * Form submissions go to /v3/forms/<form> on the backend API.
+   * The form parameter can be either a slug or the name of the form.
    *
    * @param formId - Form slug or name (e.g., "test-11", "contact-form")
    * @param data - Form data to submit (will be converted to form-encoded format)
@@ -828,7 +828,7 @@ export class BackendAPI {
     created_at: string;
     archived: number;
   }> {
-    // Convert data to URL-encoded format as per API_GUIDE example
+    // Convert data to URL-encoded format per backend contract.
     const formBody = new URLSearchParams();
     Object.entries(data).forEach(([key, value]) => {
       formBody.append(key, String(value));

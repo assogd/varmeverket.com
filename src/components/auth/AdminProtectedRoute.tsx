@@ -14,7 +14,7 @@ interface AdminProtectedRouteProps {
 
 /**
  * Wraps admin UI: must be logged in (ProtectedRoute) and have an admin role
- * (staff | team | system per API_GUIDE). Others are sent to redirectTo.
+ * (staff | team | system per backend policy). Others are sent to redirectTo.
  */
 export default function AdminProtectedRoute({
   children,

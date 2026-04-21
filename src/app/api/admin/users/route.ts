@@ -4,7 +4,7 @@
  *
  * GET /api/admin/users?email=<email>
  *
- * Form submissions: only from GET /v3/users/:email (API_GUIDE §3.5) —
+ * Form submissions: only from GET /v3/users/:email (backend user aggregate contract) —
  * form_submissions on the aggregated user payload. No per-form sweep.
  */
 
@@ -181,7 +181,7 @@ export async function GET(request: NextRequest) {
         'User endpoint requires session authentication (not available with API key). Only email status is available.';
     }
 
-    // Form submissions: GET /v3/users/:email only (API_GUIDE §3.5)
+    // Form submissions: GET /v3/users/:email only (backend user aggregate contract)
     let formSubmissions: unknown[] = [];
     let formSubmissionsError: string | null = null;
 
@@ -265,7 +265,7 @@ export async function GET(request: NextRequest) {
 /**
  * PATCH /api/admin/users
  * Body: { email: string, enabled: 0 | 1 }
- * Proxies PATCH /v2/email/:email with API key (API_GUIDE §8.2).
+ * Proxies PATCH /v2/email/:email with API key (backend contract).
  */
 export async function PATCH(request: NextRequest) {
   try {

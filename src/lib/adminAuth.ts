@@ -1,5 +1,5 @@
 /**
- * Admin access is role-based (API_GUIDE §9.1).
+ * Admin access is role-based by backend role policy.
  * Users with staff, team, or system may use admin tooling.
  */
 import type { User } from '@/lib/backendApi';

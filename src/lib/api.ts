@@ -366,10 +366,7 @@ export class PayloadAPI {
       created_at: string;
     }>;
   }> {
-    // Backend API expects form data as form-encoded for /v3/forms endpoint
-    // But the API_GUIDE shows it can accept JSON too, so we'll use JSON
-    // The BackendAPI.submitForm uses /forms/<formId>/submit which might be different
-    // Let's check the API_GUIDE - it says POST /v3/forms/<form>
+    // Backend API expects form data on /v3/forms/<form> as url-encoded payload.
 
     const BACKEND_API_URL =
       process.env.NEXT_PUBLIC_BACKEND_API_URL ||
@@ -379,7 +376,7 @@ export class PayloadAPI {
     const url = `${BACKEND_API_URL}/v3/forms/${formId}`;
 
     try {
-      // Convert formData to URL-encoded format as per API_GUIDE example
+      // Convert formData to URL-encoded format per backend contract.
       const formBody = new URLSearchParams();
       Object.entries(formData).forEach(([key, value]) => {
         formBody.append(key, String(value));

@@ -13,7 +13,6 @@ This document defines the release flow for stable versions.
 1. Ensure `main` is green (lint, typecheck, build).
 2. Confirm launch docs are current:
    - `README.md`
-   - `API_GUIDE.md`
    - `.env.example`
    - `CHANGELOG.md`
 3. Verify no secrets are committed (examples must use placeholders).
