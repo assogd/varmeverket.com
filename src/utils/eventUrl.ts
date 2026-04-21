@@ -28,4 +28,3 @@ export function buildEventUrl(event: EventUrlInput): string {
   const day = String(date.getDate()).padStart(2, '0');
   return `/evenemang/${parentSlug}/${year}/${month}/${day}/${slug}`;
 }
-

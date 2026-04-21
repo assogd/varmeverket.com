@@ -7,8 +7,7 @@ import { useInitialTheme } from '@/components/layout/PathBasedThemeProvider';
 import clsx from 'clsx';
 
 /* Disable theme transition from first paint so we never see orange → other color */
-const ERROR_PAGE_STYLE =
-  'html, body { transition: none !important; }';
+const ERROR_PAGE_STYLE = 'html, body { transition: none !important; }';
 
 export default function Error({
   error,

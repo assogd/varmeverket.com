@@ -12,18 +12,21 @@ import { useSettingsTab } from '@/utils/settings/useSettingsTab';
 export default function PersonalSettingsPage() {
   const { refetch: refetchSession, profilePhotoUrl: sessionProfilePhotoUrl } =
     useSession();
-  const { formConfig: personalFormConfig, user, loading, formConfigKey } = useSettingsTab(
-    createPersonalFormConfig,
-    async (user, data) => {
-      await handlePersonalFormSubmit(user!.email, data, user?.profile);
-    }
-  );
+  const {
+    formConfig: personalFormConfig,
+    user,
+    loading,
+    formConfigKey,
+  } = useSettingsTab(createPersonalFormConfig, async (user, data) => {
+    await handlePersonalFormSubmit(user!.email, data, user?.profile);
+  });
   // Local state only for optimistic update after upload; otherwise use session's profile photo (cached)
   const [profileImageOverride, setProfileImageOverride] = useState<
     string | undefined
   >(undefined);
 
-  const profileImage = profileImageOverride ?? sessionProfilePhotoUrl ?? undefined;
+  const profileImage =
+    profileImageOverride ?? sessionProfilePhotoUrl ?? undefined;
 
   if (loading) {
     return <LoadingState message="Laddar dina uppgifter…" />;

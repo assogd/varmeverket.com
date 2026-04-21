@@ -12,7 +12,6 @@ import path from 'path';
 import { buildConfig } from 'payload';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
-import { buildEventUrl } from '@/utils/eventUrl';
 
 import { Users, collections } from './schema/index';
 import { globals } from './globals/index';
@@ -80,35 +79,6 @@ export default buildConfig({
             },
           },
         ],
-        generateURL: ({ doc, url, type }) => {
-          // Handle internal links
-          if (type === 'internal' && doc) {
-            if (typeof doc === 'object' && doc.value && doc.value.slug) {
-              if (doc.relationTo === 'spaces') {
-                return `/spaces/${doc.value.slug}`;
-              } else if (doc.relationTo === 'articles') {
-                return `/artikel/${doc.value.slug}`;
-              } else if (doc.relationTo === 'events') {
-                return buildEventUrl({
-                  slug: doc.value.slug,
-                  startDateTime: doc.value.startDateTime,
-                  parentSlug: doc.value.parentSlug,
-                  href: doc.value.href,
-                });
-              } else {
-                return `/${doc.value.slug}`;
-              }
-            }
-          }
-
-          // Handle external links
-          if (type === 'external' && url) {
-            return url;
-          }
-
-          // Fallback
-          return '#';
-        },
       }),
     ],
   }),

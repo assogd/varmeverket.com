@@ -68,14 +68,13 @@ export default function AdminSubmissionsPage() {
   return (
     <div className="space-y-6">
       {listError && (
-        <p className="text-sm text-amber-700 dark:text-amber-300">{listError}</p>
+        <p className="text-sm text-amber-700 dark:text-amber-300">
+          {listError}
+        </p>
       )}
       <div className="flex gap-4 items-end">
         <div className="flex-1">
-          <label
-            htmlFor="formSlug"
-            className="block text-sm font-medium mb-2"
-          >
+          <label htmlFor="formSlug" className="block text-sm font-medium mb-2">
             Form Slug
           </label>
           {!useCustomSlug ? (
@@ -133,7 +132,10 @@ export default function AdminSubmissionsPage() {
             onChange={e => setIncludeArchived(e.target.checked)}
             className="rounded"
           />
-          <label htmlFor="includeArchived" className="text-sm whitespace-nowrap">
+          <label
+            htmlFor="includeArchived"
+            className="text-sm whitespace-nowrap"
+          >
             Include archived
           </label>
         </div>

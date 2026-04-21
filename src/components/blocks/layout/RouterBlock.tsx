@@ -25,7 +25,7 @@ const RouterBlock: React.FC<RouterBlockProps> = ({
     <section className="grid relative border-black border-b mb-2 pb-2 mx-2 last:border-b-0 last:mb-0">
       <DevIndicator componentName="RouterBlock" />
       <FadeInUp timing="normal">
-        <BlockHeader headline={headline} description={description} />
+        <BlockHeader headline={headline} description={description as never} />
       </FadeInUp>
       <hr className="my-2" />
 

@@ -23,7 +23,8 @@ const Navigation: React.FC<NavigationProps> = ({ navigation }) => {
   // Use path-based theme so nav matches the page (and is visible on portal where path is dark
   // but next-themes resolvedTheme can lag, making mix-blend-multiply nav invisible on dark bg).
   const pathTheme = getPathTheme(pathname);
-  const isDarkMode = mounted && (pathTheme === 'dark' || resolvedTheme === 'dark');
+  const isDarkMode =
+    mounted && (pathTheme === 'dark' || resolvedTheme === 'dark');
 
   useEffect(() => {
     setMounted(true);

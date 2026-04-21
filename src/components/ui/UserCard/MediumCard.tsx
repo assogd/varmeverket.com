@@ -28,7 +28,7 @@ export function MediumCard({
       {profilePicture?.url ? (
         <Image
           src={profilePicture.url}
-          alt={profilePicture.alt || fullName}
+          alt={profilePicture.alt || fullName || 'Profile picture'}
           width={120}
           height={120}
           className="w-36 h-36 object-cover mx-auto rounded-md mb-4"

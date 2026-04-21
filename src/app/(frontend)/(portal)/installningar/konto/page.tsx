@@ -23,9 +23,12 @@ function getProductNameFromSubscription(
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { showError } = useNotification();
-  const { formConfig: accountFormConfig, user, loading: settingsLoading } = useSettingsTab(
-    createAccountFormConfig,
-    (user, data) => handleAccountFormSubmit(user!.email, data)
+  const {
+    formConfig: accountFormConfig,
+    user,
+    loading: settingsLoading,
+  } = useSettingsTab(createAccountFormConfig, (user, data) =>
+    handleAccountFormSubmit(user!.email, data)
   );
 
   const [subscription, setSubscription] = useState<Subscription[] | null>(null);

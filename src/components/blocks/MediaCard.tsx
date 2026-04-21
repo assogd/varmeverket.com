@@ -111,7 +111,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
               </div>
             )}
             <RichText
-              data={body}
+              data={body as never}
               className="text-center font-mono grid gap-3 overflow-hidden"
               converters={cardConverter}
             />
@@ -187,7 +187,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
           </div>
         )}
         <RichText
-          data={body}
+          data={body as never}
           className="text-center font-mono grid gap-3"
           converters={cardConverter}
         />

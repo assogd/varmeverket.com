@@ -10,11 +10,18 @@ import {
 } from '@/components/blocks/interactive/calendar';
 import type { CalendarBlockProps, CalendarEvent } from './calendar/types';
 
-function resolveCalendarEventHref(link: CalendarEvent['link']): string | undefined {
+function resolveCalendarEventHref(
+  link: CalendarEvent['link']
+): string | undefined {
   if (!link?.type) return undefined;
   if (link.type === 'external' && link.url?.trim()) return link.url.trim();
   if (link.type === 'internal' && link.reference) {
-    const ref = link.reference as { relationTo?: string; value?: { slug?: string }; slug?: string; collection?: string };
+    const ref = link.reference as {
+      relationTo?: string;
+      value?: { slug?: string };
+      slug?: string;
+      collection?: string;
+    };
     const slug = ref.value?.slug ?? ref.slug;
     if (!slug) return undefined;
     const collection = ref.relationTo ?? ref.collection;

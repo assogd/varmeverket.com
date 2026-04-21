@@ -15,10 +15,8 @@ export async function GET() {
         success: false,
         message:
           error instanceof Error ? error.message : 'Unknown error occurred',
-        error: error instanceof Error ? error.stack : String(error),
       },
       { status: 500 }
     );
   }
 }
-

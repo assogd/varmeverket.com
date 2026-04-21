@@ -16,6 +16,16 @@ export interface ContentByTagsResult {
   totalCount: number;
 }
 
+type CombinedItem = {
+  _contentType: 'article' | 'showcase' | 'event';
+  publishedDate?: string;
+  createdAt?: string;
+  startDateTime?: string;
+  title?: string;
+  year?: number;
+  [key: string]: unknown;
+};
+
 /**
  * Core logic for fetching and filtering content by tags
  * This can be used both in API routes and server components
@@ -212,10 +222,7 @@ export async function getContentByTagsCore(
       const eventsResult = await PayloadAPI.find({
         collection: 'events',
         where: {
-          or: [
-            { status: { equals: status } },
-            { _status: { equals: status } },
-          ],
+          or: [{ status: { equals: status } }, { _status: { equals: status } }],
         },
         limit: pageSize,
         page,
@@ -262,12 +269,18 @@ export async function getContentByTagsCore(
 
     const childParentMap = new Map<string, string>();
     const eventsWithChildren = filteredEvents.filter((event: unknown) => {
-      const eventObj = event as { slug?: string; children?: Array<{ id?: string }> };
+      const eventObj = event as {
+        slug?: string;
+        children?: Array<{ id?: string }>;
+      };
       return Boolean(eventObj.slug && Array.isArray(eventObj.children));
     });
 
     for (const parent of eventsWithChildren) {
-      const parentObj = parent as { slug?: string; children?: Array<{ id?: string }> };
+      const parentObj = parent as {
+        slug?: string;
+        children?: Array<{ id?: string }>;
+      };
       const parentSlug = parentObj.slug;
       if (!parentSlug || !Array.isArray(parentObj.children)) continue;
       for (const child of parentObj.children) {
@@ -300,18 +313,18 @@ export async function getContentByTagsCore(
 
   // If both content types, combine and sort
   if (contentTypes.length > 1) {
-    const combined = [
+    const combined: CombinedItem[] = [
       ...results.articles.map((item: unknown) => ({
         ...(item as Record<string, unknown>),
-        _contentType: 'article',
+        _contentType: 'article' as const,
       })),
       ...results.showcases.map((item: unknown) => ({
         ...(item as Record<string, unknown>),
-        _contentType: 'showcase',
+        _contentType: 'showcase' as const,
       })),
       ...results.events.map((item: unknown) => ({
         ...(item as Record<string, unknown>),
-        _contentType: 'event',
+        _contentType: 'event' as const,
       })),
     ];
 
@@ -338,12 +351,12 @@ export async function getContentByTagsCore(
           (b.startDateTime as string);
         return new Date(dateA).getTime() - new Date(dateB).getTime();
       } else if (sort === 'title') {
-        return (a.title as string).localeCompare(b.title as string);
+        return (a.title || '').localeCompare(b.title || '');
       } else if (sort === '-title') {
-        return (b.title as string).localeCompare(a.title as string);
+        return (b.title || '').localeCompare(a.title || '');
       } else if (sort === 'year' || sort === '-year') {
-        const yearA = (a.year as number) || 0;
-        const yearB = (b.year as number) || 0;
+        const yearA = a.year || 0;
+        const yearB = b.year || 0;
         return sort === 'year' ? yearA - yearB : yearB - yearA;
       }
       return 0;
@@ -381,4 +394,3 @@ export async function getContentByTagsCore(
 
   return results;
 }
-

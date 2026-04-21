@@ -11,8 +11,9 @@
  * route could merge those too for admin-only buckets without a CMS entry.
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import PayloadAPI from '@/lib/api';
+import { requireAdminApiAccess } from '@/lib/adminApiAuth';
 import { getFormSlugs } from '@/lib/loadFormFromJson';
 
 const API_KEY_USERNAME = process.env.BACKEND_API_KEY_USERNAME;
@@ -24,8 +25,11 @@ export interface FormSlugOption {
   source: 'payload' | 'json';
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       return NextResponse.json(
         {
@@ -46,7 +50,7 @@ export async function GET() {
     }));
 
     // Payload forms — slug + title from CMS
-    let payloadOptions: FormSlugOption[] = [];
+    const payloadOptions: FormSlugOption[] = [];
     try {
       const result = await PayloadAPI.find<{
         id: string;

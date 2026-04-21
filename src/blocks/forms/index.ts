@@ -47,7 +47,4 @@ export const allFormFieldBlocks = [
   FormFieldMessage,
 ];
 
-export const allFormBlocks = [
-  ...allFormFieldBlocks,
-  FormSection,
-];
+export const allFormBlocks = [...allFormFieldBlocks, FormSection];

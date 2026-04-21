@@ -43,7 +43,7 @@ Example (JS):
     fetch(`/session/sign-on?redirect=${redirect}`, {
       method: "POST",
       credentials: "include",
-      headers: { contentType: "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
     });
 
@@ -73,7 +73,7 @@ Example (JS):
     const res = await fetch("/session", {
       method: "GET",
       credentials: "include",
-      headers: { contentType: "application/json" }
+      headers: { "Content-Type": "application/json" }
     });
 
 Session + user example (simplified):
@@ -199,7 +199,7 @@ Example:
     fetch(`/v2/users/${userEmail}`, {
       method: "PATCH",
       credentials: "include",
-      headers: { contentType: "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: "Firstname Lastname"
       })
@@ -297,7 +297,7 @@ Note: The curl examples here use HTTP Basic credentials for terminal testing. In
 
 ### 3.6 Profile photo
 
-Profile photos are stored in S3 (DigitalOcean Spaces). The API uses **presigned upload URLs**: the client gets a one-time URL from the API, uploads the file directly to S3, then confirms with the API. The API tracks file keys, ownership, and generates the presigned URLs. Files are stored with `public-read` ACL. Allowed origins on Spaces include `https://api.varmeverket.com`, `https://dev.varmeverket.com`, and `https://local.add.varmeverket.com:3000` for client-side uploads.
+Profile photos are stored in S3 (DigitalOcean Spaces). The API uses **presigned upload URLs**: the client gets a one-time URL from the API, uploads the file directly to S3, then confirms with the API. The API tracks file keys, ownership, and generates the presigned URLs. Files are stored with `public-read` ACL. Allowed origins on Spaces include `https://api.varmeverket.com`, `https://dev.varmeverket.com`, and `https://local.addd.varmeverket.com:3000` for client-side uploads.
 
 **Flow:** (1) Create upload intent (with optional content-type) → (2) PUT file to presigned URL with required headers → (3) Confirm upload → (4) Optional: GET profile-photo for `file_key`, `status`, and ready-made `url`.
 
@@ -615,7 +615,7 @@ Example:
 
     fetch("/v2/spaces", {
       method: "GET",
-      headers: { contentType: "application/json" }
+      headers: { "Content-Type": "application/json" }
     });
 
 Typical response item:
@@ -664,7 +664,7 @@ Example:
     fetch(`/v2/bookings?email=${userEmail}`, {
       method: "GET",
       credentials: "include",
-      headers: { contentType: "application/json" }
+      headers: { "Content-Type": "application/json" }
     });
 
 Response example:
@@ -691,7 +691,7 @@ Example:
     fetch("/v2/bookings", {
       method: "POST",
       credentials: "include",
-      headers: { contentType: "application/json" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: "user@example.com",
         space: "Studio Container 2",
@@ -711,7 +711,7 @@ Example:
     fetch(`/v2/bookings/${bookingId}`, {
       method: "DELETE",
       credentials: "include",
-      headers: { contentType: "application/json" }
+      headers: { "Content-Type": "application/json" }
     });
 
 ---
@@ -738,7 +738,7 @@ Example:
 
     fetch(`/v3/bookings?space=${space}`, {
       method: "GET",
-      headers: { contentType: "application/json" }
+      headers: { "Content-Type": "application/json" }
     });
 
 Response item example:
@@ -772,7 +772,7 @@ Front-end fetch:
     fetch("/session/logout", {
       method: "GET",
       credentials: "include",
-      headers: { contentType: "application/json" }
+      headers: { "Content-Type": "application/json" }
     });
 
 Simple HTML link:
@@ -1150,22 +1150,22 @@ Det skulle vara möjligt att enbart använda sessionshantering för att låta te
 
 Authentication is done via HTTP Basic Auth:
 
-Example credentials:
+Example credentials (placeholders only):
 
     {
-      "username": "a66d164d-fb7b-57b4-a1c7-b63c0f79703b",
-      "password": "pC1J2b8bryDVh8IlVMFfMcI-5_uz2VLLWqHI1hCAkoM"
+      "username": "<api-key-username>",
+      "password": "<api-key-password>"
     }
 
 Alternative format:
 
     {
-      "username": "a66d164d-fb7b-57b4-a1c7-b63c0f79703b",
+      "username": "<api-key-username>",
       "http_basic_auth": {
-        "username": "a66d164d-fb7b-57b4-a1c7-b63c0f79703b",
-        "password": "pC1J2b8bryDVh8IlVMFfMcI-5_uz2VLLWqHI1hCAkoM"
+        "username": "<api-key-username>",
+        "password": "<api-key-password>"
       },
-      "header": "Authorization: Basic YTY2ZDE2NGQtZmI3Yi01N2I0LWExYzctYjYzYzBmNzk3MDNiOnBDMUoyYjhicnlEVmg4SWxWTUZmTWNJLTVfdXoyVkxMV3FISTFoQ0Frb00="
+      "header": "Authorization: Basic <base64(username:password)>"
     }
 
 Using in curl:
@@ -1174,7 +1174,7 @@ Using in curl:
 
 Using as header:
 
-    Authorization: Basic YTY2ZDE2NGQtZmI3Yi01N2I0LWExYzctYjYzYzBmNzk3MDNiOnBDMUoyYjhicnlEVmg4SWxWTUZmTWNJLTVfdXoyVkxMV3FISTFoQ0Frb00=
+    Authorization: Basic <base64(username:password)>
 
 Note: This API key is intended for use in server context only.
 

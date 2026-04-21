@@ -125,7 +125,8 @@ export function BookingsList() {
                         </div>
                       )}
                       <div>
-                        <span className="font-medium">Space:</span> {booking.space}
+                        <span className="font-medium">Space:</span>{' '}
+                        {booking.space}
                       </div>
                       <div>
                         <span className="font-medium">Start:</span>{' '}

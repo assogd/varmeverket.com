@@ -19,16 +19,13 @@ export function extractPlainText(data: {
 }): string {
   if (!data || !data.root || !data.root.children) return '';
 
-  const extractText = (
-    nodes: Array<{
-      type: string;
-      children?: Array<{
-        text?: string;
-        type?: string;
-      }>;
-      text?: string;
-    }>
-  ): string => {
+  type RichTextNode = {
+    type?: string;
+    children?: RichTextNode[];
+    text?: string;
+  };
+
+  const extractText = (nodes: RichTextNode[]): string => {
     return nodes
       .map(node => {
         if (node.type === 'text') {

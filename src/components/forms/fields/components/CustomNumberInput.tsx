@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
-import { PlusIcon } from '@/components/icons';
 
 interface CustomNumberInputProps {
   id: string;
@@ -28,7 +27,6 @@ export const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
   onFocus,
   onBlur,
   disabled = false,
-  error,
   required = false,
   placeholder,
   min,

@@ -7,7 +7,9 @@ interface LoginNotificationsProps {
   errorMessage?: string | null;
 }
 
-export const LoginNotifications = ({ errorMessage }: LoginNotificationsProps) => {
+export const LoginNotifications = ({
+  errorMessage,
+}: LoginNotificationsProps) => {
   const { showError } = useNotification();
   const hasNotified = useRef(false);
 
@@ -21,7 +23,10 @@ export const LoginNotifications = ({ errorMessage }: LoginNotificationsProps) =>
     ) {
       return 'E-postadressen är inte aktiverad eller inväntar godkännande.';
     }
-    if (normalized.includes('email är obligatorisk') || normalized.includes('email is required')) {
+    if (
+      normalized.includes('email är obligatorisk') ||
+      normalized.includes('email is required')
+    ) {
       return 'Fyll i din epostadress.';
     }
     if (

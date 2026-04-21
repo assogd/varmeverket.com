@@ -15,7 +15,9 @@ export interface Announcement {
 function isAnnouncementActive(announcement: Announcement, now: Date): boolean {
   if (!announcement.isEnabled) return false;
 
-  const startsAt = announcement.startsAt ? new Date(announcement.startsAt) : null;
+  const startsAt = announcement.startsAt
+    ? new Date(announcement.startsAt)
+    : null;
   const endsAt = announcement.endsAt ? new Date(announcement.endsAt) : null;
 
   // Guard against invalid date strings; treat invalid constraints as non-active.

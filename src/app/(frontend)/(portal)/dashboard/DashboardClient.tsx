@@ -52,7 +52,10 @@ export function DashboardClient({
     const savedItems = eventsToCalendarItems(savedEvents, 'saved');
     return mergeCalendarItems(bookingItems, featuredItems, savedItems);
   }, [bookings, featuredEvents, savedEvents]);
-  const totalCardCount = useMemo(() => countCalendarCards(allItems), [allItems]);
+  const totalCardCount = useMemo(
+    () => countCalendarCards(allItems),
+    [allItems]
+  );
   const dayGroups = useMemo(
     () => groupCalendarItemsByDay(allItems, visibleCount),
     [allItems, visibleCount]

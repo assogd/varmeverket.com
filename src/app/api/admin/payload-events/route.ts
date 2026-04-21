@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminApiAccess } from '@/lib/adminApiAuth';
 
 type EventDoc = {
   id?: string;
@@ -38,6 +39,9 @@ function normalizeEvents(docs: EventDoc[]): Array<{
 
 export async function GET(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     const payloadApiBase =
       process.env.PAYLOAD_API_URL ||
       process.env.NEXT_PUBLIC_PAYLOAD_API_URL ||
@@ -110,4 +114,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

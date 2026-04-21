@@ -34,10 +34,7 @@ export function RoundButton({
   const style = { width: size, minWidth: size, maxWidth: size };
   const content = (
     <span
-      className={clsx(
-        'whitespace-nowrap',
-        contentClassName ?? '-rotate-45'
-      )}
+      className={clsx('whitespace-nowrap', contentClassName ?? '-rotate-45')}
     >
       {children}
     </span>

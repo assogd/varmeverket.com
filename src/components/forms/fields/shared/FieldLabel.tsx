@@ -15,7 +15,6 @@ export const FieldLabel: React.FC<FieldLabelProps> = ({
   label,
   required = false,
   error,
-  focused = false,
   className = '',
 }) => {
   const labelClasses = clsx(

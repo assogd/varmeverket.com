@@ -7,6 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminApiAccess } from '@/lib/adminApiAuth';
 
 const BACKEND_API_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL ||
@@ -19,6 +20,9 @@ const API_KEY_PASSWORD = process.env.BACKEND_API_KEY_PASSWORD;
 
 export async function GET(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     // Check if API key is configured
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       console.error('❌ API key not configured');
@@ -42,7 +46,7 @@ export async function GET(request: NextRequest) {
     ).toString('base64');
 
     let url: string;
-    
+
     if (email) {
       // Get bookings for a specific user
       // Note: /v2/bookings requires session auth (user's own bookings)
@@ -64,7 +68,7 @@ export async function GET(request: NextRequest) {
     const headers: Record<string, string> = {
       Accept: 'application/json',
     };
-    
+
     // Only use API key for /v2/bookings (user bookings)
     // /v3/bookings is public and doesn't need auth
     if (email) {
@@ -92,7 +96,7 @@ export async function GET(request: NextRequest) {
         error: errorData,
         url,
       });
-      
+
       // Special handling for 403 on /v2/bookings
       if (response.status === 403 && email) {
         return NextResponse.json(
@@ -101,12 +105,13 @@ export async function GET(request: NextRequest) {
             message:
               'The /v2/bookings endpoint requires session authentication (user must be logged in). The API key does not have access to user-specific bookings. Try using the "By Space" or "All Bookings" options instead, which use the public /v3/bookings endpoint.',
             status: response.status,
-            suggestion: 'Use "By Space" or "All Bookings" search types for admin access',
+            suggestion:
+              'Use "By Space" or "All Bookings" search types for admin access',
           },
           { status: response.status }
         );
       }
-      
+
       return NextResponse.json(
         {
           error: 'Failed to fetch bookings',

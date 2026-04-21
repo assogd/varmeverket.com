@@ -104,7 +104,9 @@ const CarouselBlock: React.FC<CarouselBlockProps> = ({
                 key={index}
                 className="embla__slide flex-[0_0_100%] min-w-0 h-full"
               >
-                <CarouselSlide {...slide} />
+                <CarouselSlide
+                  {...(slide as React.ComponentProps<typeof CarouselSlide>)}
+                />
               </div>
             ))}
           </div>

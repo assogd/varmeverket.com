@@ -6,7 +6,7 @@ import { useGLTF, OrbitControls, Environment } from '@react-three/drei';
 import { Group } from 'three';
 import { cn } from '@/utils/cn';
 
-interface Model3DProps {
+export interface Model3DProps {
   modelPath: string;
   className?: string;
   autoRotate?: boolean;

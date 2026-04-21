@@ -18,7 +18,6 @@ import { config as loadEnv } from 'dotenv';
 loadEnv({ path: path.resolve(__dirname, '..', '.env') });
 loadEnv({ path: path.resolve(__dirname, '..', '.env.local') });
 
-// @ts-expect-error getPayload is from payload package
 import { getPayload } from 'payload';
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -130,7 +129,7 @@ function legacySectionsAndFieldsToContent(
 }
 
 async function main() {
-  const configModule = await import('../src/payload.config.ts');
+  const configModule = await import('../src/payload.config');
   const payloadConfig = configModule.default;
 
   const payload = await getPayload({ config: payloadConfig });

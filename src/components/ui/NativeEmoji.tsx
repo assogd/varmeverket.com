@@ -15,11 +15,7 @@ export interface NativeEmojiProps {
  * Renders emoji as the Unicode character so it uses the device’s native style
  * (e.g. Apple on iOS/macOS, Google on Android). Size is controlled via font-size.
  */
-export function NativeEmoji({
-  emoji,
-  size = 24,
-  className,
-}: NativeEmojiProps) {
+export function NativeEmoji({ emoji, size = 24, className }: NativeEmojiProps) {
   return (
     <span
       role="img"

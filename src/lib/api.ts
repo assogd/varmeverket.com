@@ -61,7 +61,7 @@ async function fetchPayloadPath<T>(
     validate?: (data: unknown) => boolean;
   } = {}
 ): Promise<T> {
-  const { validate, ...init } = options;
+  const { next: incomingNext, ...init } = options;
   const bases = isDevRemoteCmsFirst
     ? [DEV_API_BASE_URL, PROD_API_BASE_URL]
     : [API_BASE_URL];
@@ -69,15 +69,23 @@ async function fetchPayloadPath<T>(
   let lastError: Error | null = null;
   for (const base of bases) {
     try {
-      const url = path.startsWith('http') ? path : `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+      const url = path.startsWith('http')
+        ? path
+        : `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+      const normalizedNext =
+        incomingNext && typeof incomingNext.revalidate === 'number'
+          ? { revalidate: incomingNext.revalidate }
+          : undefined;
       const response = await monitoredFetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        next: { revalidate: 1800 },
         ...init,
+        ...(normalizedNext ? { next: normalizedNext } : {}),
       });
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `API request failed: ${response.status} ${response.statusText}`
+        );
       }
       const data = (await response.json()) as T;
       // Successful 200 is the answer — return it even when validate fails (e.g. empty docs),
@@ -86,7 +94,10 @@ async function fetchPayloadPath<T>(
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
       if (SERVER_API_DEBUG && base === bases[0]) {
-        console.error(`❌ Payload request failed (trying next base):`, lastError);
+        console.error(
+          `❌ Payload request failed (trying next base):`,
+          lastError
+        );
       }
     }
   }
@@ -122,7 +133,10 @@ async function fetchFromExternalAPI<T>(
     return await fetchPayloadPath<ApiResponse<T>>(path);
   } catch (error) {
     if (SERVER_API_DEBUG) {
-      console.error(`❌ Failed to fetch from external API (${collection}):`, error);
+      console.error(
+        `❌ Failed to fetch from external API (${collection}):`,
+        error
+      );
     }
     throw error;
   }
@@ -235,7 +249,9 @@ export class PayloadAPI {
     depth = 10
   ): Promise<T> {
     const path = `/${collection}/${id}?depth=${depth}`;
-    return fetchPayloadPath<T>(path, { next: { revalidate: 60 } } as RequestInit);
+    return fetchPayloadPath<T>(path, {
+      next: { revalidate: 60 },
+    } as RequestInit);
   }
 
   /**
@@ -275,13 +291,16 @@ export class PayloadAPI {
       const path = `/${collection}?${params.toString()}`;
       try {
         const data = await fetchPayloadPath<{ docs: T[] }>(path, {
-          validate: (d) =>
+          validate: (d: unknown) =>
             Array.isArray((d as { docs?: unknown[] }).docs) &&
             (d as { docs: unknown[] }).docs.length > 0,
         });
         return data.docs[0] ?? null;
       } catch (error) {
-        console.error(`❌ Failed to fetch by slug from API (${collection}):`, error);
+        console.error(
+          `❌ Failed to fetch by slug from API (${collection}):`,
+          error
+        );
         throw error;
       }
     });
@@ -305,7 +324,7 @@ export class PayloadAPI {
     const path = `/${collection}?${params.toString()}`;
     try {
       const data = await fetchPayloadPath<{ docs: T[] }>(path, {
-        validate: d =>
+        validate: (d: unknown) =>
           Array.isArray((d as { docs?: unknown[] }).docs) &&
           (d as { docs: unknown[] }).docs.length > 0,
         next: { revalidate: 0 },
@@ -320,11 +339,11 @@ export class PayloadAPI {
 
   /**
    * Submit a form
-   * 
+   *
    * Note: Form submissions go to Backend API (/v3/forms/<formSlug>), not Payload CMS.
    * This ensures all form submissions are stored in the backend database and can be
    * linked to users if an email field exists.
-   * 
+   *
    * @param formId - Form slug or name (e.g., "test-11", "contact-form")
    * @param formData - Form data to submit
    * @returns Submission response with id, form, submission data, etc.
@@ -347,20 +366,16 @@ export class PayloadAPI {
       created_at: string;
     }>;
   }> {
-    // Import BackendAPI to use its submitForm method
-    // This ensures we use the correct endpoint and authentication
-    const { BackendAPI } = await import('./backendApi');
-    
     // Backend API expects form data as form-encoded for /v3/forms endpoint
     // But the API_GUIDE shows it can accept JSON too, so we'll use JSON
     // The BackendAPI.submitForm uses /forms/<formId>/submit which might be different
     // Let's check the API_GUIDE - it says POST /v3/forms/<form>
-    
+
     const BACKEND_API_URL =
       process.env.NEXT_PUBLIC_BACKEND_API_URL ||
       process.env.BACKEND_API_URL ||
       'https://api.varmeverket.com';
-    
+
     const url = `${BACKEND_API_URL}/v3/forms/${formId}`;
 
     try {

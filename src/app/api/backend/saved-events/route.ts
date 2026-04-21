@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchServerSession, buildCombinedCookieHeader } from '@/lib/serverSession';
+import {
+  fetchServerSession,
+  buildCombinedCookieHeader,
+} from '@/lib/serverSession';
 import { BACKEND_API_URL } from '@/lib/backendApi';
 
 type SavedEvent = {
@@ -38,9 +41,7 @@ async function requirePortalUser(request: NextRequest): Promise<{
 
 export async function GET(request: NextRequest) {
   try {
-    const { email, combinedCookieHeader } = await requirePortalUser(
-      request
-    );
+    const { email, combinedCookieHeader } = await requirePortalUser(request);
 
     const articleId = request.nextUrl.searchParams.get('article_id') ?? null;
 
@@ -101,9 +102,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, combinedCookieHeader } = await requirePortalUser(
-      request
-    );
+    const { email, combinedCookieHeader } = await requirePortalUser(request);
 
     let body: { articleId?: string; article_id?: string };
     try {
@@ -182,9 +181,7 @@ export async function POST(request: NextRequest) {
 // Optional: not used by the current UI yet, but implemented for completeness.
 export async function DELETE(request: NextRequest) {
   try {
-    const { email, combinedCookieHeader } = await requirePortalUser(
-      request
-    );
+    const { email, combinedCookieHeader } = await requirePortalUser(request);
 
     const articleId =
       request.nextUrl.searchParams.get('article_id')?.trim() ?? '';
@@ -241,4 +238,3 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
-

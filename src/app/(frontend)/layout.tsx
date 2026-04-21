@@ -1,10 +1,7 @@
 import React from 'react';
 import localFont from 'next/font/local';
 import './globals.css';
-import {
-  type NavigationData,
-  BackgroundLoader,
-} from '@/components/layout';
+import { type NavigationData, BackgroundLoader } from '@/components/layout';
 import Chrome from '@/components/layout/Chrome';
 import { PathBasedThemeProvider } from '@/components/layout/PathBasedThemeProvider';
 import { NotificationProvider } from '@/contexts/NotificationContext';
@@ -14,11 +11,11 @@ import {
   AdminContainer,
   RevalidateButton,
   ExitPreviewButton,
-  CachePerformance,
 } from '@/components/admin';
 import PayloadAPI from '@/lib/api';
 import { initializeCacheWarming } from '@/utils/cacheWarmer';
 import '@/utils/testCacheMonitor';
+import type { LinkGroup } from '@/utils/linkRouter';
 
 const sans = localFont({
   src: [
@@ -117,7 +114,7 @@ async function getNavigation() {
 async function getFooter() {
   try {
     const footer = await PayloadAPI.getGlobal<{
-      links?: Array<{ link: unknown }>;
+      links?: Array<{ link: LinkGroup }>;
     }>('footer', 3);
     return footer;
   } catch (error) {
@@ -131,7 +128,10 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
 
   // Initialize cache warming in the background
   initializeCacheWarming();
-  const [navigation, footer] = await Promise.all([getNavigation(), getFooter()]);
+  const [navigation, footer] = await Promise.all([
+    getNavigation(),
+    getFooter(),
+  ]);
   const useCustomFonts = true;
   const htmlClass = useCustomFonts
     ? `${sans.variable} ${mono.variable} ${display.variable} ${ballPill.variable} font-sans bg-bg dark:bg-dark-bg text-text dark:text-dark-text`
@@ -146,23 +146,27 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="sv" className={finalHtmlClass} suppressHydrationWarning>
       <body>
-        <PathBasedThemeProvider initialThemeFromHeader={themeFromHeader as 'light' | 'dark' | 'orange'}>
+        <PathBasedThemeProvider
+          initialThemeFromHeader={
+            themeFromHeader as 'light' | 'dark' | 'orange'
+          }
+        >
           <SessionProvider>
             <NotificationProvider>
               <BackgroundLoader>
-                  <Chrome
-                    navigation={navigation}
-                    footerLinks={footer?.links}
-                    mainClassName={mainClassName}
-                  >
-                    {children}
-                  </Chrome>
-                  <AdminContainer>
-                    <RevalidateButton />
-                    <ExitPreviewButton />
-                  </AdminContainer>
-                  <NotificationContainer />
-                </BackgroundLoader>
+                <Chrome
+                  navigation={navigation}
+                  footerLinks={footer?.links}
+                  mainClassName={mainClassName}
+                >
+                  {children}
+                </Chrome>
+                <AdminContainer>
+                  <RevalidateButton />
+                  <ExitPreviewButton />
+                </AdminContainer>
+                <NotificationContainer />
+              </BackgroundLoader>
             </NotificationProvider>
           </SessionProvider>
         </PathBasedThemeProvider>

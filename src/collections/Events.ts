@@ -235,7 +235,8 @@ const Events: CollectionConfig = {
                   type: 'text',
                   required: false,
                   admin: {
-                    description: 'Button label shown in the sticky event action area.',
+                    description:
+                      'Button label shown in the sticky event action area.',
                   },
                 },
               ],
@@ -442,4 +443,3 @@ const Events: CollectionConfig = {
 };
 
 export default Events;
-

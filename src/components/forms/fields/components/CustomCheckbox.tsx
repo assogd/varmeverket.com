@@ -1,6 +1,5 @@
 import React from 'react';
 import clsx from 'clsx';
-import { CheckIcon } from '@/components/icons';
 
 interface CustomCheckboxProps {
   id: string;
@@ -20,7 +19,6 @@ export const CustomCheckbox: React.FC<CustomCheckboxProps> = ({
   onFocus,
   onBlur,
   disabled = false,
-  error,
   className = '',
 }) => {
   return (

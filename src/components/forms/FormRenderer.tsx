@@ -18,6 +18,7 @@ import { SectionFrame } from '@/components/layout/SectionFrame';
 import { MarqueeButton, Button, FadeIn } from '@/components/ui';
 import clsx from 'clsx';
 import { useNotification } from '@/hooks/useNotification';
+import { conditionToShowIf } from './index';
 
 interface FormRendererProps {
   config: FormConfig;
@@ -59,9 +60,12 @@ const convertFormFieldBlockToFormField = (
   // Convert conditionalField (CMS JSON) to showIf function if present
   let showIf = block.showIf;
   if (!showIf && block.conditionalField) {
-    const { conditionToShowIf } = require('./index');
     showIf = conditionToShowIf(block.conditionalField);
   }
+  const validation =
+    typeof block.validation === 'function'
+      ? (block.validation as (value: unknown) => string | true)
+      : undefined;
 
   return {
     name: block.name,
@@ -78,9 +82,7 @@ const convertFormFieldBlockToFormField = (
     pattern: block.pattern,
     maxLength: block.maxLength,
     showIf,
-    ...(typeof block.validation === 'function' && {
-      validation: block.validation,
-    }),
+    ...(validation && { validation }),
   };
 };
 

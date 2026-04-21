@@ -7,7 +7,10 @@ export function middleware(request: NextRequest) {
 
   // Redirect /installningar to default tab before any page/layout runs
   if (pathname === '/installningar' || pathname === '/installningar/') {
-    return NextResponse.redirect(new URL('/installningar/personligt', request.url), 307);
+    return NextResponse.redirect(
+      new URL('/installningar/personligt', request.url),
+      307
+    );
   }
 
   const theme = getPathTheme(pathname);

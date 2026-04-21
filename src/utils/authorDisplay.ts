@@ -3,14 +3,17 @@
  * ({ value: { firstName, ... } }) and prefers name over email.
  */
 
-export type AuthorLike = {
-  firstName?: string | null;
-  lastName?: string | null;
-  email?: string | null;
-  bylineDescription?: string | null;
-  /** Payload relationship populated shape */
-  value?: AuthorLike;
-} | null | undefined;
+export type AuthorLike =
+  | {
+      firstName?: string | null;
+      lastName?: string | null;
+      email?: string | null;
+      bylineDescription?: string | null;
+      /** Payload relationship populated shape */
+      value?: AuthorLike;
+    }
+  | null
+  | undefined;
 
 function unwrapAuthor(author: AuthorLike): AuthorLike {
   if (!author || typeof author !== 'object') return author;
@@ -44,7 +47,9 @@ export function getAuthorDisplayName(author: AuthorLike): string {
 /**
  * Byline description — same unwrap so it works when author is nested under value.
  */
-export function getAuthorBylineDescription(author: AuthorLike): string | undefined {
+export function getAuthorBylineDescription(
+  author: AuthorLike
+): string | undefined {
   const a = unwrapAuthor(author);
   if (!a || typeof a !== 'object') return undefined;
   const d = a.bylineDescription;

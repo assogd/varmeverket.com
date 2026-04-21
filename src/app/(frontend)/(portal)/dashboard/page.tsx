@@ -13,7 +13,8 @@ export default async function DashboardPage() {
     timeoutMs: DASHBOARD_SESSION_TIMEOUT_MS,
   });
   const initialUserEmail =
-    typeof (serverSession?.user as { email?: unknown } | undefined)?.email === 'string'
+    typeof (serverSession?.user as { email?: unknown } | undefined)?.email ===
+    'string'
       ? ((serverSession?.user as { email: string }).email ?? null)
       : null;
 

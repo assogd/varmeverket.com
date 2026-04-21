@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
 
 type Placement = 'right' | 'bottom-start' | 'bottom-end';
@@ -21,9 +21,8 @@ interface DropdownMenuContextValue {
   close: () => void;
 }
 
-const DropdownMenuContext = React.createContext<DropdownMenuContextValue | null>(
-  null
-);
+const DropdownMenuContext =
+  React.createContext<DropdownMenuContextValue | null>(null);
 
 export interface DropdownMenuProps {
   /** Element that opens the menu on click */
@@ -56,10 +55,13 @@ export const DropdownMenuRoot: React.FC<DropdownMenuProps> = ({
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
 
-  const setOpen = (next: boolean) => {
-    if (!isControlled) setInternalOpen(next);
-    onOpenChange?.(next);
-  };
+  const setOpen = useCallback(
+    (next: boolean) => {
+      if (!isControlled) setInternalOpen(next);
+      onOpenChange?.(next);
+    },
+    [isControlled, onOpenChange]
+  );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -74,7 +76,7 @@ export const DropdownMenuRoot: React.FC<DropdownMenuProps> = ({
       document.addEventListener('mousedown', handleClickOutside);
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
+  }, [open, setOpen]);
 
   const handleTriggerClick = () => {
     if (disabled) return;

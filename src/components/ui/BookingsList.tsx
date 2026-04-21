@@ -158,4 +158,3 @@ export const BookingsList: React.FC<BookingsListProps> = ({
     </div>
   );
 };
-

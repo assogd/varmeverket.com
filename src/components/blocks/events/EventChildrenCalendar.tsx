@@ -15,10 +15,10 @@ export interface EventChildItem {
 }
 
 interface EventChildrenCalendarProps {
-  children: EventChildItem[];
+  eventsList: EventChildItem[];
   parentSlug: string;
   headline?: string;
-   /** Optional slug of the currently active child event; disables its card. */
+  /** Optional slug of the currently active child event; disables its card. */
   activeChildSlug?: string;
 }
 
@@ -41,7 +41,7 @@ function toCalendarEvent(child: EventChildItem): CalendarEvent {
 }
 
 export function EventChildrenCalendar({
-  children,
+  eventsList,
   parentSlug,
   headline = 'Kalender',
   activeChildSlug,
@@ -57,7 +57,7 @@ export function EventChildrenCalendar({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const events = children.map(toCalendarEvent);
+  const events = eventsList.map(toCalendarEvent);
 
   if (events.length === 0) return null;
 
@@ -81,7 +81,7 @@ export function EventChildrenCalendar({
       <div className="max-w-8xl mx-auto">
         <div className="grid xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
           {events.map((event, index) => {
-            const child = children[index];
+            const child = eventsList[index];
             const isActive =
               !!activeChildSlug && child && child.slug === activeChildSlug;
             const href =

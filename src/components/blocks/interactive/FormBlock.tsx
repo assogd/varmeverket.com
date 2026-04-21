@@ -4,7 +4,7 @@ import React from 'react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
 import { BlockHeader } from '@/components/blocks/BlockHeader';
 import { submitForm } from '@/services/formService';
-import { FormRenderer } from '@/components/forms';
+import { conditionToShowIf, FormRenderer } from '@/components/forms';
 import type {
   FormConfig,
   FormField,
@@ -138,7 +138,6 @@ const convertFormFieldBlockToFormField = (
   // Convert conditionalField (CMS JSON) to showIf function if present
   let showIf: ((formValues: FormValues) => boolean) | undefined = block.showIf;
   if (!showIf && block.conditionalField) {
-    const { conditionToShowIf } = require('@/components/forms');
     showIf = conditionToShowIf(block.conditionalField);
   }
 

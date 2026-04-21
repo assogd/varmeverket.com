@@ -61,8 +61,17 @@ export function generatePreviewActivationUrl(
   slug: string,
   baseUrl: string = ''
 ): string {
-  const previewSecret = process.env.PREVIEW_SECRET || 'your-preview-secret';
-  return `${baseUrl}/api/preview?secret=${previewSecret}&collection=${collection}&slug=${slug}`;
+  const previewSecret = process.env.PREVIEW_SECRET;
+  if (!previewSecret) {
+    throw new Error('PREVIEW_SECRET is required to generate preview URLs');
+  }
+
+  const params = new URLSearchParams({
+    secret: previewSecret,
+    collection,
+    slug,
+  });
+  return `${baseUrl}/api/preview?${params.toString()}`;
 }
 
 /**

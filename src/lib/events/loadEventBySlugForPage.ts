@@ -15,7 +15,12 @@ export interface EventForPage {
   } | null;
   startDateTime?: string;
   endDateTime?: string;
-  featuredImage?: { url: string; alt?: string; width?: number; height?: number } | null;
+  featuredImage?: {
+    url: string;
+    alt?: string;
+    width?: number;
+    height?: number;
+  } | null;
   form?: unknown;
   children?: Array<{
     id: string;
@@ -99,4 +104,3 @@ export async function loadEventBySlugForPage<T extends EventForPage>(params: {
 
   return { event, isPortalLoggedIn };
 }
-

@@ -30,4 +30,3 @@ export function MembersOnlyEventGate({
 
   return <>{children}</>;
 }
-

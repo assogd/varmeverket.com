@@ -40,7 +40,9 @@ type BlockRenderer = (
 // Block registry mapping blockType to component
 const blockRegistry: Record<
   string,
-  ComponentType<any> | ((props: any) => React.ReactElement | null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  | ComponentType<any>
+  | ((props: Record<string, unknown>) => React.ReactElement | null)
 > = {
   assetText: AssetTextBlock,
   assetTextContainer: AssetTextContainerBlock,
@@ -113,5 +115,7 @@ export const renderBlocks = (
 ): React.ReactElement[] => {
   if (!blocks) return [];
 
-  return blocks.map((block, index) => renderBlock(block, index, options));
+  return blocks
+    .map((block, index) => renderBlock(block, index, options))
+    .filter((el): el is React.ReactElement => el !== null);
 };

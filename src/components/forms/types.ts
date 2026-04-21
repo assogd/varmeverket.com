@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * Form field and configuration types
- * 
+ *
  * This is the single source of truth for form field types.
  * Used by both hardcoded forms and Payload CMS form builder.
  */

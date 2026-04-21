@@ -19,21 +19,28 @@ export function getSEOData(page: Page | Article | Space): SEOData {
   const seoData = (page as Record<string, unknown>).seo as
     | Record<string, unknown>
     | undefined;
+  const seoTitle = typeof seoData?.title === 'string' ? seoData.title : '';
+  const seoDescription =
+    typeof seoData?.description === 'string' ? seoData.description : '';
+  const seoNoIndex =
+    typeof seoData?.noIndex === 'boolean' ? seoData.noIndex : false;
 
   // Get page title with fallback logic
-  let title = seoData?.title || page.title || '';
+  let title = seoTitle || page.title || '';
 
   // Apply title template if no custom SEO title is set
-  if (!seoData?.title && page.title) {
+  if (!seoTitle && page.title) {
     title = seoConfig.defaultTitleTemplate
       .replace('{title}', page.title)
       .replace('{siteName}', seoConfig.siteName);
   }
 
   // Get description with fallback logic
-  let description = seoData?.description || '';
-  if (!description && 'excerpt' in page && page.excerpt) {
-    description = page.excerpt;
+  let description = seoDescription || '';
+  const excerptValue =
+    'excerpt' in page && typeof page.excerpt === 'string' ? page.excerpt : '';
+  if (!description && excerptValue) {
+    description = excerptValue;
   }
   if (!description) {
     description = seoConfig.defaultDescription;
@@ -41,20 +48,27 @@ export function getSEOData(page: Page | Article | Space): SEOData {
 
   // Get image with fallback logic
   let image: string | undefined;
-  if (seoData?.image && typeof seoData.image === 'object') {
-    image = seoData.image.url;
-  } else if (
-    'heroAsset' in page &&
-    page.heroAsset?.image &&
-    typeof page.heroAsset.image === 'object'
-  ) {
-    image = page.heroAsset.image.url;
+  const seoImage =
+    seoData && typeof seoData.image === 'object'
+      ? (seoData.image as { url?: string })
+      : null;
+  if (seoImage?.url) {
+    image = seoImage.url;
+  } else if ('heroAsset' in page && page.heroAsset) {
+    const heroAsset = page.heroAsset as Record<string, unknown>;
+    const heroImage =
+      heroAsset.image && typeof heroAsset.image === 'object'
+        ? (heroAsset.image as { url?: string })
+        : null;
+    if (heroImage?.url) {
+      image = heroImage.url;
+    }
   } else {
     image = seoConfig.defaultImage;
   }
 
   // Get noIndex flag
-  const noIndex = seoData?.noIndex || false;
+  const noIndex = seoNoIndex;
 
   return {
     title,

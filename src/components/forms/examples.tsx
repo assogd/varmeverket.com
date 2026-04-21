@@ -30,12 +30,12 @@ export const contactFormConfig: FormConfig = {
     }),
   ],
   submitButtonLabel: 'Send Message',
-  onSubmit: async (data) => {
+  onSubmit: async data => {
     // Your submission logic here
     console.log('Contact form submitted:', data);
     // await fetch('/api/contact', { method: 'POST', body: JSON.stringify(data) });
   },
-  successMessage: 'Thank you! We'll get back to you soon.',
+  successMessage: "Thank you! We'll get back to you soon.",
 };
 
 /**
@@ -57,19 +57,24 @@ export const registrationFormConfig: FormConfig = {
     createField('password', 'Password', 'password', {
       required: true,
       helpText: 'Must be at least 8 characters',
-      validation: (value) => {
+      validation: value => {
         if (typeof value === 'string' && value.length < 8) {
           return 'Password must be at least 8 characters';
         }
         return true;
       },
     }),
-    createField('agreeToTerms', 'I agree to the terms and conditions', 'checkbox', {
-      required: true,
-    }),
+    createField(
+      'agreeToTerms',
+      'I agree to the terms and conditions',
+      'checkbox',
+      {
+        required: true,
+      }
+    ),
   ],
   submitButtonLabel: 'Create Account',
-  onSubmit: async (data) => {
+  onSubmit: async data => {
     console.log('Registration form submitted:', data);
     // await fetch('/api/register', { method: 'POST', body: JSON.stringify(data) });
   },
@@ -104,7 +109,7 @@ export const feedbackFormConfig: FormConfig = {
     }),
   ],
   submitButtonLabel: 'Submit Feedback',
-  onSubmit: async (data) => {
+  onSubmit: async data => {
     console.log('Feedback form submitted:', data);
   },
 };

@@ -2,6 +2,15 @@
  * Form components and utilities
  */
 
+import type {
+  FieldCondition,
+  FormField,
+  FormFieldBlock,
+  FormSection,
+  FormSectionBlock,
+  FormValues,
+} from './types';
+
 export { FormRenderer } from './FormRenderer';
 export { FormFieldComponent } from './FormField';
 

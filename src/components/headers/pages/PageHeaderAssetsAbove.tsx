@@ -12,9 +12,10 @@ import MediaAsset from '@/components/common/MediaAsset';
 import { routeLink, type LinkGroup } from '@/utils/linkRouter';
 
 interface Asset {
-  type: 'image' | 'mux';
+  type: 'image' | 'mux' | 'video';
   image?: { url: string; alt?: string; width?: number; height?: number };
   mux?: string;
+  video?: { url: string; alt?: string; width?: number; height?: number };
 }
 
 interface PageHeaderAssetsAboveProps {
@@ -65,7 +66,7 @@ export default function PageHeaderAssetsAbove({
       >
         <FadeInDown
           as="div"
-          className="flex gap-4 justify-center select-none pt-32 sm:pt-36 relative z-10"
+          className="flex gap-4 justify-center select-none pt-32 relative z-10"
           timing="fast"
           delay={0.2}
         >

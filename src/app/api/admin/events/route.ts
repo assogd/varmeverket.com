@@ -14,6 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminApiAccess } from '@/lib/adminApiAuth';
 
 const BACKEND_API_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL ||
@@ -25,6 +26,9 @@ const API_KEY_PASSWORD = process.env.BACKEND_API_KEY_PASSWORD;
 
 export async function GET(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       console.error('❌ API key not configured');
       return NextResponse.json(
@@ -118,6 +122,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       console.error('❌ API key not configured');
       return NextResponse.json(
@@ -134,10 +141,7 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: 'Invalid JSON body' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
     const email = body.email?.trim();
@@ -222,6 +226,9 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       return NextResponse.json(
         {
@@ -237,10 +244,7 @@ export async function DELETE(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: 'Invalid JSON body' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
     const email = body.email?.trim();
@@ -317,4 +321,3 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
-

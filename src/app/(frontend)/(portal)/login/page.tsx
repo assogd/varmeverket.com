@@ -58,7 +58,7 @@ async function signOnAction(formData: FormData) {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: { sent?: string; error?: string };
+  searchParams?: Promise<{ sent?: string; error?: string }>;
 }) {
   const startedAt = Date.now();
   const headerList = await headers();
@@ -66,18 +66,21 @@ export default async function LoginPage({
   const session = await fetchServerSession(headerCookie);
 
   if (LOGIN_FLOW_DEBUG) {
-    console.info(`[login-flow] login-page session-check ${Date.now() - startedAt}ms`);
+    console.info(
+      `[login-flow] login-page session-check ${Date.now() - startedAt}ms`
+    );
   }
 
   if (session?.user) {
     redirect('/dashboard');
   }
 
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const errorMessage =
-    typeof searchParams?.error === 'string'
-      ? decodeURIComponent(searchParams.error)
+    typeof resolvedSearchParams?.error === 'string'
+      ? decodeURIComponent(resolvedSearchParams.error)
       : null;
-  const sent = searchParams?.sent === '1';
+  const sent = resolvedSearchParams?.sent === '1';
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6 pt-12">

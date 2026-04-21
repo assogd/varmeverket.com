@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { AppAction, Overlay } from '@/components/ui';
-import { routeLink } from '@/utils/linkRouter';
+import { routeLink, type LinkGroup } from '@/utils/linkRouter';
 import { createMarqueeText } from '@/utils/marquee';
 import Marquee from 'react-fast-marquee';
 import OverlayTextBlock from '@/components/blocks/interactive/overlay/OverlayTextBlock';
@@ -16,6 +16,8 @@ interface InfoOverlayProps {
     heroImage?: {
       url?: string;
       alt?: string;
+      width?: number;
+      height?: number;
     };
     layout?: unknown[];
     link?: unknown;
@@ -33,7 +35,8 @@ const InfoOverlay: React.FC<InfoOverlayProps> = ({
   const [, setIsScrollable] = useState(false);
 
   // Use the global router to resolve the link
-  const linkResult = overlay.link ? routeLink(overlay.link as unknown) : null;
+  const overlayLink = overlay.link as LinkGroup | undefined;
+  const linkResult = overlayLink ? routeLink(overlayLink) : null;
 
   // Check if header is scrollable
   useEffect(() => {
@@ -100,7 +103,11 @@ const InfoOverlay: React.FC<InfoOverlayProps> = ({
             <div className="space-y-4">
               {overlay.layout.map((block: unknown, index: number) => {
                 const cleanBlock = JSON.parse(JSON.stringify(block));
-                switch (block.blockType) {
+                const blockType =
+                  block && typeof block === 'object' && 'blockType' in block
+                    ? (block as { blockType?: string }).blockType
+                    : undefined;
+                switch (blockType) {
                   case 'text':
                   case 'textBlock':
                     return <OverlayTextBlock key={index} {...cleanBlock} />;
@@ -108,7 +115,7 @@ const InfoOverlay: React.FC<InfoOverlayProps> = ({
                     return <OverlayListBlock key={index} {...cleanBlock} />;
                   default:
                     console.warn(
-                      `Unknown block type in overlay: ${block.blockType}`
+                      `Unknown block type in overlay: ${String(blockType)}`
                     );
                     return null;
                 }
@@ -126,18 +133,16 @@ const InfoOverlay: React.FC<InfoOverlayProps> = ({
           />
         </div>
 
-        {linkResult && (linkResult as unknown)?.href && overlay.link && (
+        {linkResult?.href && overlayLink && (
           <div className="bg-bg rounded-sm">
             <AppAction
-              link={overlay.link as unknown}
+              link={overlayLink}
               variant="primary"
               className="w-full !px-0 !bg-accent !text-text"
               size="lg"
             >
               <Marquee speed={30}>
-                {createMarqueeText(
-                  (overlay.link as unknown)?.text || 'Learn More'
-                )}
+                {createMarqueeText(overlayLink.text || 'Learn More')}
               </Marquee>
             </AppAction>
           </div>

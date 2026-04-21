@@ -49,7 +49,7 @@ export const FAQBlock: React.FC<FAQBlockProps> = ({
           )}
           {description && (
             <RichText
-              data={description}
+              data={description as never}
               converters={jsxConverter}
               className="grid justify-center"
             />

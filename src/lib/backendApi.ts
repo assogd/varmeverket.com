@@ -169,10 +169,17 @@ export class BackendAPI {
    */
   private static async fetch<T>(
     endpoint: string,
-    options: RequestInit & { requireAuth?: boolean; suppressErrorLog404?: boolean } = {}
+    options: RequestInit & {
+      requireAuth?: boolean;
+      suppressErrorLog404?: boolean;
+    } = {}
   ): Promise<T> {
     const url = `${BACKEND_API_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
-    const { requireAuth = true, suppressErrorLog404 = false, ...fetchOptions } = options;
+    const {
+      requireAuth = true,
+      suppressErrorLog404 = false,
+      ...fetchOptions
+    } = options;
 
     // Only add Content-Type for requests with a body (POST, PUT, PATCH)
     const hasBody = fetchOptions.body !== undefined;
@@ -650,10 +657,9 @@ export class BackendAPI {
    * DELETE /v3/users/:email/profile-photo
    */
   static async deleteProfilePhoto(email: string): Promise<void> {
-    await this.fetch(
-      `/v3/users/${encodeURIComponent(email)}/profile-photo`,
-      { method: 'DELETE' }
-    );
+    await this.fetch(`/v3/users/${encodeURIComponent(email)}/profile-photo`, {
+      method: 'DELETE',
+    });
   }
 
   /**
@@ -803,10 +809,10 @@ export class BackendAPI {
   /**
    * Submit a form to Backend API
    * POST /v3/forms/<formSlug>
-   * 
+   *
    * According to API_GUIDE.md, all form submissions should go to /v3/forms/<form>
    * on the backend API. The form parameter can be either a slug or the name of the form.
-   * 
+   *
    * @param formId - Form slug or name (e.g., "test-11", "contact-form")
    * @param data - Form data to submit (will be converted to form-encoded format)
    * @returns Submission response with id, form, submission data, etc.
@@ -849,7 +855,7 @@ export class BackendAPI {
    * GET /v3/forms/<form>
    * Returns all submissions for a given form
    * Note: May require admin authentication (API key)
-   * 
+   *
    * @param formId - Form slug or name (e.g., "test-11", "contact-form")
    * @param includeArchived - Whether to include archived submissions (default: false)
    * @returns Array of form submissions

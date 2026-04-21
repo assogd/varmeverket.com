@@ -4,7 +4,12 @@
  * Payload CMS forms are separate and managed in the admin.
  */
 
-import type { FormConfig, FormContentBlock, FormFieldBlock, FormSectionBlock } from '@/components/forms/types';
+import type {
+  FormConfig,
+  FormContentBlock,
+  FormFieldBlock,
+  FormSectionBlock,
+} from '@/components/forms/types';
 import type { FieldCondition } from '@/components/forms/types';
 import personalJson from '@/content/forms/personal.json';
 import businessJson from '@/content/forms/business.json';
@@ -92,7 +97,8 @@ function jsonFieldToBlock(f: JsonFormField): FormFieldBlock {
   };
   if (f.defaultValue !== undefined) block.defaultValue = f.defaultValue;
   if (f.validation && VALIDATION_PRESETS[f.validation]) {
-    (block as Record<string, unknown>).validation = VALIDATION_PRESETS[f.validation];
+    (block as Record<string, unknown>).validation =
+      VALIDATION_PRESETS[f.validation];
   }
   if (f.conditionalField) {
     block.conditionalField = f.conditionalField;
@@ -115,7 +121,12 @@ function jsonToFormContent(json: JsonFormConfig): FormContentBlock[] {
 /** Form slugs that have a JSON file in content/forms */
 export type FormSlug = 'personal' | 'business' | 'account' | 'medlemskap';
 
-const FORM_SLUGS: FormSlug[] = ['personal', 'business', 'account', 'medlemskap'];
+const FORM_SLUGS: FormSlug[] = [
+  'personal',
+  'business',
+  'account',
+  'medlemskap',
+];
 
 const FORM_JSON: Record<FormSlug, JsonFormConfig> = {
   personal: personalJson as JsonFormConfig,
@@ -134,7 +145,9 @@ function loadJsonFormConfig(slug: FormSlug): JsonFormConfig {
  * Load a form configuration from its JSON file.
  * Returns a partial FormConfig (content + labels); caller must set onSubmit and optionally defaults.
  */
-export function getFormConfigFromJson(slug: FormSlug): Omit<FormConfig, 'onSubmit'> {
+export function getFormConfigFromJson(
+  slug: FormSlug
+): Omit<FormConfig, 'onSubmit'> {
   const json = loadJsonFormConfig(slug);
   const content = jsonToFormContent(json);
   return {

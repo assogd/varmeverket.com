@@ -1,5 +1,4 @@
 import type { Booking } from '@/components/ui/BookingsList';
-import { formatSingleTime } from '@/utils/dateFormatting';
 import { fixImageUrl } from '@/utils/imageUrl';
 
 export interface CalendarItem {

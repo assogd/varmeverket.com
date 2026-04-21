@@ -23,7 +23,7 @@ export const slugFromTitleHook = ({
   data: Record<string, unknown>;
   operation: string;
 }) => {
-  if (data?.title) {
+  if (typeof data?.title === 'string' && data.title.trim()) {
     // Always generate slug from title for new documents
     // For updates, only generate if slug is empty or if title changed significantly
     if (operation === 'create' || !data.slug) {

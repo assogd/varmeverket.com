@@ -1,6 +1,6 @@
 /**
  * Form Service
- * 
+ *
  * Centralized service for form submission operations
  * Provides a clean interface for form-related API calls
  */
@@ -30,10 +30,10 @@ export interface FormSubmissionResponse {
 
 /**
  * Submit a form
- * 
+ *
  * All form submissions go to Backend API /v3/forms/<formSlug>
  * This includes both CMS forms (created in Payload) and hardcoded forms.
- * 
+ *
  * @param formId - Form slug or name (e.g., "test-11", "contact-form")
  * @param formData - Form data to submit
  * @returns Form submission response

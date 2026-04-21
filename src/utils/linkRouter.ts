@@ -12,6 +12,7 @@ import { buildEventUrl } from '@/utils/eventUrl';
 export interface LinkGroup {
   type: 'internal' | 'external' | 'copy';
   doc?: unknown; // Payload reference object
+  reference?: unknown; // Legacy/internal naming used in some callers
   url?: string;
   text?: string;
 }
@@ -29,15 +30,22 @@ export interface LinkRouterResult {
 function resolveReference(reference: unknown): string | undefined {
   if (!reference) return undefined;
 
+  const asRecord = (value: unknown): Record<string, unknown> | null =>
+    value && typeof value === 'object'
+      ? (value as Record<string, unknown>)
+      : null;
+
   // Handle Payload's reference structure: { relationTo: "pages", value: {...} }
-  if (
-    typeof reference === 'object' &&
-    'relationTo' in reference &&
-    'value' in reference &&
-    reference.value?.slug
-  ) {
-    const collection = reference?.relationTo;
-    const slug = reference?.value?.slug;
+  const payloadRef = asRecord(reference);
+  const payloadValue = asRecord(payloadRef?.value);
+  const payloadSlug =
+    typeof payloadValue?.slug === 'string' ? payloadValue.slug : null;
+  const payloadCollection =
+    typeof payloadRef?.relationTo === 'string' ? payloadRef.relationTo : null;
+
+  if (payloadRef && payloadValue && payloadSlug) {
+    const collection = payloadCollection;
+    const slug = payloadSlug;
 
     switch (collection) {
       case 'spaces':
@@ -48,12 +56,17 @@ function resolveReference(reference: unknown): string | undefined {
         return buildEventUrl({
           slug,
           startDateTime:
-            (reference as { value?: { startDateTime?: string } })?.value
-              ?.startDateTime,
+            typeof payloadValue.startDateTime === 'string'
+              ? payloadValue.startDateTime
+              : undefined,
           parentSlug:
-            (reference as { value?: { parentSlug?: string } })?.value
-              ?.parentSlug,
-          href: (reference as { value?: { href?: string } })?.value?.href,
+            typeof payloadValue.parentSlug === 'string'
+              ? payloadValue.parentSlug
+              : undefined,
+          href:
+            typeof payloadValue.href === 'string'
+              ? payloadValue.href
+              : undefined,
         });
       case 'pages':
       default:
@@ -63,13 +76,15 @@ function resolveReference(reference: unknown): string | undefined {
   }
 
   // Handle direct object structure: { slug: "...", collection: "..." }
-  if (
-    typeof reference === 'object' &&
-    'slug' in reference &&
-    !('relationTo' in reference)
-  ) {
-    const slug = reference?.slug;
-    const collection = reference?.collection;
+  const directRef = asRecord(reference);
+  const directSlug =
+    typeof directRef?.slug === 'string' ? directRef.slug : null;
+  const directCollection =
+    typeof directRef?.collection === 'string' ? directRef.collection : null;
+
+  if (directRef && directSlug && !('relationTo' in directRef)) {
+    const slug = directSlug;
+    const collection = directCollection;
 
     switch (collection) {
       case 'spaces':
@@ -79,9 +94,15 @@ function resolveReference(reference: unknown): string | undefined {
       case 'events':
         return buildEventUrl({
           slug,
-          startDateTime: (reference as { startDateTime?: string }).startDateTime,
-          parentSlug: (reference as { parentSlug?: string }).parentSlug,
-          href: (reference as { href?: string }).href,
+          startDateTime:
+            typeof directRef.startDateTime === 'string'
+              ? directRef.startDateTime
+              : undefined,
+          parentSlug:
+            typeof directRef.parentSlug === 'string'
+              ? directRef.parentSlug
+              : undefined,
+          href: typeof directRef.href === 'string' ? directRef.href : undefined,
         });
       case 'pages':
       default:
@@ -117,7 +138,7 @@ export function routeLink(link: LinkGroup): LinkRouterResult {
       break;
 
     case 'internal':
-      const resolvedHref = resolveReference(link.doc);
+      const resolvedHref = resolveReference(link.doc ?? link.reference);
       result.href = resolvedHref || '#';
       result.isExternal = false;
       break;

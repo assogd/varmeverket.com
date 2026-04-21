@@ -1,6 +1,6 @@
 /**
  * useBookings Hook
- * 
+ *
  * Hook for fetching and managing bookings with caching and error handling
  */
 
@@ -32,7 +32,10 @@ interface UseBookingsResult {
 }
 
 // Simple in-memory cache
-const bookingsCache = new Map<string, { bookings: Booking[]; timestamp: number }>();
+const bookingsCache = new Map<
+  string,
+  { bookings: Booking[]; timestamp: number }
+>();
 const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes (bookings change more frequently)
 
 /**
@@ -107,7 +110,7 @@ export function useBookings(options: UseBookingsOptions): UseBookingsResult {
 
       try {
         const newBooking = await createBooking(data);
-        
+
         // Update local state optimistically
         setBookings(prev => [...prev, newBooking]);
 

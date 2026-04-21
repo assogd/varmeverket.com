@@ -1,9 +1,6 @@
 'use client';
 import React, { useEffect, useCallback, useRef } from 'react';
-import {
-  Notification as NotificationType,
-  NotificationAction,
-} from './types';
+import { Notification as NotificationType, NotificationAction } from './types';
 import { AppAction } from '@/components/ui';
 import clsx from 'clsx';
 
@@ -20,8 +17,7 @@ const typeStyles = {
     'bg-red-500 text-white border-red-600 dark:bg-red-900/90 dark:border-red-700 dark:text-red-100',
   warning:
     'bg-yellow-500 text-black border-yellow-600 dark:bg-amber-900/90 dark:border-amber-700 dark:text-amber-100',
-  info:
-    'bg-blue-500 text-white border-blue-600 dark:bg-blue-900/90 dark:border-blue-700 dark:text-blue-100',
+  info: 'bg-blue-500 text-white border-blue-600 dark:bg-blue-900/90 dark:border-blue-700 dark:text-blue-100',
 };
 
 const iconMap = {

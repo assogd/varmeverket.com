@@ -28,7 +28,6 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   onFocus,
   onBlur,
   disabled = false,
-  error,
   required = false,
   className = '',
 }) => {

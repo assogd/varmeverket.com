@@ -32,7 +32,6 @@ const LinkGroup: Field = {
           siblingData?.type === 'internal',
         description: 'Select a page, space, article, or event to link to',
         allowCreate: false,
-        isClearable: true,
         appearance: 'drawer',
       },
     },

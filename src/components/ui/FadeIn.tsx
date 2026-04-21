@@ -15,7 +15,7 @@ export type FadeInVariant =
 export type FadeInTiming = 'fast' | 'normal' | 'slow';
 
 interface FadeInProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: FadeInVariant;
   timing?: FadeInTiming;
   delay?: number;

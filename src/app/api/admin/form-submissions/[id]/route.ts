@@ -15,6 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminApiAccess } from '@/lib/adminApiAuth';
 
 const BACKEND_API_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL ||
@@ -40,6 +41,9 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       return NextResponse.json(
         {
@@ -126,6 +130,9 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       return NextResponse.json(
         {
@@ -149,16 +156,16 @@ export async function PATCH(
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        { error: 'Invalid JSON body' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
     const hasStatus =
       typeof body.status === 'string' && body.status.trim() !== '';
     const hasArchived =
-      body.archived === 1 || body.archived === 0 || body.archived === '1' || body.archived === '0';
+      body.archived === 1 ||
+      body.archived === 0 ||
+      body.archived === '1' ||
+      body.archived === '0';
 
     if (hasStatus && (hasArchived || Object.keys(body).length > 1)) {
       return NextResponse.json(
@@ -187,8 +194,7 @@ export async function PATCH(
     if (hasStatus) {
       params.set('status', String(body.status).trim());
     } else {
-      const archived =
-        body.archived === 1 || body.archived === '1' ? '1' : '0';
+      const archived = body.archived === 1 || body.archived === '1' ? '1' : '0';
       params.set('archived', archived);
     }
 
@@ -215,8 +221,7 @@ export async function PATCH(
         {
           error: 'Backend PATCH failed',
           message:
-            (data as { message?: string; status_message?: string })
-              ?.message ||
+            (data as { message?: string; status_message?: string })?.message ||
             (data as { status_message?: string }).status_message ||
             response.statusText,
           status: response.status,

@@ -1,6 +1,6 @@
 /**
  * Centralized API Error Handling Utility
- * 
+ *
  * Provides consistent error handling patterns across the application
  */
 
@@ -19,7 +19,7 @@ export interface ErrorHandlerOptions {
 
 /**
  * Handle API errors consistently
- * 
+ *
  * @param error - The error to handle
  * @param options - Error handling options
  * @returns A user-friendly error message
@@ -73,7 +73,10 @@ export function handleAPIError(
           on403();
         }
         if (showToast) {
-          showToast('You do not have permission to perform this action', 'error');
+          showToast(
+            'You do not have permission to perform this action',
+            'error'
+          );
         }
         return 'You do not have permission to perform this action';
 
@@ -111,7 +114,9 @@ export function handleAPIError(
 
   // Handle network errors
   if (error instanceof TypeError && error.message.includes('fetch')) {
-    const networkError = new Error('Network error: Unable to connect to the server');
+    const networkError = new Error(
+      'Network error: Unable to connect to the server'
+    );
     if (onNetworkError) {
       onNetworkError(networkError);
     }
@@ -180,7 +185,7 @@ export function isNetworkError(error: unknown): boolean {
 
 /**
  * Retry logic for API calls
- * 
+ *
  * @param fn - Function to retry
  * @param maxRetries - Maximum number of retries (default: 3)
  * @param delay - Delay between retries in ms (default: 1000)

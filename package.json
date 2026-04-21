@@ -1,6 +1,6 @@
 {
   "name": "varmeverket",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "migrate:forms": "tsx scripts/migrate-forms-to-blocks.ts",
@@ -49,6 +49,7 @@
     "@types/react-dom": "^19",
     "@types/react-slick": "^0.23.13",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^16.4.5",
     "eslint": "^9",
     "eslint-config-next": "^15.5.7",
     "eslint-config-prettier": "^10.1.8",
@@ -56,7 +57,6 @@
     "payload": "^3.79.0",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
-    "dotenv": "^16.4.5",
     "tsx": "^4.19.2",
     "typescript": "^5"
   }

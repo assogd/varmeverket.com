@@ -72,7 +72,11 @@ async function SpacePage({ params }: SpacePageProps) {
 
   // Process dynamic blocks on the server side
   const processedSpace = await processPageLayout(space);
-  const layout = (processedSpace?.layout as Array<{ blockType: string; [key: string]: unknown }>) || [];
+  const layout =
+    (processedSpace?.layout as Array<{
+      blockType: string;
+      [key: string]: unknown;
+    }>) || [];
   const lastBlock = layout[layout.length - 1];
   const lastBlockIsMatch =
     lastBlock?.blockType === 'highlightGridGenerator' ||
@@ -80,10 +84,7 @@ async function SpacePage({ params }: SpacePageProps) {
 
   return (
     <SpacesPageWrapper>
-      <PageLayout
-        contentType="space"
-        paddingBottom={!lastBlockIsMatch}
-      >
+      <PageLayout contentType="space" paddingBottom={!lastBlockIsMatch}>
         {/* Hero Section */}
         <SpaceHeader
           spaceData={processedSpace as SpaceDataForHeader}

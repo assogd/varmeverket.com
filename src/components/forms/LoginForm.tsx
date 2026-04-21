@@ -25,7 +25,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       }),
     ],
     submitButtonLabel: 'Send Magic Link',
-    onSubmit: async (data) => {
+    onSubmit: async data => {
       const email = data.email as string;
       if (!email) {
         throw new Error('E-postadress är obligatorisk');

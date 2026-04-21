@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { requireAdminApiAccess } from '@/lib/adminApiAuth';
 
 const BACKEND_API_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL ||
@@ -74,9 +75,11 @@ async function getApiKeyCredentials(): Promise<{
 
     // If we couldn't get the password from user data, try environment variable as fallback
     if (!apiKeyPassword) {
-      apiKeyPassword =
-        process.env.BACKEND_API_KEY_PASSWORD ||
-        'pC1J2b8bryDVh8IlVMFfMcI-5_uz2VLLWqHI1hCAkoM'; // Fallback to example password
+      apiKeyPassword = process.env.BACKEND_API_KEY_PASSWORD || null;
+    }
+
+    if (!apiKeyPassword) {
+      return null;
     }
 
     return {
@@ -95,6 +98,9 @@ async function getApiKeyCredentials(): Promise<{
  */
 export async function GET(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
 
@@ -162,6 +168,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     const body = await request.json();
     const { email } = body;
 

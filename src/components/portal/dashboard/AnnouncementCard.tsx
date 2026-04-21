@@ -22,9 +22,9 @@ export function AnnouncementCard({
       )}
     >
       <Heading variant="content-h3" as="h3" size="md">
-        {announcement.title}
+        {String(announcement.title)}
       </Heading>
-      {announcement.content && (
+      {Boolean(announcement.content) && (
         <RichText
           data={announcement.content as never}
           className="text-md space-y-2"

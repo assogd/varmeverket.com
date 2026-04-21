@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     // Verify the secret token (required in production)
     const previewSecret = process.env.PREVIEW_SECRET;
-    
+
     // In production, require a secret to be set
     if (process.env.NODE_ENV === 'production' && !previewSecret) {
       console.error('PREVIEW_SECRET is not set in production environment');

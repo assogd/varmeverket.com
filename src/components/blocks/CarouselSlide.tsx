@@ -23,13 +23,6 @@ interface Media {
   height?: number;
 }
 
-interface LinkGroup {
-  type: 'internal' | 'external' | 'copy';
-  reference?: { slug: string };
-  url?: string;
-  text: string;
-}
-
 interface CarouselSlideProps {
   tags?: Tag[];
   subheadline?: string;
@@ -130,7 +123,7 @@ const CarouselSlide: React.FC<CarouselSlideProps> = ({
           {/* Content */}
           {content && (
             <RichText
-              data={content}
+              data={content as never}
               converters={cardConverter}
               className="grid gap-3"
             />

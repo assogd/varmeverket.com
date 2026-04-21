@@ -1,6 +1,6 @@
 /**
  * Booking Service
- * 
+ *
  * Centralized service for booking operations
  * Provides a clean interface for booking-related API calls
  */
@@ -17,7 +17,7 @@ export interface CreateBookingData {
 
 /**
  * Get user's bookings
- * 
+ *
  * @param email - User email address
  * @returns Array of user's bookings
  */
@@ -32,7 +32,7 @@ export async function getUserBookings(email: string): Promise<Booking[]> {
 
 /**
  * Create a new booking
- * 
+ *
  * @param data - Booking data
  * @returns Created booking
  */
@@ -47,7 +47,7 @@ export async function createBooking(data: CreateBookingData): Promise<Booking> {
 
 /**
  * Delete a booking
- * 
+ *
  * @param bookingIdx - Booking index/ID
  */
 export async function deleteBooking(bookingIdx: number): Promise<void> {
@@ -61,11 +61,13 @@ export async function deleteBooking(bookingIdx: number): Promise<void> {
 
 /**
  * Get public calendar for a space
- * 
+ *
  * @param space - Space slug or name
  * @returns Array of public bookings (no personal data)
  */
-export async function getSpaceCalendar(space: string): Promise<PublicBooking[]> {
+export async function getSpaceCalendar(
+  space: string
+): Promise<PublicBooking[]> {
   try {
     return await retryAPI(() => BackendAPI.getSpaceCalendar(space));
   } catch (error) {
@@ -76,7 +78,7 @@ export async function getSpaceCalendar(space: string): Promise<PublicBooking[]> 
 
 /**
  * Get multi-space calendar
- * 
+ *
  * @returns Array of public bookings for all spaces
  */
 export async function getMultiSpaceCalendar(): Promise<PublicBooking[]> {

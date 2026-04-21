@@ -219,7 +219,7 @@ export default async function ChildEventPage({ params }: ChildEventPageProps) {
 
         {children.length > 0 && (
           <EventChildrenCalendar
-            children={children.map(c => ({
+            eventsList={children.map(c => ({
               id: c.id,
               title: c.title ?? '',
               slug: c.slug,

@@ -139,7 +139,6 @@ export default function HighlightGridGeneratorBlock({
                   key={cardId}
                   item={item}
                   index={index}
-                  onClick={() => {}} // No-op since Link handles navigation
                 />
               );
             } else if (item._contentType === 'event' && hasImage) {
@@ -156,12 +155,7 @@ export default function HighlightGridGeneratorBlock({
               );
             } else if (item._contentType === 'event' && !hasImage) {
               return (
-                <EventCardWithoutImage
-                  key={cardId}
-                  item={item}
-                  index={index}
-                  onClick={() => {}}
-                />
+                <EventCardWithoutImage key={cardId} item={item} index={index} />
               );
             }
 

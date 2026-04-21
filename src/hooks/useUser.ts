@@ -1,11 +1,15 @@
 /**
  * useUser Hook
- * 
+ *
  * Hook for fetching and managing user data with caching and error handling
  */
 
 import { useState, useLayoutEffect, useCallback, useRef } from 'react';
-import { getUserByEmail, updateUser, type UpdateUserData } from '@/services/userService';
+import {
+  getUserByEmail,
+  updateUser,
+  type UpdateUserData,
+} from '@/services/userService';
 import type { User } from '@/lib/backendApi';
 import { handleAPIError } from '@/utils/apiErrorHandler';
 

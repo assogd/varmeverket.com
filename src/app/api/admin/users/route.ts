@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminApiAccess } from '@/lib/adminApiAuth';
 
 const BACKEND_API_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL ||
@@ -41,6 +42,9 @@ function extractFormSubmissionsFromV3(row: unknown): unknown[] {
 
 export async function GET(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       console.error('❌ API key not configured');
       return NextResponse.json(
@@ -80,11 +84,10 @@ export async function GET(request: NextRequest) {
     const emailResponse =
       emailSettled.status === 'fulfilled' ? emailSettled.value : null;
 
-    let userResponse: PromiseSettledResult<Response> | null = null;
     let userData: unknown = null;
     let userError: string | null = null;
     try {
-      userResponse = await Promise.allSettled([
+      const userResponse = await Promise.allSettled([
         fetch(`${BACKEND_API_URL}/v2/users/${encodeURIComponent(email)}`, {
           method: 'GET',
           headers: {
@@ -266,6 +269,9 @@ export async function GET(request: NextRequest) {
  */
 export async function PATCH(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       return NextResponse.json(
         {

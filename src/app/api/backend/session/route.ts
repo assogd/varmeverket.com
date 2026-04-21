@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchServerSession, buildCombinedCookieHeader } from '@/lib/serverSession';
+import { fetchServerSession } from '@/lib/serverSession';
 
 /**
  * Get session (server-side proxy)
@@ -9,19 +9,6 @@ import { fetchServerSession, buildCombinedCookieHeader } from '@/lib/serverSessi
 export async function GET(request: NextRequest) {
   try {
     const cookieHeader = request.headers.get('cookie') || '';
-    const combinedCookieHeader = await buildCombinedCookieHeader(
-      cookieHeader
-    );
-
-    console.log('🔵 Server proxy - cookies received:', {
-      fromHeader: cookieHeader,
-      fromStore: combinedCookieHeader
-        .replace(cookieHeader, '')
-        .replace(/^;\s*/, ''),
-      combined: combinedCookieHeader,
-      hasCookies: !!combinedCookieHeader,
-    });
-
     const data = await fetchServerSession(cookieHeader);
 
     if (!data) {
@@ -36,11 +23,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: error instanceof Error ? error.message : 'Unknown error occurred',
-        error: error instanceof Error ? error.stack : String(error),
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
       },
       { status: 500 }
     );
   }
 }
-

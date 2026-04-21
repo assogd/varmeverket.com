@@ -34,7 +34,8 @@ export function PathBasedThemeProvider({
 }: PathBasedThemeProviderProps) {
   const pathname = usePathname();
   const pathTheme = getPathTheme(pathname ?? null);
-  const forcedTheme = pathname != null ? pathTheme : (initialThemeFromHeader ?? 'light');
+  const forcedTheme =
+    pathname != null ? pathTheme : (initialThemeFromHeader ?? 'light');
   const initialTheme = initialThemeFromHeader ?? 'light';
 
   return (
@@ -44,7 +45,7 @@ export function PathBasedThemeProvider({
         defaultTheme="light"
         enableSystem={false}
         forcedTheme={forcedTheme}
-        themes={THEMES}
+        themes={[...THEMES]}
         storageKey="varmeverket-path-theme"
         enableColorScheme={false}
       >

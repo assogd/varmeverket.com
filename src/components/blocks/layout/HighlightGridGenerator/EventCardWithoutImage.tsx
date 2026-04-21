@@ -44,11 +44,14 @@ export default function EventCardWithoutImage({
         </header>
       </div>
       <div className="absolute bottom-0 inset-x-0 px-3 py-3">
-        <AppAction href={href} variant="secondary" className="mx-auto mt-2 w-full">
+        <AppAction
+          href={href}
+          variant="secondary"
+          className="mx-auto mt-2 w-full"
+        >
           Läs mer
         </AppAction>
       </div>
     </div>
   );
 }
-

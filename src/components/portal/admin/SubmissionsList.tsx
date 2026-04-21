@@ -25,7 +25,10 @@ interface SubmissionsListProps {
 
 /** Same form for whole page — hide per-card form id to reduce noise */
 function formMatchesPage(subForm: string, pageSlug: string) {
-  return subForm === pageSlug || subForm.replace(/^\/+/, '') === pageSlug.replace(/^\/+/, '');
+  return (
+    subForm === pageSlug ||
+    subForm.replace(/^\/+/, '') === pageSlug.replace(/^\/+/, '')
+  );
 }
 
 export function SubmissionsList({
@@ -93,10 +96,7 @@ export function SubmissionsList({
     }
   };
 
-  const grouped = useMemo(
-    () => groupSubmissions(submissions),
-    [submissions]
-  );
+  const grouped = useMemo(() => groupSubmissions(submissions), [submissions]);
 
   if (loading && submissions.length === 0) {
     return (
@@ -160,166 +160,172 @@ export function SubmissionsList({
             </h3>
             <div className="rounded-lg border border-text/15 dark:border-dark-text/15 overflow-hidden divide-y divide-text/10 dark:divide-dark-text/10">
               {items.map(sub => {
-          const isArchived = Boolean(sub.archived);
-          const busy = actionId === sub.id;
-          const fields = submissionEntries(sub.submission);
-          const showFormRow = !formMatchesPage(sub.form, formSlug);
-          const history = sub.status_history ?? [];
-          const historyOpen = historyOpenId === sub.id;
+                const isArchived = Boolean(sub.archived);
+                const busy = actionId === sub.id;
+                const fields = submissionEntries(sub.submission ?? {});
+                const showFormRow = !formMatchesPage(sub.form, formSlug);
+                const history = sub.status_history ?? [];
+                const historyOpen = historyOpenId === sub.id;
 
-          return (
-            <div
-              key={sub.id}
-              className={clsx(
-                'px-4 py-4 sm:px-5',
-                isArchived && 'bg-text/[0.02] dark:bg-white/[0.02]'
-              )}
-            >
-              {/* One-row meta + actions */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="font-mono text-sm font-medium tabular-nums">
-                    #{sub.id}
-                  </span>
-                  <span className="text-text/60 dark:text-dark-text/60 text-sm">
-                    {formatDateShort(sub.created_at)}
-                  </span>
-                  {sub.user_id != null && (
-                    <span className="text-text/50 dark:text-dark-text/50 text-sm">
-                      user {sub.user_id}
-                    </span>
-                  )}
-                  <span
+                return (
+                  <div
+                    key={sub.id}
                     className={clsx(
-                      'text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded',
-                      isArchived
-                        ? 'bg-amber-500/20 text-amber-200'
-                        : 'bg-emerald-500/20 text-emerald-200'
+                      'px-4 py-4 sm:px-5',
+                      isArchived && 'bg-text/[0.02] dark:bg-white/[0.02]'
                     )}
                   >
-                    {isArchived ? 'Archived' : 'Active'}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
-                  <select
-                    aria-label="Set status"
-                    className="text-xs rounded-md border border-text/20 dark:border-dark-text/25 bg-bg dark:bg-dark-bg px-2 py-1.5 min-w-[9rem]"
-                    disabled={busy}
-                    defaultValue=""
-                    onChange={e => {
-                      const v = e.target.value;
-                      e.target.value = '';
-                      if (v) patchSubmission(sub.id, { status: v });
-                    }}
-                  >
-                    {STATUS_OPTIONS.map(opt => (
-                      <option
-                        key={opt.value || 'empty'}
-                        value={opt.value}
-                        disabled={opt.value === ''}
-                      >
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  {!isArchived ? (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => patchSubmission(sub.id, { archived: 1 })}
-                      className="text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded-md border border-text/25 dark:border-dark-text/25 hover:bg-text/5 dark:hover:bg-white/5 disabled:opacity-50"
-                    >
-                      Archive
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => patchSubmission(sub.id, { archived: 0 })}
-                      className="text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded-md border border-text/25 dark:border-dark-text/25 hover:bg-text/5 dark:hover:bg-white/5 disabled:opacity-50"
-                    >
-                      Unarchive
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {showFormRow && (
-                <p className="mt-2 text-xs font-mono text-text/40 dark:text-dark-text/40 truncate">
-                  Form: {sub.form}
-                </p>
-              )}
-
-              {/* Status history: compact; expand only if needed */}
-              {history.length > 0 && (
-                <div className="mt-2">
-                  {history.length === 1 ? (
-                    <p className="text-xs text-text/45 dark:text-dark-text/45">
-                      {history[0].status} · {formatDateShort(history[0].created_at)}
-                    </p>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        className="text-xs text-text/50 dark:text-dark-text/50 hover:text-text dark:hover:text-dark-text"
-                        onClick={() =>
-                          setHistoryOpenId(historyOpen ? null : sub.id)
-                        }
-                      >
-                        {historyOpen ? 'Hide' : 'Show'} history ({history.length})
-                      </button>
-                      {historyOpen && (
-                        <ul className="mt-1.5 space-y-0.5 text-xs text-text/55 dark:text-dark-text/55">
-                          {history.map(h => (
-                            <li key={h.id}>
-                              <span className="text-text/70 dark:text-dark-text/70">
-                                {h.status}
-                              </span>
-                              <span className="text-text/40 dark:text-dark-text/40">
-                                {' '}
-                                · {formatDateShort(h.created_at)}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Field data: real table = aligned columns, no floating pairs */}
-              {fields.length > 0 && (
-                <div className="mt-4 overflow-x-auto rounded-md border border-text/10 dark:border-dark-text/10">
-                  <table className="w-full text-sm border-collapse">
-                    <tbody>
-                      {fields.map(([key, value]) => (
-                        <tr
-                          key={key}
-                          className="border-b border-text/8 dark:border-dark-text/8 last:border-0"
+                    {/* One-row meta + actions */}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <span className="font-mono text-sm font-medium tabular-nums">
+                          #{sub.id}
+                        </span>
+                        <span className="text-text/60 dark:text-dark-text/60 text-sm">
+                          {formatDateShort(sub.created_at)}
+                        </span>
+                        {sub.user_id != null && (
+                          <span className="text-text/50 dark:text-dark-text/50 text-sm">
+                            user {sub.user_id}
+                          </span>
+                        )}
+                        <span
+                          className={clsx(
+                            'text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded',
+                            isArchived
+                              ? 'bg-amber-500/20 text-amber-200'
+                              : 'bg-emerald-500/20 text-emerald-200'
+                          )}
                         >
-                          <td
-                            className="align-top py-2 pl-3 pr-4 w-36 max-w-[40%] sm:w-44 text-text/50 dark:text-dark-text/50 font-medium whitespace-nowrap overflow-hidden text-ellipsis"
-                            title={key}
-                          >
-                            {key}
-                          </td>
-                          <td className="align-top py-2 pr-3 text-text dark:text-dark-text break-words">
-                            {formatSubmissionValue(value)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                          {isArchived ? 'Archived' : 'Active'}
+                        </span>
+                      </div>
 
-              {fields.length === 0 && (
-                <p className="mt-3 text-xs text-text/40">No field data</p>
-              )}
-            </div>
-              );
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        <select
+                          aria-label="Set status"
+                          className="text-xs rounded-md border border-text/20 dark:border-dark-text/25 bg-bg dark:bg-dark-bg px-2 py-1.5 min-w-[9rem]"
+                          disabled={busy}
+                          defaultValue=""
+                          onChange={e => {
+                            const v = e.target.value;
+                            e.target.value = '';
+                            if (v) patchSubmission(sub.id, { status: v });
+                          }}
+                        >
+                          {STATUS_OPTIONS.map(opt => (
+                            <option
+                              key={opt.value || 'empty'}
+                              value={opt.value}
+                              disabled={opt.value === ''}
+                            >
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                        {!isArchived ? (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() =>
+                              patchSubmission(sub.id, { archived: 1 })
+                            }
+                            className="text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded-md border border-text/25 dark:border-dark-text/25 hover:bg-text/5 dark:hover:bg-white/5 disabled:opacity-50"
+                          >
+                            Archive
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() =>
+                              patchSubmission(sub.id, { archived: 0 })
+                            }
+                            className="text-xs font-medium uppercase tracking-wide px-3 py-1.5 rounded-md border border-text/25 dark:border-dark-text/25 hover:bg-text/5 dark:hover:bg-white/5 disabled:opacity-50"
+                          >
+                            Unarchive
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {showFormRow && (
+                      <p className="mt-2 text-xs font-mono text-text/40 dark:text-dark-text/40 truncate">
+                        Form: {sub.form}
+                      </p>
+                    )}
+
+                    {/* Status history: compact; expand only if needed */}
+                    {history.length > 0 && (
+                      <div className="mt-2">
+                        {history.length === 1 ? (
+                          <p className="text-xs text-text/45 dark:text-dark-text/45">
+                            {history[0].status} ·{' '}
+                            {formatDateShort(history[0].created_at)}
+                          </p>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className="text-xs text-text/50 dark:text-dark-text/50 hover:text-text dark:hover:text-dark-text"
+                              onClick={() =>
+                                setHistoryOpenId(historyOpen ? null : sub.id)
+                              }
+                            >
+                              {historyOpen ? 'Hide' : 'Show'} history (
+                              {history.length})
+                            </button>
+                            {historyOpen && (
+                              <ul className="mt-1.5 space-y-0.5 text-xs text-text/55 dark:text-dark-text/55">
+                                {history.map(h => (
+                                  <li key={h.id}>
+                                    <span className="text-text/70 dark:text-dark-text/70">
+                                      {h.status}
+                                    </span>
+                                    <span className="text-text/40 dark:text-dark-text/40">
+                                      {' '}
+                                      · {formatDateShort(h.created_at)}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Field data: real table = aligned columns, no floating pairs */}
+                    {fields.length > 0 && (
+                      <div className="mt-4 overflow-x-auto rounded-md border border-text/10 dark:border-dark-text/10">
+                        <table className="w-full text-sm border-collapse">
+                          <tbody>
+                            {fields.map(([key, value]) => (
+                              <tr
+                                key={key}
+                                className="border-b border-text/8 dark:border-dark-text/8 last:border-0"
+                              >
+                                <td
+                                  className="align-top py-2 pl-3 pr-4 w-36 max-w-[40%] sm:w-44 text-text/50 dark:text-dark-text/50 font-medium whitespace-nowrap overflow-hidden text-ellipsis"
+                                  title={key}
+                                >
+                                  {key}
+                                </td>
+                                <td className="align-top py-2 pr-3 text-text dark:text-dark-text break-words">
+                                  {formatSubmissionValue(value)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+
+                    {fields.length === 0 && (
+                      <p className="mt-3 text-xs text-text/40">No field data</p>
+                    )}
+                  </div>
+                );
               })}
             </div>
           </section>

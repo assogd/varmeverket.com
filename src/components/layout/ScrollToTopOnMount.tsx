@@ -9,4 +9,3 @@ export function ScrollToTopOnMount() {
 
   return null;
 }
-

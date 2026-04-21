@@ -39,7 +39,9 @@ export function useSettingsTab(
   const handleSubmit = useCallback(
     async (data: Record<string, unknown>) => {
       if (!user?.email) {
-        throw new Error('Saknar användaridentitet. Ladda om sidan och försök igen.');
+        throw new Error(
+          'Saknar användaridentitet. Ladda om sidan och försök igen.'
+        );
       }
       const TIMEOUT_MS = 15000;
       try {
@@ -71,7 +73,7 @@ export function useSettingsTab(
 
   const formConfig = useMemo(
     () => createFormConfig(user, handleSubmit),
-    [user, handleSubmit]
+    [createFormConfig, user, handleSubmit]
   );
 
   /** Stable once user is resolved; avoids remount flash when session vs full user swap */

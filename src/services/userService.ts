@@ -1,6 +1,6 @@
 /**
  * User Service
- * 
+ *
  * Centralized service for user data operations
  * Provides a clean interface for user-related API calls
  */
@@ -22,7 +22,7 @@ export interface UpdateUserData {
 
 /**
  * Get user by email
- * 
+ *
  * @param email - User email address
  * @returns User data
  */
@@ -37,7 +37,7 @@ export async function getUserByEmail(email: string): Promise<User> {
 
 /**
  * Update user data
- * 
+ *
  * @param email - User email address
  * @param data - User data to update
  * @returns Updated user data
@@ -56,7 +56,7 @@ export async function updateUser(
 
 /**
  * Get email activation status
- * 
+ *
  * @param email - User email address
  * @returns Email status (verified, enabled, etc.)
  */

@@ -1,6 +1,12 @@
 import type { Plugin, Config, Field } from 'payload';
 import { allFormBlocks } from '@/blocks/forms';
 
+function getFieldName(field: Field): string | undefined {
+  return 'name' in field && typeof field.name === 'string'
+    ? field.name
+    : undefined;
+}
+
 /**
  * Plugin to extend the forms collection with blocks-based content support
  * This extends the forms collection created by formBuilderPlugin
@@ -54,32 +60,36 @@ export const extendFormsCollection: Plugin = (
     const existingFields = (formsCollection.fields || []) as Field[];
 
     // Separate fields by type
-    const titleField = existingFields.find(f => f.name === 'title');
-    const slugField = existingFields.find(f => f.name === 'slug');
+    const titleField = existingFields.find(f => getFieldName(f) === 'title');
+    const slugField = existingFields.find(f => getFieldName(f) === 'slug');
     const submitButtonLabelField = existingFields.find(
-      f => f.name === 'submitButtonLabel'
+      f => getFieldName(f) === 'submitButtonLabel'
     );
-    const confirmationFields = existingFields.filter(
-      f =>
-        f.name === 'confirmationType' ||
-        f.name === 'confirmationMessage' ||
-        f.name === 'redirect'
-    );
+    const confirmationFields = existingFields.filter(f => {
+      const name = getFieldName(f);
+      return (
+        name === 'confirmationType' ||
+        name === 'confirmationMessage' ||
+        name === 'redirect'
+      );
+    });
 
     // Filter out fields we want to remove or reorder
-    const fieldsToKeep = existingFields.filter(
-      (field: Field) =>
-        field.name !== 'title' &&
-        field.name !== 'slug' &&
-        field.name !== 'submitButtonLabel' &&
-        field.name !== 'confirmationType' &&
-        field.name !== 'confirmationMessage' &&
-        field.name !== 'redirect' &&
-        field.name !== 'fields' &&
-        field.name !== 'sections' &&
-        field.name !== 'content' &&
-        field.name !== 'emails' // Remove emails field
-    );
+    const fieldsToKeep = existingFields.filter((field: Field) => {
+      const name = getFieldName(field);
+      return (
+        name !== 'title' &&
+        name !== 'slug' &&
+        name !== 'submitButtonLabel' &&
+        name !== 'confirmationType' &&
+        name !== 'confirmationMessage' &&
+        name !== 'redirect' &&
+        name !== 'fields' &&
+        name !== 'sections' &&
+        name !== 'content' &&
+        name !== 'emails'
+      );
+    }); // Remove emails field
 
     // Build new fields array in proper order
     const newFields: Field[] = [];

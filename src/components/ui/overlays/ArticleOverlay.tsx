@@ -144,9 +144,7 @@ const ArticleOverlay: React.FC<ArticleOverlayProps> = ({
                     {getAuthorDisplayName(article.author) || '—'}
                   </div>
                 )}
-                <div>
-                  Publicerad: {formatDate(articleData.publishedDate || '')}
-                </div>
+                <div>Publicerad: {formatDate(article.publishedDate || '')}</div>
               </div>
 
               {/* Featured Image */}
@@ -190,9 +188,7 @@ const ArticleOverlay: React.FC<ArticleOverlayProps> = ({
                 ? `Publicerad: ${formatDate(article.lastModifiedDate)}`
                 : `Publicerad: ${formatDate(article.publishedDate || '')}`}
             </div>
-            {authorBylineDesc && (
-              <div className="mt-4">{authorBylineDesc}</div>
-            )}
+            {authorBylineDesc && <div className="mt-4">{authorBylineDesc}</div>}
           </footer>
 
           <nav className="sticky bottom-0 inset-x-0 z-20 bg-gradient-to-t from-surface to-transparent p-4 h-24 flex justify-center items-end  pointer-events-none select-none">

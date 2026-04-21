@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAdminApiAccess } from '@/lib/adminApiAuth';
 
 const BACKEND_API_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL ||
@@ -18,6 +19,9 @@ const API_KEY_PASSWORD = process.env.BACKEND_API_KEY_PASSWORD;
 
 export async function GET(request: NextRequest) {
   try {
+    const access = await requireAdminApiAccess(request);
+    if (!access.ok) return access.response;
+
     // Check if API key is configured
     if (!API_KEY_USERNAME || !API_KEY_PASSWORD) {
       console.error('❌ API key not configured');
@@ -63,7 +67,9 @@ export async function GET(request: NextRequest) {
      */
     async function fetchSubmissionsList(
       url: string
-    ): Promise<{ ok: true; list: unknown[] } | { ok: false; response: NextResponse }> {
+    ): Promise<
+      { ok: true; list: unknown[] } | { ok: false; response: NextResponse }
+    > {
       const response = await fetch(url, { method: 'GET', headers });
       const responseText = await response.text();
       let errorData: unknown = { message: response.statusText };

@@ -40,7 +40,6 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   onFocus,
   onBlur,
   disabled = false,
-  error,
   required = false,
   minYear = new Date().getFullYear() - 120, // 120 years ago (reasonable for birth dates)
   maxYear = new Date().getFullYear(), // Current year
@@ -83,7 +82,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       if (year) setYear('');
       lastValueRef.current = '';
     }
-  }, [value]); // Only depend on value
+  }, [value, day, month, year]);
 
   // Generate year options
   const yearOptions = useMemo(() => {
@@ -122,7 +121,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       // Invalid date, adjust day
       setDay(String(daysInMonth));
     }
-  }, [month, year]); // Only run when month or year changes
+  }, [month, year, day]);
 
   // Update date when day, month, or year changes
   useEffect(() => {

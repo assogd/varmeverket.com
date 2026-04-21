@@ -13,9 +13,10 @@ import { routeLink, type LinkGroup } from '@/utils/linkRouter';
 import clsx from 'clsx';
 
 interface Asset {
-  type: 'image' | 'mux';
+  type: 'image' | 'mux' | 'video';
   image?: { url: string; alt?: string; width?: number; height?: number };
   mux?: string;
+  video?: { url: string; alt?: string; width?: number; height?: number };
 }
 
 interface PageHeaderStandardProps {
@@ -65,7 +66,7 @@ export default function PageHeaderStandard({
 
       <motion.div
         className={clsx(
-          'flex items-center justify-center pt-36 pb-16 fixed inset-x-0 top-0',
+          'flex items-center justify-center pt-32 pb-16 fixed inset-x-0 top-0',
           !isVisible && 'pointer-events-none'
         )}
         style={{

@@ -18,12 +18,12 @@ export default function ShowcaseCard({
   onClick,
 }: CardProps) {
   // Find image: use featuredImage or first image in assets
-  let image = item.featuredImage;
+  let image: typeof item.featuredImage | null | undefined = item.featuredImage;
   if (!image && item.assets) {
     image = findImageInAssets(item.assets);
   }
 
-  if (!image) {
+  if (!image || !image.url) {
     return null; // Should not happen for showcases
   }
 

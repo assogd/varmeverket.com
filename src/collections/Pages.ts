@@ -91,7 +91,8 @@ const Pages: CollectionConfig = {
                   type: 'text',
                   required: false,
                   admin: {
-                    description: 'Small title displayed above the main header text',
+                    description:
+                      'Small title displayed above the main header text',
                   },
                 },
                 {

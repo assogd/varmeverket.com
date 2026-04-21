@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { BACKEND_API_URL } from '@/lib/backendApi';
+import { BACKEND_API_URL, type User } from '@/lib/backendApi';
+import { isAdminUser } from '@/lib/adminAuth';
 import { PayloadAPI } from '@/lib/api';
 import { buildEventHref } from '@/lib/events/buildEventHref';
 import { getChildParentSlugMap } from '@/lib/events/childParentSlugMap';
+import { fetchServerSession } from '@/lib/serverSession';
 
 type SavedEventRow = {
   article_id: string;
@@ -31,6 +33,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Missing email' },
         { status: 400 }
+      );
+    }
+
+    const cookieHeader = request.headers.get('cookie') || '';
+    const session = await fetchServerSession(cookieHeader);
+    const sessionUser = session?.user as User | undefined;
+    const sessionEmail = sessionUser?.email?.trim().toLowerCase();
+    const requestedEmail = email.toLowerCase();
+    const admin = isAdminUser(sessionUser);
+    if (!sessionEmail) {
+      return NextResponse.json(
+        { success: false, message: 'Login required' },
+        { status: 401 }
+      );
+    }
+    if (!admin && sessionEmail !== requestedEmail) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Forbidden: cannot access saved events for another user',
+        },
+        { status: 403 }
       );
     }
 
@@ -90,7 +114,9 @@ export async function GET(request: NextRequest) {
     const hydratedEvents = await hydrateSavedEvents(ids);
     if (hydratedEvents.length === 0) {
       if (DASHBOARD_API_DEBUG) {
-        console.info(`[dashboard-api] saved-events ${Date.now() - startedAt}ms`);
+        console.info(
+          `[dashboard-api] saved-events ${Date.now() - startedAt}ms`
+        );
       }
       return NextResponse.json({
         success: true,
@@ -160,7 +186,10 @@ async function hydrateSavedEvents(ids: string[]): Promise<HydratedEvent[]> {
     ids.map(async id => {
       try {
         const doc = await PayloadAPI.findByID<HydratedEvent>('events', id, 1);
-        if (process.env.NODE_ENV === 'production' && doc.status !== 'published') {
+        if (
+          process.env.NODE_ENV === 'production' &&
+          doc.status !== 'published'
+        ) {
           return;
         }
         if (!doc.startDateTime) return;
@@ -173,4 +202,3 @@ async function hydrateSavedEvents(ids: string[]): Promise<HydratedEvent[]> {
 
   return hydratedEvents;
 }
-

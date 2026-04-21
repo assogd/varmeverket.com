@@ -126,7 +126,11 @@ const HighlightGridBlock: React.FC<HighlightGridBlockProps> = ({
                 ? highlightData.heroAsset.image
                 : null);
 
-            const CardWrapper = isShowcase ? 'button' : isEvent ? 'link' : 'button';
+            const CardWrapper = isShowcase
+              ? 'button'
+              : isEvent
+                ? 'link'
+                : 'button';
 
             if (CardWrapper === 'link') {
               return (
@@ -142,7 +146,9 @@ const HighlightGridBlock: React.FC<HighlightGridBlockProps> = ({
                         <Image
                           src={fixImageUrl(image.url)}
                           alt={
-                            image.alt || highlightData.title || 'Highlight image'
+                            image.alt ||
+                            highlightData.title ||
+                            'Highlight image'
                           }
                           fill
                           className="object-cover transition-transform duration-300 group-hover:scale-105"

@@ -56,17 +56,16 @@ export async function GET() {
 
     const childParentMap = await getChildParentSlugMap();
 
-    const mappedEvents = events
-      .map(e => ({
-        id: e.id,
-        title: e.title,
-        slug: e.slug,
-        href: buildEventHref(e, childParentMap.get(e.id)),
-        startDateTime: e.startDateTime,
-        endDateTime: e.endDateTime,
-        isAllDay: Boolean(e.isAllDay),
-        featuredImage: e.featuredImage,
-      }));
+    const mappedEvents = events.map(e => ({
+      id: e.id,
+      title: e.title,
+      slug: e.slug,
+      href: buildEventHref(e, childParentMap.get(e.id)),
+      startDateTime: e.startDateTime,
+      endDateTime: e.endDateTime,
+      isAllDay: Boolean(e.isAllDay),
+      featuredImage: e.featuredImage,
+    }));
 
     if (DASHBOARD_API_DEBUG) {
       console.info(
@@ -89,4 +88,3 @@ export async function GET() {
     );
   }
 }
-

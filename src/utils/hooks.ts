@@ -20,17 +20,18 @@ export const commonHooks = {
    */
   initializeNestedArrays: ({ data }: { data: Record<string, unknown> }) => {
     const initializeChildren = (items: Record<string, unknown>[]) => {
-      if (!items) return;
       items.forEach(item => {
-        if (!item.children) {
+        const existingChildren = item.children;
+        if (!Array.isArray(existingChildren)) {
           item.children = [];
+          return;
         }
-        initializeChildren(item.children);
+        initializeChildren(existingChildren as Record<string, unknown>[]);
       });
     };
 
-    if (data?.menuItems) {
-      initializeChildren(data.menuItems);
+    if (Array.isArray(data?.menuItems)) {
+      initializeChildren(data.menuItems as Record<string, unknown>[]);
     }
     return data;
   },

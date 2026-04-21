@@ -29,7 +29,6 @@ export function DashboardGate({
   const [bookingsLoading, setBookingsLoading] = useState(true);
   const [featuredEvents, setFeaturedEvents] = useState<CalendarEvent[]>([]);
   const [savedEvents, setSavedEvents] = useState<CalendarEvent[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,14 +57,15 @@ export function DashboardGate({
     let cancelled = false;
     const startedAt = performance.now();
     setBookingsLoading(true);
-    setEventsLoading(true);
 
     const loadDashboardData = async () => {
       try {
         const [bookingsData, featuredRes, savedRes] = await Promise.all([
           BackendAPI.getBookings(effectiveEmail),
           fetch('/api/portal/featured-events'),
-          fetch(`/api/portal/saved-events?email=${encodeURIComponent(effectiveEmail)}`),
+          fetch(
+            `/api/portal/saved-events?email=${encodeURIComponent(effectiveEmail)}`
+          ),
         ]);
 
         if (cancelled) return;
@@ -79,13 +79,15 @@ export function DashboardGate({
 
         setFeaturedEvents(
           Array.isArray((featuredJson as { events?: unknown[] }).events)
-            ? ((featuredJson as { events?: CalendarEvent[] }).events as CalendarEvent[])
+            ? ((featuredJson as { events?: CalendarEvent[] })
+                .events as CalendarEvent[])
             : []
         );
 
         setSavedEvents(
           Array.isArray((savedJson as { events?: unknown[] }).events)
-            ? ((savedJson as { events?: CalendarEvent[] }).events as CalendarEvent[])
+            ? ((savedJson as { events?: CalendarEvent[] })
+                .events as CalendarEvent[])
             : []
         );
       } catch {
@@ -100,7 +102,6 @@ export function DashboardGate({
             console.info(`[dashboard] data-ready ${elapsedMs}ms`);
           }
           setBookingsLoading(false);
-          setEventsLoading(false);
         }
       }
     };
@@ -129,10 +130,7 @@ export function DashboardGate({
 
   if (bookingsLoading) {
     return (
-      <LoadingState
-        message="Laddar bokningar..."
-        className="min-h-[40vh]"
-      />
+      <LoadingState message="Laddar bokningar..." className="min-h-[40vh]" />
     );
   }
 

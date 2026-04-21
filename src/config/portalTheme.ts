@@ -29,7 +29,8 @@ export const PRE_LOGIN_ROUTES = ['/login', '/ansok-om-medlemskap'] as const;
  * These are all portal routes except pre-login routes
  */
 export const AUTHENTICATED_PORTAL_ROUTES = PORTAL_ROUTES.filter(
-  route => !PRE_LOGIN_ROUTES.includes(route as (typeof PRE_LOGIN_ROUTES)[number])
+  route =>
+    !PRE_LOGIN_ROUTES.includes(route as (typeof PRE_LOGIN_ROUTES)[number])
 );
 
 /**
@@ -55,9 +56,7 @@ export const isAuthenticatedPortalRoute = (
     return false;
   }
 
-  return AUTHENTICATED_PORTAL_ROUTES.some(route =>
-    pathname.startsWith(route)
-  );
+  return AUTHENTICATED_PORTAL_ROUTES.some(route => pathname.startsWith(route));
 };
 
 /**
