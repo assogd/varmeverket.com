@@ -6,6 +6,8 @@ This repository contains the frontend for the Värmeverket platform — a digita
 
 Development began in April 2025. This version (`1.0.0`) includes both the public interface and the production member portal.
 
+Backend API repository: [varmeverket-api](https://bitbucket.org/benjismithx/varmeverket-api/src/main/).
+
 The current focus is on:
 
 - A public information interface for residents and visitors
