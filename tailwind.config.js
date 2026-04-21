@@ -43,6 +43,7 @@ module.exports = {
     'text-surface-dark',
     'border-surface-dark',
     // Animation classes
+    'animate-loading-pulse',
     'rotate-0',
     'rotate-180',
     'transition-transform',
@@ -120,8 +121,17 @@ module.exports = {
       aspectRatio: {
         window: '5 / 7',
       },
+      keyframes: {
+        'loading-pulse': {
+          '0%, 83.33%': { opacity: '1' },
+          '91.67%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+      },
       animation: {
         spin: 'spin 5s linear infinite reverse',
+        'loading-pulse':
+          'loading-pulse 2.4s ease-in-out infinite',
       },
     },
   },

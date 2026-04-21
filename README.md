@@ -2,9 +2,9 @@
 
 ## Overview
 
-This repository contains the public-facing frontend for the Värmeverket platform — a digital ecosystem designed to support both public-facing communication and member-specific services connected to the building's infrastructure.
+This repository contains the frontend for the Värmeverket platform — a digital ecosystem designed to support both public-facing communication and member-specific services connected to the building's infrastructure.
 
-Development began in April 2025. This version (0.9.0) represents the public-facing interface, with the member portal planned for v1.0.0.
+Development began in April 2025. This version (`1.0.0`) includes both the public interface and the production member portal.
 
 The current focus is on:
 
@@ -63,41 +63,64 @@ This setup ensures that cookies set by the backend API (which are domain-restric
 
 ### Environment Variables
 
-Create a `.env` file in the root directory with the following variables:
+Create a `.env` file in the root directory with the following variables.
 
-**Required:**
+**Required for production**
 
-- `NEXT_PUBLIC_PAYLOAD_API_URL` - External Payload CMS API URL (e.g., `https://payload.cms.varmeverket.com/api`)
+- `NEXT_PUBLIC_BACKEND_API_URL` or `BACKEND_API_URL` - Backend API base URL (for example `https://api.varmeverket.com`)
+- `BACKEND_API_KEY_USERNAME` - Server-side API key username used by admin API routes
+- `BACKEND_API_KEY_PASSWORD` - Server-side API key password used by admin API routes
+- `PREVIEW_SECRET` - Required secret for preview mode URLs and preview endpoint access
 
-**Optional:**
+**Required when running local Payload CMS**
 
-- `PREVIEW_SECRET` - Secret token for preview mode (defaults to `your-preview-secret` - **change this in production!**)
+- `PAYLOAD_SECRET`
+- `DATABASE_URI`
 
-**Email Configuration (for form submissions):**
+**Commonly used / optional**
 
-- `SMTP_HOST` - SMTP server hostname (defaults to `smtp.resend.com` for Resend)
-- `SMTP_PORT` - SMTP server port (defaults to `587`)
-- `SMTP_USER` - SMTP username (defaults to `resend` for Resend)
-- `SMTP_PASS` or `RESEND_API_KEY` - SMTP password/API key (required for sending emails)
-- `SMTP_SECURE` - Use secure connection (set to `true` for port 465, defaults to `false`)
-- `PAYLOAD_EMAIL_FROM` - Default sender email address (defaults to `noreply@varmeverket.com`)
-- `PAYLOAD_EMAIL_FROM_NAME` - Default sender name (defaults to `Värmeverket`)
+- `NEXT_PUBLIC_PAYLOAD_API_URL` - Payload API URL; dev defaults to `https://dev.varmeverket.com/api` when unset
+- `PAYLOAD_API_URL` - Server-side Payload API base URL (used by admin payload-events proxy)
+- `NEXT_PUBLIC_USE_EXTERNAL_BACKEND` - Toggle to force external Payload backend usage (`false` disables)
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` or `RESEND_API_KEY`, `SMTP_SECURE`
+- `PAYLOAD_EMAIL_FROM`, `PAYLOAD_EMAIL_FROM_NAME`
+- `LOGIN_FLOW_DEBUG`, `NEXT_PUBLIC_API_DEBUG`, `NEXT_PUBLIC_SESSION_DEBUG`, `NEXT_PUBLIC_DASHBOARD_DEBUG`, `DASHBOARD_API_DEBUG`
+- `NEXT_PUBLIC_CACHE_MONITOR`, `NEXT_PUBLIC_SKEDDA_BOOKING_URL`
 
-**Note:** This is a frontend-only repository that connects to an external Payload CMS backend. You don't need `PAYLOAD_SECRET` or `DATABASE_URI` unless you're running Payload CMS locally.
-
-**Example `.env` file:**
+**Example `.env` file**
 
 ```env
-NEXT_PUBLIC_PAYLOAD_API_URL=https://payload.cms.varmeverket.com/api
-PREVIEW_SECRET=your-preview-secret-here
+# Core runtime
+NEXT_PUBLIC_BACKEND_API_URL=https://api.varmeverket.com
+BACKEND_API_KEY_USERNAME=replace-with-admin-api-key-username
+BACKEND_API_KEY_PASSWORD=replace-with-admin-api-key-password
+PREVIEW_SECRET=replace-with-long-random-secret
 
-# Email configuration (for form submissions)
+# Payload (optional unless running local Payload)
+# NEXT_PUBLIC_PAYLOAD_API_URL=https://dev.varmeverket.com/api
+# NEXT_PUBLIC_PAYLOAD_API_URL=https://payload.cms.varmeverket.com/api
+# PAYLOAD_API_URL=https://payload.cms.varmeverket.com/api
+# PAYLOAD_SECRET=replace-if-running-local-payload
+# DATABASE_URI=mongodb://127.0.0.1/payload
+
+# Email configuration
 SMTP_HOST=smtp.resend.com
 SMTP_PORT=587
 SMTP_USER=resend
 RESEND_API_KEY=re_your_api_key_here
 PAYLOAD_EMAIL_FROM=noreply@varmeverket.com
 PAYLOAD_EMAIL_FROM_NAME=Värmeverket
+
+# Optional diagnostics
+# LOGIN_FLOW_DEBUG=false
+# NEXT_PUBLIC_API_DEBUG=false
+# NEXT_PUBLIC_SESSION_DEBUG=false
+# NEXT_PUBLIC_DASHBOARD_DEBUG=false
+# DASHBOARD_API_DEBUG=false
+# NEXT_PUBLIC_CACHE_MONITOR=false
+
+# Optional portal config
+# NEXT_PUBLIC_SKEDDA_BOOKING_URL=https://example.skedda.com/booking
 ```
 
 ### Building for Production

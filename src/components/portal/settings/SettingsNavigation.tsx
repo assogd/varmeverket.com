@@ -1,0 +1,44 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import clsx from 'clsx';
+
+const settingsNavItems = [
+  { label: 'PERSONLIGT', href: '/installningar/personligt' },
+  { label: 'VERKSAMHET', href: '/installningar/verksamhet' },
+  { label: 'KONTO', href: '/installningar/konto' },
+];
+
+export function SettingsNavigation() {
+  const pathname = usePathname();
+
+  return (
+    <div className="p-2">
+      <div className="flex flex-col sm:flex-row mb-8 border border-text max-w-4xl mx-auto">
+        {settingsNavItems.map((item, index) => {
+          const isActive = pathname === item.href;
+          const isLast = index === settingsNavItems.length - 1;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                'flex items-center justify-center uppercase',
+                'border-b sm:border-r border-text dark:border-dark-text',
+                'p-4 flex-1', // Equal growth for all buttons
+                isLast && 'border-b-0 border-r-0', // Remove border on last item
+                isActive
+                  ? 'text-text dark:text-dark-text underline'
+                  : 'text-text dark:text-dark-text'
+              )}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

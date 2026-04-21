@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const tagIds = tagIdsParam ? JSON.parse(tagIdsParam) : [];
     const contentTypes = contentTypesParam
       ? JSON.parse(contentTypesParam)
-      : ['articles'];
+      : ['articles', 'events'];
     const limit = limitParam ? parseInt(limitParam, 10) : 10;
     const sort = sortParam || '-publishedDate';
     const status = statusParam || 'published';
@@ -52,10 +52,10 @@ export async function GET(request: NextRequest) {
         error: 'Internal server error',
         articles: [],
         showcases: [],
+        events: [],
         totalCount: 0,
       },
       { status: 500 }
     );
   }
 }
-

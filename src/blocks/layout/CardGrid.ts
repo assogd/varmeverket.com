@@ -4,7 +4,7 @@ import { InlineHeader } from '@/fields/InlineHeader';
 
 const CardGrid: Block = {
   slug: 'card-grid',
-  imageURL: '/block-thumbnails/card-grid.png',
+  imageURL: '/block-thumbnails/card-grid_v2.png',
   imageAltText: 'Card Grid Block',
   fields: [
     ...InlineHeader,

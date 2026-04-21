@@ -81,10 +81,10 @@ class CacheMonitor {
   }
 
   /**
-   * Log performance summary (development only)
+   * Log performance summary (opt-in only)
    */
   logSummary(): void {
-    if (process.env.NODE_ENV !== 'development') return;
+    if (process.env.NEXT_PUBLIC_CACHE_MONITOR !== 'true') return;
 
     const metrics = this.getMetrics();
     console.log('📊 Cache Performance Summary:');
@@ -137,8 +137,8 @@ export async function monitoredFetch(
       cacheMonitor.recordMiss(responseTime);
     }
 
-    // Log in development for debugging
-    if (process.env.NODE_ENV === 'development') {
+    // Log only when cache monitor explicitly enabled
+    if (process.env.NEXT_PUBLIC_CACHE_MONITOR === 'true') {
       console.log(
         `🌐 API Call: ${url} - ${isCacheHit ? 'CACHE HIT' : 'CACHE MISS'} (${responseTime}ms)`
       );
@@ -154,9 +154,16 @@ export async function monitoredFetch(
 
 /**
  * Global fetch interceptor for comprehensive monitoring
- * This will monitor ALL fetch calls, not just the ones using monitoredFetch
+ * This will monitor ALL fetch calls, not just the ones using monitoredFetch.
+ *
+ * Disabled by default to avoid noisy console logs; enable explicitly by
+ * setting NEXT_PUBLIC_CACHE_MONITOR=true when you actually want to profile.
  */
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+const CACHE_MONITOR_ENABLED =
+  typeof window !== 'undefined' &&
+  process.env.NEXT_PUBLIC_CACHE_MONITOR === 'true';
+
+if (CACHE_MONITOR_ENABLED) {
   const originalFetch = window.fetch;
 
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -170,7 +177,8 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       // Only monitor API calls (not static assets)
       if (
         url.includes('/api/') ||
-        url.includes('payload.cms.varmeverket.com')
+        url.includes('payload.cms.varmeverket.com') ||
+        url.includes('dev.varmeverket.com')
       ) {
         const isCacheHit = responseTime < 50;
 
@@ -191,7 +199,8 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
 
       if (
         url.includes('/api/') ||
-        url.includes('payload.cms.varmeverket.com')
+        url.includes('payload.cms.varmeverket.com') ||
+        url.includes('dev.varmeverket.com')
       ) {
         cacheMonitor.recordMiss(responseTime);
         console.log(

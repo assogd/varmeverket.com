@@ -17,7 +17,7 @@ export const storeError = (
       name: error.name,
     },
     errorInfo: {
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack || '',
     },
     timestamp: new Date().toISOString(),
     errorId,

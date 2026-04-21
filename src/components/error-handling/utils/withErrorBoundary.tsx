@@ -9,6 +9,9 @@ export function withErrorBoundary<P extends object>(
 ) {
   const WrappedComponent = (props: P) => {
     const componentName = Component.displayName || Component.name || 'Unknown';
+    const FallbackComponent = options.fallback as
+      | React.ComponentType<P & { error?: Error; resetError?: () => void }>
+      | undefined;
 
     return (
       <ErrorBoundary
@@ -16,8 +19,8 @@ export function withErrorBoundary<P extends object>(
         onError={options.onError}
         showDevIndicator={options.showDevIndicator}
         fallback={
-          options.fallback ? (
-            <options.fallback {...props} />
+          FallbackComponent ? (
+            <FallbackComponent {...props} />
           ) : (
             <ErrorFallback
               error={new Error('Component error')}

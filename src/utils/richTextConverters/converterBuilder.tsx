@@ -6,15 +6,7 @@ import { paragraphConverters } from './paragraphConverters';
 import { blockquoteConverters } from './blockquoteConverters';
 import { headingConverters } from './headingConverters';
 import { listConverters } from './listConverters';
-// Lazy import blockConverters to avoid circular dependency
-let _blockConverters: typeof import('./blockConverters').blockConverters | null = null;
-
-function getBlockConverters() {
-  if (!_blockConverters) {
-    _blockConverters = require('./blockConverters').blockConverters;
-  }
-  return _blockConverters;
-}
+import { blockConverters } from './blockConverters';
 
 /**
  * Build a converter by cherry-picking different renderings
@@ -49,7 +41,7 @@ export const buildConverter = (
 
     // Add article blocks if requested (lazy load to avoid circular dependency)
     if (options.includeBlocks) {
-      converter.blocks = getBlockConverters();
+      converter.blocks = blockConverters;
     }
 
     return converter;

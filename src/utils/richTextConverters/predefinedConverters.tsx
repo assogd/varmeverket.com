@@ -1,8 +1,7 @@
-// Lazy initialization to avoid circular dependency
-// We use a function that imports buildConverter only when called
-function createConverter(options: Parameters<typeof import('./converterBuilder').buildConverter>[0]) {
-  // Dynamic import to break circular dependency
-  const { buildConverter } = require('./converterBuilder');
+import { buildConverter } from './converterBuilder';
+import type { ConverterOptions } from './types';
+
+function createConverter(options: ConverterOptions) {
   return buildConverter(options);
 }
 

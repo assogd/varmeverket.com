@@ -9,6 +9,7 @@ import { Heading } from '@/components/headings';
 import Image from 'next/image';
 import { fixImageUrl } from '@/utils/imageUrl';
 import { NavigationItem } from './types';
+import { routeLegacyLink } from '@/utils/linkRouter';
 
 interface ViewportItemProps {
   item: NavigationItem;
@@ -68,22 +69,15 @@ export const ViewportItem: React.FC<ViewportItemProps> = ({
             {/* Content */}
             {item.body && (
               <div className="mb-6 font-mono">
-                <RichText data={item.body} />
+                <RichText data={item.body as never} />
               </div>
             )}
 
             {/* Call to Action */}
-            {item.link?.text && (
+            {item.link?.label && (
               <AppAction
                 href={
-                  item.link?.type === 'external' && item.link?.url
-                    ? item.link.url
-                    : item.link?.type === 'internal' && item.link?.reference
-                      ? typeof item.link.reference === 'object' &&
-                        item.link.reference?.slug
-                        ? `/${item.link.reference?.slug}`
-                        : `/${item.link.reference}`
-                      : undefined
+                  routeLegacyLink(item.link.type, undefined, item.link.url).href
                 }
                 variant="primary"
                 target={item.link?.type === 'external' ? '_blank' : undefined}
@@ -93,7 +87,7 @@ export const ViewportItem: React.FC<ViewportItemProps> = ({
                     : undefined
                 }
               >
-                {item.link.text}
+                {item.link.label}
               </AppAction>
             )}
           </div>

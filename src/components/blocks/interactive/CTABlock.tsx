@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
-import { AppAction } from '@/components/ui';
+import { AppAction, RoundButton } from '@/components/ui';
 import { Heading } from '@/components/headings';
 import { routeLink, type LinkGroup } from '@/utils/linkRouter';
 import { useIsDark } from '@/hooks/useTheme';
@@ -33,7 +33,6 @@ const CTABlock: React.FC<CTABlockProps> = ({
   description,
   link,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const isDark = useIsDark();
 
   const renderLink = () => {
@@ -59,14 +58,11 @@ const CTABlock: React.FC<CTABlockProps> = ({
           </Heading>
 
           <div className="flex justify-center">
-            <div
-              className={`w-auto aspect-square border border-white rounded-full flex items-center justify-center animate-spin cursor-pointer ${
-                isHovered
-                  ? '[animation-play-state:paused]'
-                  : '[animation-play-state:running]'
-              }`}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
+            <RoundButton
+              spin
+              size="12rem"
+              className="border-white text-white text-lg"
+              contentClassName="-rotate-90"
               onClick={() => {
                 const linkResult = routeLink(link);
                 if (linkResult.isCopy) {
@@ -76,10 +72,8 @@ const CTABlock: React.FC<CTABlockProps> = ({
                 }
               }}
             >
-              <div className="text-lg transform -rotate-90 p-24">
-                {link.text}
-              </div>
-            </div>
+              {link.text}
+            </RoundButton>
           </div>
         </div>
       </div>

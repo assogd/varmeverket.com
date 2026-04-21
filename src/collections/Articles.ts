@@ -1,18 +1,16 @@
 import type { CollectionConfig } from 'payload';
 import { lexicalEditor, BlocksFeature } from '@payloadcms/richtext-lexical';
+
 import Image from '@/blocks/media/Image';
 import Video from '@/blocks/media/Video';
-// import TextBlock from '@/blocks/articles/TextBlock';
 import CTA from '@/blocks/interactive/CTA';
 import QA from '@/blocks/interactive/QA';
 import LogotypeWall from '@/blocks/brand/LogotypeWall';
-import PartnerBlock from '@/blocks/brand/PartnerBlock';
 import Model3D from '@/blocks/media/Model3D';
 import MinimalCarousel from '@/blocks/layout/MinimalCarousel';
 import CardGrid from '@/blocks/layout/CardGrid';
 import SEOFields from '@/fields/SEOFields';
 import { authenticated } from '@/access/authenticated';
-// import { authenticatedOrPublished } from '@/access/authenticatedOrPublished';
 import { commonHooks, commonVersioning } from '@/utils/hooks';
 
 const Articles: CollectionConfig = {
@@ -21,7 +19,6 @@ const Articles: CollectionConfig = {
     create: authenticated,
     delete: authenticated,
     read: ({ req: { user } }) => {
-      // Allow reading if user is authenticated or if post is published
       if (user) return true;
       return {
         status: {
@@ -31,10 +28,8 @@ const Articles: CollectionConfig = {
     },
     update: authenticated,
   },
-  defaultPopulate: {
-    title: true,
-    slug: true,
-  },
+  // No defaultPopulate — it can cause the REST find response to omit relationship
+  // fields like `form` / `formSlug` when the frontend fetches the article.
   admin: {
     defaultColumns: ['title', 'status', 'author', 'publishedDate', 'updatedAt'],
     useAsTitle: 'title',
@@ -260,7 +255,6 @@ const Articles: CollectionConfig = {
                       CTA,
                       QA,
                       LogotypeWall,
-                      PartnerBlock,
                       Model3D,
                       MinimalCarousel,
                       CardGrid,
@@ -271,6 +265,34 @@ const Articles: CollectionConfig = {
               admin: {
                 description:
                   'The main content of the article. You can insert blocks (images, quotes, videos, etc.) anywhere within the content using the block button.',
+              },
+            },
+            {
+              name: 'form',
+              type: 'relationship',
+              relationTo: 'forms',
+              required: false,
+              // Always expose on read so anonymous article fetches still get id/value
+              access: {
+                read: () => true,
+              },
+              maxDepth: 0,
+              admin: {
+                description:
+                  'Optional form to display on this article. Slug is copied to formSlug on save so the frontend can load it even when the API omits the relationship.',
+              },
+            },
+            {
+              name: 'formSlug',
+              type: 'text',
+              required: false,
+              access: {
+                read: () => true,
+              },
+              admin: {
+                description:
+                  'Auto-set from the selected form’s slug on save. Used when the REST API does not return the form relationship.',
+                readOnly: true,
               },
             },
           ],
@@ -292,6 +314,41 @@ const Articles: CollectionConfig = {
             data.publishedDate = new Date().toISOString();
           }
         }
+      },
+      // Persist form slug so frontend can load form when REST omits `form` relationship
+      async ({ data, req }) => {
+        const formRef = data.form;
+        if (formRef == null || formRef === '') {
+          data.formSlug = null;
+          return data;
+        }
+        const id =
+          typeof formRef === 'string'
+            ? formRef
+            : typeof formRef === 'object' &&
+                formRef !== null &&
+                'id' in formRef &&
+                typeof (formRef as { id: unknown }).id === 'string'
+              ? (formRef as { id: string }).id
+              : null;
+        if (!id || !req?.payload) {
+          return data;
+        }
+        try {
+          const formDoc = await req.payload.findByID({
+            collection: 'forms',
+            id,
+            depth: 0,
+          });
+          const slug =
+            formDoc && typeof formDoc === 'object' && 'slug' in formDoc
+              ? String((formDoc as { slug?: string }).slug || '')
+              : '';
+          data.formSlug = slug || null;
+        } catch {
+          // leave formSlug unchanged
+        }
+        return data;
       },
     ],
   },

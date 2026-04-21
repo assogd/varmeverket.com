@@ -88,6 +88,7 @@ export function useUsersData(userIds: string[]): {
   const [users, setUsers] = useState<Record<string, User>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const userIdsKey = userIds.join(',');
 
   useEffect(() => {
     if (!userIds.length) {
@@ -128,7 +129,7 @@ export function useUsersData(userIds: string[]): {
     };
 
     fetchUsers();
-  }, [userIds.join(',')]); // Re-run when userIds change
+  }, [userIds, userIdsKey]);
 
   return { users, loading, error };
 }

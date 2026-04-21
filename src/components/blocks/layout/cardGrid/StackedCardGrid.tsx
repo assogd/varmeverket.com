@@ -64,7 +64,7 @@ export const StackedCardGrid: React.FC<StackedCardGridProps> = ({
                     key={colIdx}
                     className="flex flex-col justify-between border-r first:border-l border-text aspect-window overflow-hidden"
                   >
-                    <MediaCard {...card} buttonVariant={'primary'} />
+                    <MediaCard {...card} buttonVariant="textLink" />
                   </div>
                 ))}
                 {rowIdx === rows.length - 1 &&

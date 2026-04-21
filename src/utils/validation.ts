@@ -13,7 +13,7 @@ export const validateNoH1Headings = (value: unknown): true | string => {
         child => child.type === 'heading' && child.tag === 'h1'
       );
       if (hasH1) {
-        return 'H1 headings are not allowed. Please use H2 or lower.';
+        return 'H1-rubriker är inte tillåtna. Vänligen använd H2 eller lägre.';
       }
     }
   }
@@ -28,10 +28,10 @@ export const validateNoH1Headings = (value: unknown): true | string => {
  */
 export const validateRequired = (
   value: unknown,
-  fieldName: string = 'This field'
+  fieldName: string = 'Detta fält'
 ): true | string => {
   if (!value || (typeof value === 'string' && value.trim() === '')) {
-    return `${fieldName} is required.`;
+    return `${fieldName} är obligatoriskt.`;
   }
   return true;
 };
@@ -42,9 +42,12 @@ export const validateRequired = (
  * @returns true if valid, error message if invalid
  */
 export const validateEmail = (value: string): true | string => {
+  const trimmed = value.trim();
+  if (!trimmed) return true; // empty handled by required
+  // No spaces; local@domain with domain containing at least one dot (TLD)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(value)) {
-    return 'Please enter a valid email address.';
+  if (!emailRegex.test(trimmed)) {
+    return 'Vänligen ange en giltig e-postadress.';
   }
   return true;
 };
@@ -59,6 +62,6 @@ export const validateUrl = (value: string): true | string => {
     new URL(value);
     return true;
   } catch {
-    return 'Please enter a valid URL.';
+    return 'Vänligen ange en giltig URL.';
   }
 };

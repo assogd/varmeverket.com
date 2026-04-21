@@ -8,8 +8,21 @@ import Navigation from '@/collections/Navigation';
 import Spaces from '@/collections/Spaces';
 import Showcases from '@/collections/Showcases';
 import Articles from '@/collections/Articles';
+import Announcements from '@/collections/Announcements';
+import Events from '@/collections/Events';
 
-export { Users, Media, Pages, Tags, Navigation, Spaces, Showcases, Articles };
+export {
+  Users,
+  Media,
+  Pages,
+  Tags,
+  Navigation,
+  Spaces,
+  Showcases,
+  Articles,
+  Announcements,
+  Events,
+};
 
 export const collections: CollectionConfig[] = [
   Users,
@@ -20,4 +33,6 @@ export const collections: CollectionConfig[] = [
   Spaces,
   Showcases,
   Articles,
+  Announcements,
+  Events,
 ];

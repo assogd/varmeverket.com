@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
+import { normalizeDisplayHeadlineNode } from '@/utils/typography';
 
 // Heading variants - consolidated and organized by hierarchy
 export type HeadingVariant =
@@ -30,6 +31,13 @@ export interface HeadingProps {
   as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
   center?: boolean;
 }
+
+const serifHeadlineVariants: ReadonlySet<HeadingVariant> = new Set([
+  'page-header',
+  'content-h2',
+  'subsection',
+  'card-title',
+]);
 
 // Default configurations for each variant
 const variantConfig = {
@@ -115,6 +123,9 @@ export function Heading({
 }: HeadingProps) {
   const config = variantConfig[variant];
   const Component = as || config.defaultAs;
+  const content = serifHeadlineVariants.has(variant)
+    ? normalizeDisplayHeadlineNode(children)
+    : children;
 
   const classes = cn(
     // Base styles
@@ -130,7 +141,7 @@ export function Heading({
     className
   );
 
-  return <Component className={classes}>{children}</Component>;
+  return <Component className={classes}>{content}</Component>;
 }
 
 // Convenience components for common use cases

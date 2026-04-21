@@ -30,11 +30,14 @@ export function BlinkHover({
     const cloneChildren = (children: React.ReactNode): React.ReactNode => {
       return Children.map(children, child => {
         if (isValidElement(child)) {
-          // Check if this child matches the target selector
-          const childProps = child.props as {
+          const childElement = child as React.ReactElement<{
             className?: string;
+            style?: React.CSSProperties;
+            children?: React.ReactNode;
             [key: string]: unknown;
-          };
+          }>;
+          // Check if this child matches the target selector
+          const childProps = childElement.props;
           const matchesTarget =
             (target === '.title' && childProps.className?.includes('title')) ||
             (target === '.number' &&
@@ -44,10 +47,10 @@ export function BlinkHover({
             target === childProps.className;
 
           if (matchesTarget) {
-            return cloneElement(child, {
-              ...child.props,
+            return cloneElement(childElement, {
+              ...childProps,
               style: {
-                ...child.props.style,
+                ...(childProps.style || {}),
                 opacity: isVisible ? 1 : 0,
                 transition: 'opacity 0ms',
               },
@@ -55,10 +58,10 @@ export function BlinkHover({
           }
 
           // Recursively check nested children
-          if (child.props.children) {
-            return cloneElement(child, {
-              ...child.props,
-              children: cloneChildren(child.props.children),
+          if (childProps.children) {
+            return cloneElement(childElement, {
+              ...childProps,
+              children: cloneChildren(childProps.children),
             });
           }
         }

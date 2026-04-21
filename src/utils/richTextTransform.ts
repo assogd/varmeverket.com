@@ -1,3 +1,5 @@
+import { buildEventUrl } from '@/utils/eventUrl';
+
 /**
  * Utility functions for transforming rich text data
  */
@@ -17,7 +19,8 @@ export function removeTrailingBreaks(data: unknown): unknown {
   }
 
   const transformedData = JSON.parse(JSON.stringify(data)); // Deep clone
-  const children = (transformedData as { root: { children: unknown[] } }).root.children;
+  const children = (transformedData as { root: { children: unknown[] } }).root
+    .children;
 
   if (!Array.isArray(children) || children.length === 0) {
     return transformedData;
@@ -26,7 +29,7 @@ export function removeTrailingBreaks(data: unknown): unknown {
   // Remove trailing empty paragraphs
   while (children.length > 0) {
     const lastChild = children[children.length - 1];
-    
+
     // Check if it's an empty paragraph
     if (
       typeof lastChild === 'object' &&
@@ -38,7 +41,7 @@ export function removeTrailingBreaks(data: unknown): unknown {
         type: string;
         children?: Array<{ text?: string; type?: string }>;
       };
-      
+
       // Check if paragraph is empty (no children or only empty text nodes)
       const isEmpty =
         !paragraph.children ||
@@ -47,7 +50,7 @@ export function removeTrailingBreaks(data: unknown): unknown {
           child =>
             !child.text || child.text.trim() === '' || child.text === '\n'
         );
-      
+
       if (isEmpty) {
         children.pop();
       } else {
@@ -115,6 +118,20 @@ export function transformRichTextLinks(data: unknown): unknown {
               correctUrl = `/spaces/${slug}`;
             } else if (relationTo === 'articles') {
               correctUrl = `/artikel/${slug}`;
+            } else if (relationTo === 'events') {
+              const valueObj =
+                (docObj.value as {
+                  slug?: string;
+                  startDateTime?: string;
+                  parentSlug?: string;
+                  href?: string;
+                }) || {};
+              correctUrl = buildEventUrl({
+                slug,
+                startDateTime: valueObj.startDateTime,
+                parentSlug: valueObj.parentSlug,
+                href: valueObj.href,
+              });
             } else {
               correctUrl = `/${slug}`;
             }

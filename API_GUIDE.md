@@ -1,0 +1,1217 @@
+# Värmeverket API — Developer Quick Guide (Condensed)
+
+A compact reference for front-end integration with the Värmeverket API.
+
+---
+
+## 1. Concepts
+
+- User identifier: email address
+- Spaces: physical rooms, grouped into areas (hierarchical)
+- Bookings: connect user (email), space, start, end
+- Permissions:
+  - Unprivileged users: can manage their own data and bookings
+  - Admin/privileged: can manage more domains
+  - Exceeding permissions → 409 Unauthorized
+
+Always include `credentials: "include"` for authenticated requests.  
+Use `Content-Type: "application/json"` for JSON requests (header name is case-insensitive; standard is `Content-Type`).
+
+---
+
+## 2. Authentication & Sessions
+
+### 2.1 Request sign-in / registration (Magic link)
+
+Endpoint:
+
+    POST /session/sign-on?redirect={redirectUrl}
+    Body: { "email": "user@example.com" }
+
+Behaviour:
+
+- Sends a magic link to the email
+- `redirectUrl` is where the user lands after clicking the link (e.g. your front-end app URL)
+- **Important**: Only users with `enabled=1` can sign in. If a user is not enabled, the endpoint will return a special response indicating the address is not activated
+- Previously open for both registrations and logins, but now only activated addresses (`enabled=1`) are processed
+
+Example (JS):
+
+    const redirect = "https://www.varmeverket.com";
+    const email = "user@example.com";
+
+    fetch(`/session/sign-on?redirect=${redirect}`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+Typical response (success):
+
+    {
+      "message": "Check your inbox at user@example.com to confirm your email address or login.",
+      "status_code": 200,
+      "status_message": "OK"
+    }
+
+---
+
+### 2.2 Check active session
+
+Endpoint:
+
+    GET /session
+
+Behaviour:
+
+- If logged in → returns `session` + `user`
+- If not logged in / expired → 401 Unauthorized
+
+Example (JS):
+
+    const res = await fetch("/session", {
+      method: "GET",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" }
+    });
+
+Session + user example (simplified):
+
+    {
+      "session": {
+        "_fresh": true,
+        "_id": "...",
+        "csrf_token": "...",
+        "lang": "sv"
+      },
+      "user": {
+        "email": "user@example.com",
+        "idx": 533,
+        "name": "Firstname Lastname",
+        "roles": ["member"],
+        "username": "..."
+      }
+    }
+
+Use this to:
+
+- Render “logged in” vs “log in” UI
+- Fetch current user profile
+
+---
+
+## 3. Users
+
+Base URL:
+
+    /v2/users
+
+New user fields:
+
+- `phone`: text
+- `birthdate`: datetime
+- `address_street`: text
+- `address_code`: number
+- `address_city`: text
+- `profile`: JSON
+
+### 3.1 Get user
+
+    GET /v2/users/:email
+
+Returns user data for the specified email (if permitted).
+
+Example:
+
+    curl -X GET "https://$credentialsuser@api.varmeverket.com/v2/users/benji@superstition.io"
+
+Response:
+
+    [
+      {
+        "email": "benji@superstition.io",
+        "created": "Thu, 11 Jan 2024 12:48:46 GMT",
+        "updated": "Thu, 22 Jan 2026 13:29:32 GMT",
+        "idx": 308,
+        "name": "Benji",
+        "phone": null,
+        "birthdate": null,
+        "address_street": null,
+        "address_code": null,
+        "address_city": null,
+        "profile": null
+      }
+    ]
+
+### 3.2 Update user (partial)
+
+    PATCH /v2/users/:email
+    Body: { name?, password?, username?, email?, phone?, birthdate?, address_street?, address_code?, address_city?, profile? }
+
+Notes:
+
+- Path `:email` should be the current identifier (the logged-in user’s email)
+- Body may include a new email if user is changing address
+- If you get **403 "No permission"** with a valid session and path matching the current user, it is likely a backend permission/origin issue — contact the API maintainers
+- **Email change behaviour (multi-email accounts)**:
+  - En användare kan ha **flera emailadresser kopplade till samma konto**. Inloggningen sker alltid mot en specifik emailadress (lookup på vilken user den tillhör), men användarobjektet under `/v2/users` har fortfarande ett eget `email`-fält som fungerar som **primär emailadress**.
+  - Den primära emailadressen används bl.a. i **permissionsystemet**, medan inloggningen kan ske via vilken som helst av de kopplade adresserna.
+  - När en användare loggar in med adress **X**, kan den i sina inställningar se en **primär emailadress Y** om dessa skiljer sig.
+  - Vid uppdatering till en ny emailadress sker flera kontroller:
+    - Kollar att adressen är tillgänglig
+    - Skapar mailbox/post för adressen (om behövs) och synkar dess `enabled`-status
+    - Sätter den nya adressen som **primär emailadress** på användaren
+  - Eftersom den primära adressen används i permissions, kan det uppstå en **tillfällig mismatch** direkt efter en PATCH (t.ex. `/v2/users/:email`) där backend fortfarande pekar på den tidigare primära adressen. Detta löser sig normalt efter en **refresh** / ny sessionhämtning.
+  - Planerat: tydligare **bekräftelseflöde** innan email faktiskt ändras (t.ex. via separat länk + session-expiry) för att göra beteendet mer förutsägbart i UI och permissions.
+
+Use-case: Send a JSON payload with variable data (e.g. a profile object)
+
+Example:
+
+    curl -X PATCH "https://$credentialsuser@api.varmeverket.com/v2/users/benji@superstition.io" -d '{"profile": {"title": "developer", "organisation": "Värmeverket"}}'
+
+Response:
+
+    [
+      {
+        "email": "benji@superstition.io",
+        "created": "Thu, 11 Jan 2024 12:48:46 GMT",
+        "updated": "Thu, 22 Jan 2026 13:54:20 GMT",
+        "idx": 308,
+        "name": "Benji",
+        "phone": null,
+        "birthdate": null,
+        "address_street": null,
+        "address_code": null,
+        "address_city": null,
+        "profile": {
+          "title": "developer",
+          "organisation": "Värmeverket"
+        }
+      }
+    ]
+
+Example:
+
+    const userEmail = "user@example.com";
+
+    fetch(`/v2/users/${userEmail}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "Firstname Lastname"
+      })
+    });
+
+### 3.3 Replace user
+
+    PUT /v2/users
+    Body: { email, name, password, username? }
+
+### 3.4 Delete user
+
+    DELETE /v2/users/:email
+
+Important:
+
+- All bookings tied to this user must be deleted first.
+
+---
+
+### 3.5 Aggregated user + bookings + form submissions
+
+Base URL:
+
+    /v3/users
+
+    GET /v3/users/:email
+
+Use this endpoint when you need to render user data combined with bookings or submissions. Aggregation happens directly in the DB and is faster than multiple calls.
+
+Notes:
+
+- Only upcoming or ongoing bookings are included
+- All submissions are currently included (including archived)
+
+Example:
+
+    curl -X GET "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io"
+
+Response:
+
+    [
+      {
+        "user_id": 308,
+        "email": "benji@superstition.io",
+        "created": "Thu, 11 Jan 2024 12:48:46 GMT",
+        "updated": "Thu, 22 Jan 2026 13:54:20 GMT",
+        "name": "Benji",
+        "phone": null,
+        "birthdate": null,
+        "address_street": null,
+        "address_code": null,
+        "address_city": null,
+        "profile": {
+          "title": "developer",
+          "organisation": "Värmeverket"
+        },
+        "bookings": [
+          {
+            "idx": 14407,
+            "space": "studio container black",
+            "start": "2026-01-22 15:15:00",
+            "end": "2026-01-22 15:30:00",
+            "email": "benji@superstition.io"
+          },
+          {
+            "idx": 14407,
+            "space": "studio container black",
+            "start": "2026-01-22 15:15:00",
+            "end": "2026-01-22 15:30:00",
+            "email": "benji@superstition.io"
+          }
+        ],
+        "form_submissions": [
+          {
+            "id": 1,
+            "form": "/membership/application",
+            "submission": {
+              "email": "benji@superstition.io"
+            }
+          },
+          {
+            "id": 18,
+            "form": "/membership/application",
+            "submission": {
+              "email": "benji@superstition.io",
+              "Name": "Benji"
+            }
+          }
+        ]
+      }
+    ]
+
+Note: The curl examples here use HTTP Basic credentials for terminal testing. In web context, authentication is via session cookie, so ignore the `$credentialsuser@` prefix in the URL.
+
+### 3.6 Profile photo
+
+Profile photos are stored in S3 (DigitalOcean Spaces). The API uses **presigned upload URLs**: the client gets a one-time URL from the API, uploads the file directly to S3, then confirms with the API. The API tracks file keys, ownership, and generates the presigned URLs. Files are stored with `public-read` ACL. Allowed origins on Spaces include `https://api.varmeverket.com`, `https://dev.varmeverket.com`, and `https://local.addd.varmeverket.com:3000` for client-side uploads.
+
+**Flow:** (1) Create upload intent (with optional content-type) → (2) PUT file to presigned URL with required headers → (3) Confirm upload → (4) Optional: GET profile-photo for `file_key`, `status`, and ready-made `url`.
+
+#### 3.6.1 Create upload intent (presigned key)
+
+Creates a pending record and returns a presigned URL where the client should upload the image.
+
+    POST /v3/users/:email/profile-photo/intent?content-type={content-type}
+
+Optional query parameter:
+
+- **content-type** — MIME type for the image (e.g. `image/jpeg`, `image/png`). Defaults to `image/jpeg` if omitted. Use the same value as the `Content-Type` header when uploading in step 2.
+
+Requires authentication (the user creating the intent must be the same user or have permission). Response includes `upload_url` (use for a PUT in the next step) and `file_key` (use when confirming).
+
+Example:
+
+    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/intent?content-type=image/jpeg"
+
+Response:
+
+    {
+      "upload_url": "https://fra1.digitaloceanspaces.com/varmeverket-assets/profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&...",
+      "file_key": "profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg"
+    }
+
+#### 3.6.2 Upload the image to S3
+
+Upload the image file **client-side** with a **PUT** request to the `upload_url` from the previous step. No API call here—upload goes directly to DigitalOcean Spaces.
+
+**Required headers:**
+
+- **x-amz-acl: public-read** — Required so the object is publicly readable (e.g. via `https://assets.varmeverket.com/...`).
+- **Content-Type** — Must match the type used when creating the intent (e.g. `image/jpeg`). Use the same value as the `content-type` query parameter from step 1.
+
+**Optional:** Set `Origin` to your app origin (e.g. `https://api.varmeverket.com` or `https://dev.varmeverket.com`) so it matches the allowed origins on Spaces.
+
+Example:
+
+    curl -X PUT "https://fra1.digitaloceanspaces.com/varmeverket-assets/profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg?X-Amz-Algorithm=...&X-Amz-Signature=..." \
+      -H "x-amz-acl: public-read" \
+      -H "Content-Type: image/jpeg" \
+      -H "Origin: https://api.varmeverket.com" \
+      --data-binary @"/path/to/image.jpg"
+
+On success you get `HTTP/2 200` and the file is available at the CDN URL (see step 4 for the canonical URL format).
+
+#### 3.6.3 Confirm upload
+
+After a successful upload to S3, call the API to mark the upload as confirmed. The confirmed `file_key` then becomes the active profile photo for that user.
+
+    POST /v3/users/:email/profile-photo/confirm
+
+Send `file_key` either as a query parameter or in the request body (e.g. form `file_key=...`).
+
+Example (query):
+
+    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/confirm?file_key=profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg"
+
+Example (form body):
+
+    curl -X POST "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo/confirm" \
+      -d "file_key=profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg"
+
+Response:
+
+    {
+      "status_code": 200,
+      "status_message": "Profile photo upload confirmed"
+    }
+
+#### 3.6.4 Get current profile photo
+
+Returns the latest confirmed profile photo for a user, including a ready-made public URL.
+
+    GET /v3/users/:email/profile-photo
+
+Example:
+
+    curl -X GET "https://$credentialsuser@api.varmeverket.com/v3/users/benji@superstition.io/profile-photo"
+
+Response:
+
+    {
+      "file_key": "profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg",
+      "status": "confirmed",
+      "url": "https://assets.varmeverket.com/profile-photos/10564/39199cb5-04b9-4244-baa5-6d7d8675e34a.jpg"
+    }
+
+Use the **url** field to display the image. Alternatively, build the URL from your CDN base + `file_key` (e.g. `https://assets.varmeverket.com` + `file_key`).
+
+#### 3.6.5 Remove profile photo
+
+Removes the current profile photo for the user (no photo will be returned from GET until a new one is confirmed).
+
+    DELETE /v3/users/:email/profile-photo
+
+Requires authentication. The portal calls this when the user chooses "Ta bort bild".
+
+### 3.7 Stripe subscription (membership)
+
+An authenticated user can fetch their actual membership based on Stripe subscription (matched by the user's email in Stripe). The backend requires the user's email; use either path or query (path is more reliable with redirects).
+
+    GET /v3/users/:email/subscription
+    GET /v3/users/subscription?email=<email>
+
+Requires authentication (session). Returns an array of subscription objects.
+
+**With Stripe subscription** (example):
+
+    [
+      {
+        "id": "sub_1T6zKiPunD14rMeQRamPVst1",
+        "status": "active",
+        "current_period_start": "2026-03-03",
+        "current_period_end": "2026-04-03",
+        "cancel_at_period_end": false,
+        "items": [
+          {
+            "product_name": "Kickstart 12 Timmar",
+            "product_id": "prod_TahJuqTzki0ayE",
+            "price_id": "price_1Sne9UPunD14rMeQGaRnRFuE",
+            "amount": 300.0,
+            "currency": "SEK",
+            "interval": "month",
+            "interval_count": 1,
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+
+The `product_name` field replaces the previous Shape, Elevate, etc. concepts for displaying membership tier.
+
+**Without Stripe subscription** (dummy for base access):
+
+    [
+      {
+        "id": null,
+        "status": "active",
+        "current_period_start": null,
+        "current_period_end": null,
+        "cancel_at_period_end": false,
+        "items": [
+          {
+            "product_name": "Community",
+            "product_id": null,
+            "price_id": null,
+            "amount": 0.0,
+            "currency": "SEK",
+            "interval": null,
+            "interval_count": null,
+            "quantity": 1
+          }
+        ]
+      }
+    ]
+
+Use the first item's `product_name` (e.g. "Kickstart 12 Timmar" or "Community") to show the user's current membership in the UI.
+
+For **admin/staff**: the backend may support lookup by email (e.g. `GET /v3/users/subscription?email=<email>`) when using API key or staff session, so the admin panel can display a user's Stripe level when searching by email.
+
+### 3.8 Saved events
+
+Saved events are user-specific “saved” items referencing an article/event ID from Payload CMS collections (e.g. `Article` or `Events`).
+
+Base URL:
+
+    /v3/users/:email/saved-events
+
+#### 3.8.1 Save an event (create)
+
+    POST /v3/users/:email/saved-events
+    Body (form): article_id=<id>
+
+Notes:
+
+- `article_id` is treated as **text** by the backend (no required datatype). UUID used below is only an example.
+
+Example:
+
+    curl -X POST "https://$credentials10460@api.varmeverket.com/v3/users/benji@superstition.io/saved-events" -d 'article_id=5acba58f-5280-40a7-829f-4002796c70ad'
+
+Response:
+
+    {
+      "status_code": 201,
+      "status_message": "Created"
+    }
+
+#### 3.8.2 List saved events
+
+    GET /v3/users/:email/saved-events
+
+Example:
+
+    curl -X GET "https://$credentials10460@api.varmeverket.com/v3/users/benji@superstition.io/saved-events"
+
+Response:
+
+    [
+      {
+        "id": 1,
+        "user_id": 10460,
+        "article_id": "5acba58f-5280-40a7-829f-4002796c70ad",
+        "created_at": "Mon, 16 Mar 2026 14:08:50 GMT"
+      }
+    ]
+
+#### 3.8.3 Remove a saved event
+
+    DELETE /v3/users/:email/saved-events/:article_id
+
+Admins can remove a user's saved event by calling DELETE with admin credentials and the target user's email.
+
+Example (admin removing an entry for a user):
+
+    curl -X DELETE "https://$credentials@api.varmeverket.com/v3/users/benji@superstition.io/saved-events/5acba58f-5280-40a7-829f-4002796c70ad"
+
+Response:
+
+    {
+      "status_code": 200,
+      "status_message": "OK"
+    }
+
+#### 3.8.4 List all saved events (admin vs user)
+
+Saved events are not a participant list per se, but staff can use this endpoint to e.g. push an event or course instance to a user's dashboard by sending `email` + `article_id` to the create endpoint for each participant.
+
+**As admin (sees all entries):**
+
+    GET /v3/users/saved-events
+
+Example:
+
+    curl -X GET "https://$credentials@api.varmeverket.com/v3/users/saved-events"
+
+Response:
+
+    [
+      {
+        "id": 4,
+        "user_id": 10460,
+        "article_id": "5acba58f-5280-40a7-829f-4002796c70ad",
+        "created_at": "Tue, 17 Mar 2026 12:51:51 GMT"
+      },
+      {
+        "id": 2,
+        "user_id": 5823,
+        "article_id": "69b409483d164c32f03e7dc6",
+        "created_at": "Mon, 16 Mar 2026 18:49:41 GMT"
+      }
+    ]
+
+**As user (sees own saved events only):**
+
+    GET /v3/users/saved-events
+
+Example (with user credentials):
+
+    curl -X GET "https://$credentials10460@api.varmeverket.com/v3/users/saved-events"
+
+Response:
+
+    [
+      {
+        "id": 4,
+        "user_id": 10460,
+        "article_id": "5acba58f-5280-40a7-829f-4002796c70ad",
+        "created_at": "Tue, 17 Mar 2026 12:51:51 GMT"
+      }
+    ]
+
+#### 3.8.5 Filter by article_id
+
+You can filter saved events by `article_id` for both admin and user listing.
+
+**As admin:**
+
+    GET /v3/users/saved-events?article_id=<article_id>
+
+Example:
+
+    curl -X GET "https://$credentials@api.varmeverket.com/v3/users/saved-events?article_id=5acba58f-5280-40a7-829f-4002796c70ad"
+
+**As user (same query, returns only own entries that match):**
+
+    curl -X GET "https://$credentials10460@api.varmeverket.com/v3/users/saved-events?article_id=5acba58f-5280-40a7-829f-4002796c70ad"
+
+Response (single matching entry for that user):
+
+    [
+      {
+        "id": 4,
+        "user_id": 10460,
+        "article_id": "5acba58f-5280-40a7-829f-4002796c70ad",
+        "created_at": "Tue, 17 Mar 2026 12:51:51 GMT"
+      }
+    ]
+
+---
+
+## 4. Spaces
+
+Base URL:
+
+    /v2/spaces
+
+### 4.1 List all spaces
+
+    GET /v2/spaces
+
+Example:
+
+    fetch("/v2/spaces", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    });
+
+Typical response item:
+
+    {
+      "area": "musikverket" | null,
+      "capacity": 8,
+      "created_at": "Tue, 01 Oct 2024 10:08:16 GMT",
+      "description": null,
+      "m2": 15,
+      "name": "Studio T",
+      "slug": "studio-t",
+      "status": 1
+    }
+
+Use this for:
+
+- Dropdowns in booking forms
+- Space overview pages
+
+---
+
+## 5. Bookings
+
+There are two versions:
+
+- `/v2/bookings` — user-centric (private, tied to logged-in user)
+- `/v3/bookings` — calendar view (public, no personal data)
+
+---
+
+### 5.1 `/v2/bookings` — User’s own bookings
+
+Base URL:
+
+    /v2/bookings
+
+#### 5.1.1 Get bookings for a user
+
+    GET /v2/bookings?email={userEmail}
+
+Example:
+
+    const userEmail = "user@example.com";
+
+    fetch(`/v2/bookings?email=${userEmail}`, {
+      method: "GET",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" }
+    });
+
+Response example:
+
+    [
+      {
+        "created": "Wed, 30 Oct 2024 10:43:33 GMT",
+        "email": "user@example.com",
+        "end": "Wed, 30 Oct 2024 11:15:00 GMT",
+        "idx": 2131,
+        "space": "studio t",
+        "start": "Wed, 30 Oct 2024 11:00:00 GMT",
+        "updated": "Wed, 30 Oct 2024 10:43:33 GMT"
+      }
+    ]
+
+#### 5.1.2 Create booking
+
+    POST /v2/bookings
+    Body: { email, space, start, end }
+
+Example:
+
+    fetch("/v2/bookings", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "user@example.com",
+        space: "Studio Container 2",
+        start: "2024-11-04 17:00",
+        end: "2024-11-04 17:30"
+      })
+    });
+
+#### 5.1.3 Delete booking
+
+    DELETE /v2/bookings/:idx
+
+Example:
+
+    const bookingId = 2258;
+
+    fetch(`/v2/bookings/${bookingId}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" }
+    });
+
+---
+
+### 5.2 `/v3/bookings` — Public calendar view (no user data)
+
+Base URL:
+
+    /v3/bookings
+
+Behaviour:
+
+- Returns bookings in 7-day batches
+- Given a date like `2024-11-20`, returns all bookings for that week
+- Does not expose user email or other personal information
+
+#### 5.2.1 Calendar for a given space
+
+    GET /v3/bookings?space={spaceSlugOrName}
+
+Example:
+
+    const space = "studio-o";
+
+    fetch(`/v3/bookings?space=${space}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    });
+
+Response item example:
+
+    {
+      "end": "Mon, 11 Nov 2024 21:00:00 GMT",
+      "idx": 2272,
+      "space": "studio o",
+      "start": "Mon, 11 Nov 2024 13:00:00 GMT"
+    }
+
+#### 5.2.2 Multi-space calendar
+
+    GET /v3/bookings
+
+Omitting the `space` parameter gives events for multiple spaces.  
+Ideal for a resource calendar showing many rooms in parallel.
+
+---
+
+## 6. Logging out
+
+Endpoint:
+
+    GET /session/logout
+
+Examples:
+
+Front-end fetch:
+
+    fetch("/session/logout", {
+      method: "GET",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" }
+    });
+
+Simple HTML link:
+
+    <a href="https://api.varmeverket.com/session/logout">Log out</a>
+
+HTML form:
+
+    <form action="https://api.varmeverket.com/session/logout">
+      <button type="submit">Log out</button>
+    </form>
+
+Visiting this endpoint clears the current session.
+
+---
+
+## 7. Form Submissions
+
+Base URL:
+
+    /v3/forms
+
+### 7.1 Submit a form
+
+Endpoint:
+
+    POST /v3/forms/<form>
+
+The `form` parameter can be either:
+
+- A slug of the form
+- The name of the form as created in Payload CMS
+
+The important thing is that it's the main identifier for all submissions for a given form.
+
+Example:
+
+    curl -X POST "https://api.varmeverket.com/v3/forms/test-11" -d 'namn=Förnamn Efternamn'
+
+Response:
+
+    {
+      "id": 661,
+      "form": "test-11",
+      "submission": {
+        "namn": "Förnamn Efternamn"
+      },
+      "user_id": null,
+      "created_at": "Wed, 10 Dec 2025 14:23:45 GMT",
+      "archived": 0
+    }
+
+Notes:
+
+- All submissions get `archived=0` by default
+- New submissions automatically get `status="new"` if no status is specified
+- By default, only non-archived submissions are returned in queries
+- If a submission contains an `email` field, a `user_id` will be created or linked (not required for all forms)
+- Email address is required for submissions related to membership applications
+- Approved and activated users can list their own submissions via `GET /v3/forms/` (see 7.2)
+
+### 7.2 List my form submissions
+
+Authenticated users can fetch their own form submissions (across all forms) with:
+
+Endpoint:
+
+    GET /v3/forms/
+
+Requires authentication (e.g. Basic auth with the user’s credentials). Returns only submissions belonging to the current user.
+
+Example:
+
+    curl -X GET "https://$credentialsuser@api.varmeverket.com/v3/forms/"
+
+Response:
+
+    [
+      {
+        "id": 693,
+        "form": "studios",
+        "submission": {
+          "email": "benji@superstition.io",
+          "name": "Benji Smith",
+          "craft": "IT"
+        },
+        "user_id": 308,
+        "created_at": "Fri, 13 Feb 2026 16:08:53 GMT",
+        "archived": 0,
+        "status_history": [
+          {
+            "id": 49,
+            "submission_id": 693,
+            "status": "new",
+            "created_at": "2026-02-13 16:08:53"
+          }
+        ]
+      }
+    ]
+
+If the user has no submissions, the response is an empty array `[]`.
+
+### 7.3 Get form submissions (by form)
+
+Endpoint:
+
+    GET /v3/forms/<form>
+
+Returns all submissions for the given form (typically used by admins). Requires appropriate credentials.
+
+Example:
+
+    curl -X GET "https://username:secret@api.varmeverket.com/v3/forms/test-11"
+
+Response:
+
+    [
+      {
+        "id": 683,
+        "form": "test 10",
+        "submission": {
+          "email": "user@example.com"
+        },
+        "user_id": 10262,
+        "created_at": "Wed, 28 Jan 2026 17:45:46 GMT",
+        "archived": 0,
+        "status_history": [
+          {
+            "id": 13,
+            "submission_id": 683,
+            "status": "new",
+            "note": null,
+            "created_at": "2026-01-28 17:45:46"
+          }
+        ]
+      }
+    ]
+
+By default, only non-archived submissions are returned. To include archived submissions:
+
+    GET /v3/forms/<form>?archived=1
+
+### 7.4 Update a submission
+
+Endpoint:
+
+    PATCH /v3/forms/<submission_id>
+
+#### 7.4.1 Archive a submission
+
+Archive a submission when it's been handled and is no longer current. This is a separate step so that unapproved applications can be archived without activating a member.
+
+Example:
+
+    curl -X PATCH "https://username:secret@api.varmeverket.com/v3/forms/663" -d 'archived=1'
+
+Response:
+
+    {
+      "id": 663,
+      "form": "Test 11",
+      "submission": {
+        "name": "New Name"
+      },
+      "user_id": null,
+      "created_at": "Wed, 10 Dec 2025 15:04:16 GMT",
+      "archived": 1
+    }
+
+#### 7.4.2 Update submission status
+
+Update the status of a submission to track its progress through a workflow.
+
+**Critical behavior:** When `status=<value>` is included in the PATCH payload, **only** a new status history entry is created. No other changes will be applied—not archiving, not submission field updates, nothing else. The API separates status updates from other modifications to ensure clear, predictable behavior.
+
+**Important:**
+
+- To update status: send a PATCH request with **only** `status=<value>` in the payload
+- To archive or update other submission data: send a PATCH request **without** `status` in the payload
+- These operations must be done in separate requests—they cannot be combined
+
+Example:
+
+    curl -X PATCH "https://$credentials@api.varmeverket.com/v3/forms/684" -d 'status=pending interview'
+
+Response:
+
+    {
+      "status_message": "Submission status updated"
+    }
+
+After updating status, a GET request will show the updated status history:
+
+    curl -X GET "https://$credentials@api.varmeverket.com/v3/forms/test%2010/684"
+
+Response:
+
+    [
+      {
+        "id": 684,
+        "form": "test 10",
+        "submission": {
+          "email": "user@example.com"
+        },
+        "user_id": 10262,
+        "created_at": "Wed, 28 Jan 2026 18:11:22 GMT",
+        "archived": 0,
+        "status_history": [
+          {
+            "id": 15,
+            "submission_id": 684,
+            "status": "new",
+            "note": null,
+            "created_at": "2026-01-28 18:11:22"
+          },
+          {
+            "id": 20,
+            "submission_id": 684,
+            "status": "pending interview",
+            "note": null,
+            "created_at": "2026-01-28 18:14:38"
+          }
+        ]
+      }
+    ]
+
+### 7.5 Status History and Workflow
+
+Form submissions now support status history tracking, allowing you to monitor the progress of submissions through various stages of processing. This is particularly useful for complex processes like membership applications that involve interviews, meet-and-greet sessions, and approval workflows.
+
+#### Status Workflow Examples
+
+Typical workflow paths:
+
+- **Approval path:** `new` → `pending interview` → `pending introduction` → `accepted`
+- **Rejection path:** `new` → `pending interview` → `denied`
+
+#### Status History Details
+
+- Each submission automatically gets `status="new"` when created (if no status is specified)
+- Status changes are logged to a separate audit log (`status_history`)
+- The `archived` field continues to work as before for filtering submissions before status history lookup
+- Status history entries include:
+  - `id`: unique identifier for the history entry
+  - `submission_id`: reference to the submission
+  - `status`: the status value
+  - `note`: optional note (currently null)
+  - `created_at`: timestamp when the status was set
+
+---
+
+## 8. User Activation
+
+Base URL:
+
+    /v2/email
+
+### 8.1 Check user activation status
+
+Endpoint:
+
+    GET /v2/email/<email>
+
+Example:
+
+    curl -X GET "https://username:secret@api.varmeverket.com/v2/email/benji@superstition.io"
+
+Response:
+
+    [
+      {
+        "email": "benji@superstition.io",
+        "user_idx": 308,
+        "verified": "Wed, 03 Dec 2025 01:58:02 GMT",
+        "subscribed": 0,
+        "enabled": 0
+      }
+    ]
+
+Notes:
+
+- All new registrations are flagged as `enabled=0` by default
+- Submissions containing an `email` field will be registered in the email table
+- Users with `enabled=0` cannot sign in via `/session/sign-on`
+- The `/session/sign-on` endpoint will return a special response when an email address is not activated (enabled=0)
+
+### 8.2 Activate a user
+
+Endpoint:
+
+    PATCH /v2/email/<email>
+    Body: { "enabled": 1 }
+
+To approve a user and allow them to log in, set `enabled=1`:
+
+Example:
+
+    curl -X PATCH "https://$credentials@api.varmeverket.com/v2/email/benji@superstition.io" -d 'enabled=1'
+
+Response:
+
+    [
+      {
+        "email": "benji@superstition.io",
+        "user_idx": 308,
+        "verified": "Wed, 03 Dec 2025 01:58:02 GMT",
+        "subscribed": 0,
+        "enabled": 1
+      }
+    ]
+
+After activation, you can sign the user in programmatically:
+
+    curl -X POST "https://api.varmeverket.com/session/sign-on?redirect=https://<subdomain>.varmeverket.com" -d '{"email": "user@example.com"}'
+
+---
+
+## 9. API Key Authentication
+
+For server-side operations (e.g., managing submissions and user activations), an API key is available that has permissions for queries and changes related to users.
+
+### 9.1 Rollbaserad admin-access (session) och Admin-panelen
+
+- Permissionsystemet är **rollbaserat**. En användare kan ha en eller flera roller, t.ex.:
+  - `member`
+  - `community`
+  - `staff`
+  - `team`
+  - `system`
+- Rollen exponeras i `/session`-svaret:
+
+      GET /session
+
+      {
+        "session": {
+          "csrf_token": "...",
+          "lang": "sv",
+          "_fresh": true,
+          "_id": "..."
+        },
+        "user": {
+          "email": "benji@superstition.io",
+          "username": "94dc7aa5-3acb-580d-9ebe-3ca8e9fa35ba",
+          "created": "Wed, 11 Feb 2026 12:02:42 GMT",
+          "updated": "Wed, 25 Feb 2026 10:11:03 GMT",
+          "idx": 10460,
+          "name": "Benji Smith",
+          "phone": "-",
+          "birthdate": null,
+          "address_street": null,
+          "address_code": null,
+          "address_city": null,
+          "profile": "null",
+          "pronoun": null,
+          "roles": [
+            "community"
+          ]
+        }
+      }
+
+- **Adminroller**:
+  - Användare med rollerna `staff`, `team` eller `system` betraktas som **admins**.
+  - Dessa roller kommer att få **automatiskt tillträde** till administrativa funktioner (t.ex. `/admin`-panel, API-nyckel-liknande queries) baserat på sessions-cookien.
+- Planerat: ett explicit `is_admin`-fält i `/session.user` för att göra klientlogik enklare (istället för att hårdkoda rollnamn).
+
+Detta innebär att Admin-panelen kan styras helt via session och roller (utan separat inloggning), där UI:t bara behöver läsa `roles` (och senare `is_admin`) från `/session` för att avgöra om admin-vyer ska visas eller gömmas.
+
+**Note (staff/roller):** Med roller som `staff` returneras ofta mer information än användarens egna konto. För att avgränsa till en specifik användare, ange användarens e-post på de ställen där det behövs, t.ex. `?email=<email>` eller endpoint som `/v2/bookings/<email>`.
+
+### 9.2 API-nyckel (server-side)
+
+**Note:** Det är fortfarande möjligt – och ibland lämpligt – att använda en API-nyckel för server-side operationer. Historiskt har API-nyckeln använts för att hantera användare/submissions utan att behöva tvåstegsinloggning för `/admin` (se nedan).
+
+Det skulle vara möjligt att enbart använda sessionshantering för att låta teammedlemmar hantera submissions och aktiveringar, men det skulle kräva två steg när det gäller `/admin` (en inloggning för `/admin`-gränssnittet och en separat för att hämta användarens session-cookie för administrativa requests). Som alternativ finns därför en API-nyckel som är auktoriserad att göra queries och ändringar relaterade till användare. Den är avsedd för **serverkontext**.
+
+Authentication is done via HTTP Basic Auth:
+
+Example credentials (placeholders only):
+
+    {
+      "username": "<api-key-username>",
+      "password": "<api-key-password>"
+    }
+
+Alternative format:
+
+    {
+      "username": "<api-key-username>",
+      "http_basic_auth": {
+        "username": "<api-key-username>",
+        "password": "<api-key-password>"
+      },
+      "header": "Authorization: Basic <base64(username:password)>"
+    }
+
+Using in curl:
+
+    curl -X GET "https://username:password@api.varmeverket.com/v2/email/user@example.com"
+
+Using as header:
+
+    Authorization: Basic <base64(username:password)>
+
+Note: This API key is intended for use in server context only.
+
+---
+
+## 10. Mailboxes (Sign-up Internals)
+
+Mailboxes represent email addresses that may not yet have full user accounts (e.g. during sign-up).
+
+Fields:
+
+- `email`: email address
+- `user_idx`: user ID if a user account exists
+- `verified`: datetime when email was validated
+- `subscribed`: boolean, permission to send email
+- `enabled`: boolean (0 or 1), whether the user can sign in
+
+Flow summary:
+
+1. User submits form with email
+2. Mailbox entry is created / updated with `enabled=0`
+3. Magic link is sent (if applicable)
+4. User clicks link → token is validated, `verified` is set
+5. Admin activates user by setting `enabled=1`
+6. User can now sign in via `/session/sign-on`
+
+---
+
+## 11. Front-End Integration Checklist
+
+- Use `credentials: "include"` for all authenticated calls
+- Set `Content-Type: "application/json"` header for JSON requests
+- Use:
+  - `/session/sign-on` for login/registration via magic link
+  - `/session` to detect logged-in state
+  - `/v2/users` for current user profile UI
+  - `/v2/spaces` to power booking UI (dropdowns, listings)
+  - `/v2/bookings` for “My bookings” pages (private)
+  - `/v3/bookings` for public calendars / availability
+  - `/session/logout` to sign out

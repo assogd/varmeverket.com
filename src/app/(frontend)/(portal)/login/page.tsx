@@ -1,0 +1,152 @@
+import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
+import Link from 'next/link';
+import { BACKEND_API_URL } from '@/lib/backendApi';
+import { getInputClasses } from '@/components/forms/fields/shared/inputStyles';
+import { fetchServerSession } from '@/lib/serverSession';
+import { VarmeverketIcon } from '@/components/icons';
+import { Heading } from '@/components/headings';
+import { Button } from '@/components/ui';
+import { LoginNotifications } from '@/components/auth/LoginNotifications';
+import clsx from 'clsx';
+
+const LOGIN_FLOW_DEBUG = process.env.LOGIN_FLOW_DEBUG === 'true';
+
+async function signOnAction(formData: FormData) {
+  'use server';
+  const startedAt = Date.now();
+  const email = String(formData.get('email') || '').trim();
+  if (!email) {
+    redirect('/login?error=' + encodeURIComponent('Email är obligatorisk.'));
+  }
+
+  const headerList = await headers();
+  const origin = headerList.get('origin');
+  const redirectUrl = origin
+    ? `${origin}/dashboard`
+    : 'https://www.varmeverket.com/dashboard';
+
+  const response = await fetch(
+    `${BACKEND_API_URL}/session/sign-on?redirect=${encodeURIComponent(
+      redirectUrl
+    )}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+      cache: 'no-store',
+    }
+  );
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const message =
+      (data as { message?: string })?.message ||
+      'Kunde inte skicka magic link. Försök igen.';
+    redirect('/login?error=' + encodeURIComponent(message));
+  }
+
+  if (LOGIN_FLOW_DEBUG) {
+    console.info(`[login-flow] sign-on request ok ${Date.now() - startedAt}ms`);
+  }
+
+  redirect('/login?sent=1');
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ sent?: string; error?: string }>;
+}) {
+  const startedAt = Date.now();
+  const headerList = await headers();
+  const headerCookie = headerList.get('cookie') || '';
+  const session = await fetchServerSession(headerCookie);
+
+  if (LOGIN_FLOW_DEBUG) {
+    console.info(
+      `[login-flow] login-page session-check ${Date.now() - startedAt}ms`
+    );
+  }
+
+  if (session?.user) {
+    redirect('/dashboard');
+  }
+
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const errorMessage =
+    typeof resolvedSearchParams?.error === 'string'
+      ? decodeURIComponent(resolvedSearchParams.error)
+      : null;
+  const sent = resolvedSearchParams?.sent === '1';
+
+  return (
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6 pt-12">
+      <div className={clsx('w-full space-y-6', sent ? '' : 'max-w-xs')}>
+        {!sent && (
+          <Heading variant="section" as="h2" center className="pb-10">
+            Logga in
+          </Heading>
+        )}
+
+        <LoginNotifications errorMessage={errorMessage} />
+
+        {sent && (
+          <div className="space-y-2 text-center flex-1">
+            <Heading variant="section" as="h2" center className="pb-2">
+              Kolla din inkorg
+            </Heading>
+            <p className="font-mono">
+              Vi har skickat en temporär inloggningslänk till dig.
+            </p>
+          </div>
+        )}
+
+        {!sent && (
+          <form action={signOnAction} className="space-y-6">
+            <div>
+              <label htmlFor="login-email" className="hidden mb-2">
+                Din epostadress
+              </label>
+              <input
+                id="login-email"
+                name="email"
+                type="email"
+                required
+                placeholder="Din epostadress"
+                className={getInputClasses()}
+              />
+              <p className="text-sm mt-2">
+                En inloggningslänk kommer att skickas till dig.
+              </p>
+            </div>
+            <Button
+              type="submit"
+              variant="outline"
+              solidContrast
+              className="w-full"
+            >
+              Gå vidare
+            </Button>
+          </form>
+        )}
+
+        {!sent && (
+          <p className="text-center">
+            Inte medlem?{' '}
+            <Link className="underline" href="/ansok-om-medlemskap">
+              Ansök om medlemskap här
+            </Link>
+            .
+          </p>
+        )}
+      </div>
+
+      <Link href="/" className={clsx(sent ? 'mt-8' : 'mt-16')}>
+        <VarmeverketIcon size={112} className="mx-auto" />
+      </Link>
+    </div>
+  );
+}

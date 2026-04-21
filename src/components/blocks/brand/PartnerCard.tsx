@@ -18,6 +18,7 @@ export const PartnerCard: React.FC<PartnerCardProps> = ({
   className,
 }) => {
   const hasValidUrl = Boolean(url && url !== '#');
+  if (!image?.url) return null;
 
   const cardContent = (
     <Image

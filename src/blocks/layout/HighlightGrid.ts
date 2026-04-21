@@ -2,6 +2,8 @@ import type { Block } from 'payload';
 
 const HighlightGrid: Block = {
   slug: 'highlightGrid',
+  imageURL: '/block-thumbnails/highlight-grid-generator.png',
+  imageAltText: 'Highlight Grid Block',
   fields: [
     {
       name: 'headline',
@@ -11,7 +13,7 @@ const HighlightGrid: Block = {
     {
       name: 'highlights',
       type: 'relationship',
-      relationTo: ['showcases', 'articles'] as never,
+      relationTo: ['showcases', 'articles', 'events'] as never,
       hasMany: true,
       required: true,
     },

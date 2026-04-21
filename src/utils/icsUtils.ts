@@ -8,6 +8,8 @@ export interface CalendarEvent {
   startDate: string;
   endDate: string;
   description?: unknown;
+  /** Event location (e.g. "Värmeverket, Bredängsvägen 203, 127 34 Skärholmen") */
+  location?: string;
   link?: {
     type: 'internal' | 'external';
     reference?: unknown;
@@ -59,6 +61,9 @@ export const generateICSContent = (event: CalendarEvent): string => {
   const endICS = formatICSDate(end);
   const uid = generateEventUID();
   const cleanDescription = cleanDescriptionForICS(event.description);
+  const locationLine = event.location
+    ? `LOCATION:${event.location.replace(/\n/g, ' ')}\n`
+    : '';
 
   return `BEGIN:VCALENDAR
 VERSION:2.0
@@ -68,7 +73,7 @@ UID:${uid}
 DTSTART:${startICS}
 DTEND:${endICS}
 SUMMARY:${event.title}
-DESCRIPTION:${cleanDescription}
+${locationLine}DESCRIPTION:${cleanDescription}
 STATUS:CONFIRMED
 END:VEVENT
 END:VCALENDAR`;
@@ -115,13 +120,16 @@ export const generateMultipleEventsICS = (events: CalendarEvent[]): string => {
       const endICS = formatICSDate(end);
       const uid = generateEventUID();
       const cleanDescription = cleanDescriptionForICS(event.description);
+      const locationLine = event.location
+        ? `LOCATION:${event.location.replace(/\n/g, ' ')}\n`
+        : '';
 
       return `BEGIN:VEVENT
 UID:${uid}
 DTSTART:${startICS}
 DTEND:${endICS}
 SUMMARY:${event.title}
-DESCRIPTION:${cleanDescription}
+${locationLine}DESCRIPTION:${cleanDescription}
 STATUS:CONFIRMED
 END:VEVENT`;
     })

@@ -6,7 +6,7 @@ import UserCardBlock from '@/components/blocks/composite/UserCardBlock';
 
 interface HorizontalMarqueeBlockProps {
   headline?: string;
-  description?: Record<string, unknown>;
+  description?: unknown;
   speed: number;
   userCards: Array<{
     blockType: 'userCard';
@@ -45,7 +45,7 @@ export default function HorizontalMarqueeBlock({
   const repeatCount = Math.ceil(minCards / userCards.length);
 
   // Create array with repeated cards
-  const repeatedCards = [];
+  const repeatedCards: Array<(typeof userCards)[number] & { key: string }> = [];
   for (let i = 0; i < repeatCount; i++) {
     userCards.forEach((userCard, index) => {
       repeatedCards.push({
@@ -58,12 +58,12 @@ export default function HorizontalMarqueeBlock({
   return (
     <div className="py-24">
       <DevIndicator componentName="HorizontalMarqueeBlock" />
-      <BlockHeader headline={headline} description={description} />
+      <BlockHeader headline={headline} description={description as never} />
 
       <div className="w-screen overflow-hidden mt-8">
         <Marquee speed={pixelSpeed} direction="left" gradient={false}>
           <div className="flex items-center gap-4 ml-2">
-            {repeatedCards.map((userCard, index) => (
+            {repeatedCards.map(userCard => (
               <div key={userCard.key} className="flex-shrink-0">
                 <UserCardBlock
                   variant={userCard.variant}

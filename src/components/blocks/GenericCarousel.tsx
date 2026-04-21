@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { DevIndicator } from '@/components/dev/DevIndicator';
+import { RichText } from '@payloadcms/richtext-lexical/react';
 
 interface GenericCarouselProps {
   headline?: string;
@@ -57,7 +58,7 @@ const GenericCarousel: React.FC<GenericCarouselProps> = ({
         )}
         {description && (
           <div className="text-lg md:text-xl max-w-4xl mx-auto leading-relaxed">
-            {description}
+            <RichText data={description as never} />
           </div>
         )}
       </div>

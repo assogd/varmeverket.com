@@ -5,7 +5,6 @@ import Spotlight from '@/blocks/interactive/Spotlight';
 import HorizontalCardBlock from '@/blocks/layout/HorizontalCardBlock';
 import CardGrid from '@/blocks/layout/CardGrid';
 import LogotypeWall from '@/blocks/brand/LogotypeWall';
-import PartnerBlock from '@/blocks/brand/PartnerBlock';
 import Router from '@/blocks/layout/Router';
 import Carousel from '@/blocks/layout/Carousel';
 import List from '@/blocks/layout/List';
@@ -14,8 +13,6 @@ import HighlightGridGenerator from '@/blocks/layout/HighlightGridGenerator';
 import FAQ from '@/blocks/interactive/FAQ';
 import HighlightGrid from '@/blocks/layout/HighlightGrid';
 import Calendar from '@/blocks/interactive/Calendar';
-import InfoOverlay from '@/blocks/interactive/InfoOverlay';
-import HorizontalMarqueeBlock from '@/blocks/interactive/HorizontalMarqueeBlock';
 import TextBlock from '@/blocks/content/TextBlock';
 import CTA from '@/blocks/interactive/CTA';
 import Form from '@/blocks/interactive/Form';
@@ -94,7 +91,8 @@ const Pages: CollectionConfig = {
                   type: 'text',
                   required: false,
                   admin: {
-                    description: 'Small title displayed above the main header text',
+                    description:
+                      'Small title displayed above the main header text',
                   },
                 },
                 {
@@ -192,7 +190,6 @@ const Pages: CollectionConfig = {
                 HighlightGrid,
                 CardGrid,
                 LogotypeWall,
-                PartnerBlock,
                 Carousel,
                 CourseCatalog,
                 HighlightGridGenerator,
@@ -204,8 +201,6 @@ const Pages: CollectionConfig = {
                 List,
                 FAQ,
                 Calendar,
-                InfoOverlay,
-                HorizontalMarqueeBlock,
                 TextBlock,
                 CTA,
                 Form,

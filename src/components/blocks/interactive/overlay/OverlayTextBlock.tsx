@@ -18,7 +18,7 @@ interface OverlayTextBlockProps {
 export default function OverlayTextBlock({ content }: OverlayTextBlockProps) {
   return (
     <div className="text-center">
-      <RichText data={content} className="text-base" />
+      <RichText data={content as never} className="text-base" />
     </div>
   );
 }

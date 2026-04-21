@@ -12,8 +12,6 @@ import HighlightGrid from '@/blocks/layout/HighlightGrid';
 import HighlightGridGenerator from '@/blocks/layout/HighlightGridGenerator';
 import Calendar from '@/blocks/interactive/Calendar';
 import Image from '@/blocks/media/Image';
-import InfoOverlay from '@/blocks/interactive/InfoOverlay';
-import HorizontalMarqueeBlock from '@/blocks/interactive/HorizontalMarqueeBlock';
 import Model3D from '@/blocks/media/Model3D';
 import Carousel from '@/blocks/layout/Carousel';
 import CardGrid from '@/blocks/layout/CardGrid';
@@ -163,8 +161,6 @@ const Spaces: CollectionConfig = {
                 MinimalCarousel,
                 TextBlock,
                 Calendar,
-                InfoOverlay,
-                HorizontalMarqueeBlock,
                 Model3D,
                 Carousel,
                 CardGrid,

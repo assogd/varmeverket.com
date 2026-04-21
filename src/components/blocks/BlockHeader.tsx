@@ -1,7 +1,7 @@
 import React from 'react';
 import { RichText } from '@payloadcms/richtext-lexical/react';
 import clsx from 'clsx';
-import { SectionHeading } from '@/components/headings';
+import { SectionHeading, Heading } from '@/components/headings';
 
 interface BlockHeaderProps {
   headline?: string;
@@ -19,6 +19,8 @@ interface BlockHeaderProps {
   className?: string;
   headlineClassName?: string;
   descriptionClassName?: string;
+  /** Match FAQBlock headline: Heading content-h2. Default section = SectionHeading (ListBlock etc.) */
+  headlineVariant?: 'section' | 'content-h2';
 }
 
 export const BlockHeader: React.FC<BlockHeaderProps> = ({
@@ -27,6 +29,7 @@ export const BlockHeader: React.FC<BlockHeaderProps> = ({
   className = '',
   headlineClassName,
   descriptionClassName,
+  headlineVariant = 'section',
 }) => {
   if (!headline && !description) {
     return null;
@@ -34,17 +37,30 @@ export const BlockHeader: React.FC<BlockHeaderProps> = ({
 
   return (
     <header className={className}>
-      {headline && (
-        <SectionHeading
-          className={clsx(
-            'text-center', // Default styles
-            !description ? 'mb-8' : 'mb-3',
-            headlineClassName // Additional custom styles
-          )}
-        >
-          {headline}
-        </SectionHeading>
-      )}
+      {headline &&
+        (headlineVariant === 'content-h2' ? (
+          <Heading
+            variant="content-h2"
+            as="h2"
+            className={clsx(
+              'mb-4 px-2 text-center',
+              !description && 'mb-8',
+              headlineClassName
+            )}
+          >
+            {headline}
+          </Heading>
+        ) : (
+          <SectionHeading
+            className={clsx(
+              'text-center',
+              !description ? 'mb-8' : 'mb-3',
+              headlineClassName
+            )}
+          >
+            {headline}
+          </SectionHeading>
+        ))}
       {description && (
         <div
           className={clsx(

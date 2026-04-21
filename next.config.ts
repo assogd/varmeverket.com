@@ -3,11 +3,12 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
+  devIndicators: false,
   // Performance optimizations
   experimental: {
     optimizePackageImports: [
@@ -24,6 +25,12 @@ const nextConfig: NextConfig = {
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 60,
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'dev.varmeverket.com',
+        port: '',
+        pathname: '/api/media/**',
+      },
       {
         protocol: 'https',
         hostname: 'payload.cms.varmeverket.com',

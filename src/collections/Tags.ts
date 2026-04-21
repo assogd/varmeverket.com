@@ -35,7 +35,7 @@ export const Tags: CollectionConfig = {
     {
       name: 'references',
       type: 'relationship',
-      relationTo: ['articles', 'pages', 'spaces'],
+      relationTo: ['articles', 'events', 'pages', 'spaces'],
       hasMany: true,
       required: false,
       admin: {

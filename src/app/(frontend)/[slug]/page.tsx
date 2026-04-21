@@ -79,10 +79,7 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
     lastBlock?.blockType === 'router';
 
   return (
-    <PageLayout
-      contentType="page"
-      paddingBottom={!lastBlockIsMatch}
-    >
+    <PageLayout contentType="page" paddingBottom={!lastBlockIsMatch}>
       {(processedPage as PageData).header && (
         <PageHeader
           text={(processedPage as PageData).header!.text}

@@ -5,8 +5,13 @@ import { commonHooks, publicAccess } from '@/utils/hooks';
 
 const Navigation: CollectionConfig = {
   slug: 'navigation',
+  labels: {
+    singular: 'Navigation',
+    plural: 'Navigation',
+  },
   admin: {
     useAsTitle: 'name',
+    group: 'Globals',
   },
   access: publicAccess,
   fields: [

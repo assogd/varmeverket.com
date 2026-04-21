@@ -1,4 +1,5 @@
 import type { Block } from 'payload';
+import { InlineHeader } from '@/fields/InlineHeader';
 
 const Form: Block = {
   slug: 'form',
@@ -9,6 +10,7 @@ const Form: Block = {
     plural: 'Form Blocks',
   },
   fields: [
+    ...InlineHeader,
     {
       name: 'form',
       type: 'relationship',

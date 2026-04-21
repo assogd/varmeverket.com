@@ -38,11 +38,11 @@ const spaceConverter = buildConverter({
 });
 
 export default function SpaceHeader({ spaceData, header }: SpaceHeaderProps) {
-  const heroAsset = spaceData.header?.heroAsset;
+  const heroAsset = spaceData.heroAsset;
 
   return (
     <div className="relative">
-      <DevIndicator componentName="SpaceHeader" position="top-center" />
+      <DevIndicator componentName="SpaceHeader" position="top-right" />
 
       {/* Hero Section */}
       <div

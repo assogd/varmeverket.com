@@ -12,6 +12,7 @@ interface NavigationButtonProps {
   onToggle: () => void;
   isDarkMode: boolean;
   mounted: boolean;
+  fadeInDelay?: number;
 }
 
 const NavigationButton: React.FC<NavigationButtonProps> = ({
@@ -19,6 +20,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
   onToggle,
   isDarkMode,
   mounted,
+  fadeInDelay = 0.4,
 }) => {
   const navButtonClasses = clsx(
     `fixed top-4 left-4 sm:top-2 sm:left-2 ${NAV_DIMENSIONS.Z_INDEX.HIGH} ${NAV_DIMENSIONS.BORDER_RADIUS}`,
@@ -34,7 +36,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
     <FadeIn
       variant="fadeDown"
       timing="normal"
-      delay={0.4}
+      delay={fadeInDelay}
       as="button"
       onClick={onToggle}
       className={navButtonClasses}

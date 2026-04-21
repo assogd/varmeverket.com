@@ -15,6 +15,7 @@ import sharp from 'sharp';
 
 import { Users, collections } from './schema/index';
 import { globals } from './globals/index';
+import { extendFormsCollection } from './plugins/extendFormsCollection';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -46,7 +47,7 @@ export default buildConfig({
           {
             name: 'doc',
             type: 'relationship',
-            relationTo: ['pages', 'spaces', 'articles'],
+            relationTo: ['pages', 'spaces', 'articles', 'events'],
             required: false,
             admin: {
               condition: (
@@ -78,28 +79,6 @@ export default buildConfig({
             },
           },
         ],
-        generateURL: ({ doc, url, type }) => {
-          // Handle internal links
-          if (type === 'internal' && doc) {
-            if (typeof doc === 'object' && doc.value && doc.value.slug) {
-              if (doc.relationTo === 'spaces') {
-                return `/spaces/${doc.value.slug}`;
-              } else if (doc.relationTo === 'articles') {
-                return `/artikel/${doc.value.slug}`;
-              } else {
-                return `/${doc.value.slug}`;
-              }
-            }
-          }
-
-          // Handle external links
-          if (type === 'external' && url) {
-            return url;
-          }
-
-          // Fallback
-          return '#';
-        },
       }),
     ],
   }),
@@ -128,6 +107,12 @@ export default buildConfig({
   plugins: [
     payloadCloudPlugin(),
     formBuilderPlugin({
+      // Ensure forms stay publicly readable when embedded (no auth gate on read)
+      formOverrides: {
+        access: {
+          read: () => true,
+        },
+      },
       fields: {
         text: true,
         textarea: true,
@@ -140,8 +125,16 @@ export default buildConfig({
         message: true,
         payment: false, // Disable payment fields for now
       },
-      redirectRelationships: ['pages'], // Collections to use for form redirects
+      redirectRelationships: ['pages', 'spaces', 'articles', 'events'], // Collections to use for form redirects
+      // Submissions go to backend API (/v3/forms/...); hide Payload form-submissions
+      // from admin so editors aren’t confused. Collection + data stay in DB untouched.
+      formSubmissionOverrides: {
+        admin: {
+          hidden: true,
+        },
+      },
     }),
+    extendFormsCollection, // Extend forms collection with sections support
     // storage-adapter-placeholder
   ],
 });

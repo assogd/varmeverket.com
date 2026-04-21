@@ -15,6 +15,7 @@ interface HighlightLinkProps {
   onClick: () => void;
   isDarkMode: boolean;
   mounted: boolean;
+  fadeInDelay?: number;
 }
 
 const HighlightLink: React.FC<HighlightLinkProps> = ({
@@ -22,20 +23,25 @@ const HighlightLink: React.FC<HighlightLinkProps> = ({
   onClick,
   isDarkMode,
   mounted,
+  fadeInDelay = 0.4,
 }) => {
   const [isMarqueeing, setIsMarqueeing] = useState(false);
   const linkResult = routeLink(link);
   const href = linkResult.href || '#';
 
   const highlightLinkClasses = clsx(
-    `fixed ${NAV_DIMENSIONS.Z_INDEX.LOW} bottom-2 left-2 right-2 md:right-auto md:bottom-auto md:top-2 md:left-[2.65em] ${NAV_DIMENSIONS.HEIGHT} ${NAV_DIMENSIONS.BORDER_RADIUS}`,
+    `fixed ${NAV_DIMENSIONS.Z_INDEX.LOW} bottom-2 left-2 right-2 md:right-auto md:bottom-auto md:top-2 md:left-[4.8em] ${NAV_DIMENSIONS.HEIGHT} ${NAV_DIMENSIONS.BORDER_RADIUS}`,
     !mounted && 'mix-blend-multiply bg-text',
     mounted && isDarkMode && 'text-text border border-white',
     mounted && !isDarkMode && 'mix-blend-multiply bg-text text-white'
   );
 
   return (
-    <FadeIn variant="fadeDown" delay={0.4} className={highlightLinkClasses}>
+    <FadeIn
+      variant="fadeDown"
+      delay={fadeInDelay}
+      className={highlightLinkClasses}
+    >
       <Link
         href={href}
         onClick={onClick}

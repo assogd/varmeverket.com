@@ -2,6 +2,8 @@ export interface ContentItem {
   id: string;
   title: string;
   slug: string;
+  href?: string;
+  parentSlug?: string;
   featuredImage?: {
     id: string;
     url: string;
@@ -46,6 +48,8 @@ export interface ContentItem {
   }>;
   year?: number;
   publishedDate?: string;
+  startDateTime?: string;
+  endDateTime?: string;
   createdAt?: string;
   lastModifiedDate?: string;
   excerpt?: string;
@@ -81,7 +85,7 @@ export interface ContentItem {
     email?: string;
     bylineDescription?: string;
   };
-  _contentType: 'article' | 'showcase';
+  _contentType: 'article' | 'showcase' | 'event';
 }
 
 export interface CardProps {

@@ -1,24 +1,21 @@
 import React from 'react';
 import localFont from 'next/font/local';
 import './globals.css';
-import Navigation, {
-  NavigationData,
-  Footer,
-  UrlBasedTheme,
-  BackgroundLoader,
-} from '@/components/layout';
-import { ThemeProvider } from 'next-themes';
+import { type NavigationData, BackgroundLoader } from '@/components/layout';
+import Chrome from '@/components/layout/Chrome';
+import { PathBasedThemeProvider } from '@/components/layout/PathBasedThemeProvider';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { NotificationContainer } from '@/components/notifications';
+import { SessionProvider } from '@/hooks/useSession';
 import {
   AdminContainer,
   RevalidateButton,
   ExitPreviewButton,
-  CachePerformance,
 } from '@/components/admin';
 import PayloadAPI from '@/lib/api';
 import { initializeCacheWarming } from '@/utils/cacheWarmer';
 import '@/utils/testCacheMonitor';
+import type { LinkGroup } from '@/utils/linkRouter';
 
 const sans = localFont({
   src: [
@@ -116,10 +113,9 @@ async function getNavigation() {
 
 async function getFooter() {
   try {
-    const footer = await PayloadAPI.getGlobal<{ links?: Array<{ link: unknown }> }>(
-      'footer',
-      3
-    );
+    const footer = await PayloadAPI.getGlobal<{
+      links?: Array<{ link: LinkGroup }>;
+    }>('footer', 3);
     return footer;
   } catch (error) {
     console.error('Failed to fetch footer in layout:', error);
@@ -132,45 +128,48 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
 
   // Initialize cache warming in the background
   initializeCacheWarming();
-  const navigation = await getNavigation();
-  const footer = await getFooter();
+  const [navigation, footer] = await Promise.all([
+    getNavigation(),
+    getFooter(),
+  ]);
   const useCustomFonts = true;
   const htmlClass = useCustomFonts
     ? `${sans.variable} ${mono.variable} ${display.variable} ${ballPill.variable} font-sans bg-bg dark:bg-dark-bg text-text dark:text-dark-text`
     : '';
 
-  // Get pathname from headers to determine if we're on homepage
-  // const headersList = await import('next/headers').then(m => m.headers());
-  // const pathname = headersList.get('x-pathname') || '/';
+  const headersList = await import('next/headers').then(m => m.headers());
+  const themeFromHeader = headersList.get('x-portal-theme') ?? 'light';
 
+  const finalHtmlClass = `${htmlClass} ${themeFromHeader}`.trim();
   const mainClassName = 'min-h-screen';
 
   return (
-    <html lang="sv" className={htmlClass} suppressHydrationWarning>
+    <html lang="sv" className={finalHtmlClass} suppressHydrationWarning>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          storageKey={null}
+        <PathBasedThemeProvider
+          initialThemeFromHeader={
+            themeFromHeader as 'light' | 'dark' | 'orange'
+          }
         >
-          <NotificationProvider>
-            <UrlBasedTheme>
+          <SessionProvider>
+            <NotificationProvider>
               <BackgroundLoader>
-                {navigation && <Navigation navigation={navigation} />}
-                <main className={mainClassName}>
+                <Chrome
+                  navigation={navigation}
+                  footerLinks={footer?.links}
+                  mainClassName={mainClassName}
+                >
                   {children}
-                  <Footer links={footer?.links} />
-                </main>
+                </Chrome>
                 <AdminContainer>
                   <RevalidateButton />
                   <ExitPreviewButton />
                 </AdminContainer>
                 <NotificationContainer />
               </BackgroundLoader>
-            </UrlBasedTheme>
-          </NotificationProvider>
-        </ThemeProvider>
+            </NotificationProvider>
+          </SessionProvider>
+        </PathBasedThemeProvider>
       </body>
     </html>
   );

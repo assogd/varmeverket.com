@@ -1,0 +1,221 @@
+'use client';
+
+import {
+  useState,
+  useEffect,
+  useCallback,
+  createContext,
+  useContext,
+  createElement,
+} from 'react';
+import BackendAPI, { type SessionResponse } from '@/lib/backendApi';
+import {
+  profilePhotoUrl,
+  getCachedProfilePhotoUrl,
+  setCachedProfilePhotoUrl,
+  clearCachedProfilePhotoUrl,
+} from '@/utils/imageUrl';
+
+// Track emails we've already checked for a profile photo (including 404/no-photo)
+// to avoid repeated GET /v3/users/:email/profile-photo calls and their 404s.
+const emailsCheckedForProfilePhoto = new Set<string>();
+
+interface UseSessionResult {
+  session: SessionResponse | null;
+  user: SessionResponse['user'] | null;
+  /** Resolved profile photo URL (from API or built from session). Fetched once when user is set, not on every navigation. */
+  profilePhotoUrl: string | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+const SESSION_REFRESH_EVENT = 'varmeverket:session-refresh';
+const SESSION_DEBUG = process.env.NEXT_PUBLIC_SESSION_DEBUG === 'true';
+
+const SessionContext = createContext<UseSessionResult | undefined>(undefined);
+const noopRefetch = async () => {};
+const noopContext: UseSessionResult = {
+  session: null,
+  user: null,
+  profilePhotoUrl: null,
+  loading: false,
+  error: null,
+  refetch: noopRefetch,
+};
+
+function getErrorStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return undefined;
+  const maybeStatus = (error as { status?: unknown }).status;
+  return typeof maybeStatus === 'number' ? maybeStatus : undefined;
+}
+
+function useSessionController(): UseSessionResult {
+  const [session, setSession] = useState<SessionResponse | null>(null);
+  const [profilePhotoUrlState, setProfilePhotoUrlState] = useState<
+    string | null
+  >(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchSession = useCallback(
+    async (reason: 'initial' | 'event' | 'manual' = 'manual') => {
+      const startedAt = performance.now();
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Make direct client-side call to backend API
+        // The cookie is set for api.varmeverket.com, so it will be sent automatically
+        // with credentials: 'include' when making requests to that domain
+        const sessionData = await BackendAPI.getSession();
+        setSession(sessionData);
+
+        const email = sessionData?.user?.email;
+        if (email) {
+          // Show cached photo immediately to avoid flash (U -> initials -> image)
+          const cached = getCachedProfilePhotoUrl(email);
+          if (cached) setProfilePhotoUrlState(cached);
+
+          // Only check profile photo once per email in this browser session.
+          if (!emailsCheckedForProfilePhoto.has(email)) {
+            const fetchProfilePhotoWithRetry = (remainingAttempts = 2) => {
+              BackendAPI.getProfilePhoto(email)
+                .then(photo => {
+                  const url =
+                    photo?.url ??
+                    (photo ? profilePhotoUrl(photo.file_key) : null);
+                  setProfilePhotoUrlState(url);
+                  if (url) setCachedProfilePhotoUrl(email, url);
+                  else clearCachedProfilePhotoUrl(email);
+                  // Mark as checked only after a successful API response.
+                  emailsCheckedForProfilePhoto.add(email);
+                })
+                .catch(() => {
+                  if (remainingAttempts > 0) {
+                    setTimeout(() => {
+                      fetchProfilePhotoWithRetry(remainingAttempts - 1);
+                    }, 700);
+                    return;
+                  }
+                  // Keep any cached URL on repeated transient failures and allow
+                  // future explicit refreshes to retry.
+                  emailsCheckedForProfilePhoto.delete(email);
+                });
+            };
+
+            fetchProfilePhotoWithRetry();
+          }
+        } else {
+          setProfilePhotoUrlState(null);
+        }
+      } catch (err) {
+        // 401 or 400 means not logged in, which is fine
+        const isNotAuthenticated =
+          (err instanceof Error &&
+            (err.message.includes('401') ||
+              err.message.includes('400') ||
+              err.message.includes('Not authenticated'))) ||
+          getErrorStatus(err) === 401 ||
+          getErrorStatus(err) === 400;
+
+        if (isNotAuthenticated) {
+          // Not logged in - this is normal, not an error
+          // Note: document.cookie only shows cookies for current domain
+          // Session cookies for api.varmeverket.com won't be visible here
+          // but will still be sent automatically with credentials: 'include'
+          const hasLocalCookies =
+            document.cookie.includes('session=') ||
+            document.cookie.includes('remember_token=');
+
+          // Log info about the authentication failure
+          console.info('ℹ️ Session check: Not authenticated', {
+            message: err instanceof Error ? err.message : 'Unknown error',
+            status: getErrorStatus(err),
+            note: hasLocalCookies
+              ? 'Local cookies found, but session cookies for api.varmeverket.com are cross-domain and not visible in document.cookie. They are still sent automatically with the request.'
+              : 'No local cookies found. Session cookies for api.varmeverket.com are cross-domain and not visible in document.cookie.',
+            suggestion:
+              'If you were logged in on another app, the session might have expired or be invalid. Try logging in again.',
+          });
+
+          // Don't set error for expected authentication failures
+          setSession(null);
+          setProfilePhotoUrlState(null);
+          setError(null);
+        } else {
+          // Only log and set error for actual problems (network errors, etc.)
+          const errorMessage =
+            err instanceof Error ? err.message : 'Failed to fetch session';
+          // Only log if it's not a network/SSL error that we can't fix
+          if (
+            !errorMessage.includes('SSL') &&
+            !errorMessage.includes('Network error')
+          ) {
+            console.error('❌ Session fetch error:', err);
+          }
+          setError(errorMessage);
+          setSession(null);
+          setProfilePhotoUrlState(null);
+        }
+      } finally {
+        if (SESSION_DEBUG) {
+          const elapsedMs = Math.round(performance.now() - startedAt);
+          console.info(`[session] fetch (${reason}) ${elapsedMs}ms`);
+        }
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    fetchSession('initial');
+  }, [fetchSession]);
+
+  useEffect(() => {
+    const onRefresh = () => {
+      fetchSession('event');
+    };
+
+    window.addEventListener(SESSION_REFRESH_EVENT, onRefresh);
+    return () => {
+      window.removeEventListener(SESSION_REFRESH_EVENT, onRefresh);
+    };
+  }, [fetchSession]);
+
+  return {
+    session,
+    user: session?.user || null,
+    profilePhotoUrl: profilePhotoUrlState,
+    loading,
+    error,
+    refetch: () => fetchSession('manual'),
+  };
+}
+
+export function SessionProvider({ children }: { children: React.ReactNode }) {
+  const value = useSessionController();
+  return createElement(SessionContext.Provider, { value }, children);
+}
+
+export function triggerSessionRefresh(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(SESSION_REFRESH_EVENT));
+}
+
+/**
+ * Hook to check if user is logged in and get session data
+ */
+export function useSession(): UseSessionResult {
+  const context = useContext(SessionContext);
+  if (!context) {
+    if (typeof window !== 'undefined') {
+      console.warn(
+        'useSession must be used within SessionProvider; returning no-op session state.'
+      );
+    }
+    return noopContext;
+  }
+  return context;
+}

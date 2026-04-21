@@ -46,7 +46,7 @@ interface ShowcaseOverlayProps {
     year?: number;
     tags?: Array<{
       id: string;
-      tag: string;
+      name: string;
     }>;
   };
   onClose: () => void;

@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { AppAction } from '@/components/ui';
 import { DevIndicator } from '@/components/dev/DevIndicator';
+import { routeLegacyLink } from '@/utils/linkRouter';
 
 interface FeatureBlockProps {
   image?: { url: string; alt?: string; width?: number; height?: number };
@@ -25,29 +26,14 @@ export default function FeatureBlock({
   description,
   link,
 }: FeatureBlockProps) {
-  // Determine the href for the CTA
-  let href: string | undefined = undefined;
-  if (link?.type === 'internal' && link?.reference) {
-    // Handle Payload's reference structure: { relationTo: "pages", value: {...} }
-    if (typeof link.reference === 'object' && link.reference?.value?.slug) {
-      href =
-        link.reference?.relationTo === 'spaces'
-          ? `/spaces/${link.reference?.value?.slug}`
-          : `/${link.reference?.value?.slug}`;
-    }
-    // Handle direct object structure: { slug: "...", collection: "..." }
-    else if (typeof link.reference === 'object' && link.reference?.slug) {
-      href =
-        link.reference?.collection === 'spaces'
-          ? `/spaces/${link.reference?.slug}`
-          : `/${link.reference?.slug}`;
-    } else {
-      // Fallback for unpopulated references (just ID)
-      href = `/${link.reference}`;
-    }
-  } else if (link?.type === 'external') {
-    href = link.url;
-  }
+  const href = link
+    ? routeLegacyLink(
+        link.type ?? 'internal',
+        link.reference,
+        link.url,
+        link.text
+      ).href
+    : undefined;
 
   return (
     <div className="grid grid-cols-16 p-4 my-20 gap-4 relative">

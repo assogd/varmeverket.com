@@ -11,7 +11,6 @@ import type { CardProps } from './types';
 
 export default function ArticleCardWithoutImage({
   item,
-  index,
 }: Omit<CardProps, 'isHovered' | 'onHoverStart' | 'onHoverEnd' | 'onClick'>) {
   const articleContent = getArticleContent(item);
 
@@ -61,7 +60,7 @@ export default function ArticleCardWithoutImage({
         </header>
         {body && (
           <RichText
-            data={body}
+            data={body as never}
             className="text-center font-mono grid gap-3"
             converters={cardConverter}
           />

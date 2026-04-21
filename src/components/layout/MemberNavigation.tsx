@@ -1,0 +1,110 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useSession } from '@/hooks/useSession';
+import { motion } from 'framer-motion';
+import clsx from 'clsx';
+import { isPortalRoute } from '@/utils/routes';
+import { FadeIn } from '@/components/ui/FadeIn';
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon?: React.ReactNode;
+}
+
+const navItems: NavItem[] = [
+  { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Bokningar', href: '/bokningar' },
+  { label: 'Inställningar', href: '/installningar/personligt' },
+  { label: 'Admin', href: '/portal/admin' },
+];
+
+export const MemberNavigation: React.FC = () => {
+  const { user, loading } = useSession();
+  const pathname = usePathname();
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  // Only show for logged in members on portal pages
+  if (loading || !user) {
+    return null;
+  }
+
+  if (pathname?.startsWith('/login')) {
+    return null;
+  }
+
+  // Only show on portal routes
+  if (!isPortalRoute(pathname)) {
+    return null;
+  }
+
+  // Find active item index
+  const activeIndex = navItems.findIndex(
+    item => pathname === item.href || pathname?.startsWith(`${item.href}/`)
+  );
+
+  // Determine which background to show (hover takes priority, then active)
+  const backgroundIndex = hoveredIndex !== null ? hoveredIndex : activeIndex;
+
+  return (
+    <FadeIn
+      variant="fadeUp"
+      timing="normal"
+      delay={0.4}
+      once={false}
+      customMotionProps={{
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+      }}
+      className="fixed bottom-9 md:bottom-0 left-0 right-0 z-50 px-2 py-3"
+      as="nav"
+    >
+      <div className="mx-auto w-fit max-w-full h-14 bg-[#1F1F1F] bg-opacity-70 rounded-xl backdrop-blur-lg overflow-hidden">
+        <div className="h-full max-w-full overflow-x-auto overscroll-x-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="relative inline-flex items-center h-full w-max">
+            {navItems.map((item, index) => {
+              const isActive = index === activeIndex;
+              const isHovered = index === hoveredIndex;
+              const isBackgroundVisible = index === backgroundIndex;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={clsx(
+                    'relative flex items-center justify-center h-full px-4 font-medium whitespace-nowrap first:pl-5 first:pr-4 last:pl-4 last:pr-5 min-w-24',
+                    item.href === '/portal/admin' && 'hidden sm:flex',
+                    isActive || isHovered
+                      ? 'text-text dark:text-dark-text'
+                      : 'text-text/70 dark:text-dark-text/70'
+                  )}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  {isBackgroundVisible && (
+                    <motion.div
+                      layoutId="activeNavBackground"
+                      className="absolute inset-0 bg-[#212121] bg-opacity-50 rounded-lg"
+                      initial={false}
+                      transition={{
+                        type: 'tween',
+                        duration: 0.2,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  )}
+                  <span className="relative z-10">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </FadeIn>
+  );
+};
+
+export default MemberNavigation;

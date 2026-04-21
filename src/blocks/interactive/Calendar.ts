@@ -91,6 +91,8 @@ const CalendarEvent: Block = {
 
 const Calendar: Block = {
   slug: 'calendar',
+  imageURL: '/block-thumbnails/calendar.png',
+  imageAltText: 'Calendar Block',
   labels: {
     singular: 'Calendar',
     plural: 'Calendar Blocks',

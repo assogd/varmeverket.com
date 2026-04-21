@@ -7,6 +7,7 @@ import { FadeInUp } from '@/components/ui';
 import { TagList } from '@/components/ui';
 import { Heading } from '@/components/headings';
 import { defaultConverter } from '@/utils/richTextConverters';
+import { getAuthorDisplayName } from '@/utils/authorDisplay';
 
 interface ArticleHeaderTextOnlyProps {
   articleData: {
@@ -97,9 +98,7 @@ export default function ArticleHeaderTextOnly({
           {articleData.author && (
             <div className="">
               Författare:&nbsp;
-              {articleData.author.firstName && articleData.author.lastName
-                ? `${articleData.author.firstName} ${articleData.author.lastName}`
-                : articleData.author.email}
+              {getAuthorDisplayName(articleData.author) || '—'}
             </div>
           )}
           <div>Publicerad: {formatDate(articleData.publishedDate || '')}</div>

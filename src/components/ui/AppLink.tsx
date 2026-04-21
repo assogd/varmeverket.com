@@ -9,13 +9,19 @@ import {
   isEmailAddress,
 } from '@/utils/linkRouter';
 import { useNotification } from '@/hooks/useNotification';
-import { useIsDark } from '@/hooks/useTheme';
+import { useTheme } from '@/hooks/useTheme';
 import clsx from 'clsx';
 
 interface AppActionProps {
   href?: string;
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline' | 'minimal' | 'noCSS';
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'outline'
+    | 'minimal'
+    | 'textLink'
+    | 'noCSS';
   size?: 'sm' | 'md' | 'lg';
   asButton?: boolean;
   className?: string;
@@ -34,15 +40,19 @@ const sizeStyles = {
   lg: 'px-4 pt-[1.1em] pb-4',
 };
 
-const getBaseStyles = (isDark: boolean) => ({
+const getBaseStyles = (isDark: boolean, isOrange: boolean) => ({
   primary: isDark
     ? 'uppercase border border-text rounded-md inline-block max-w-full text-center overflow-hidden text-ellipsis whitespace-nowrap select-none'
-    : 'uppercase bg-text text-bg mix-blend-multiply rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none',
+    : isOrange
+      ? 'uppercase bg-text text-[color:var(--color-bg)] rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none'
+      : 'uppercase bg-text text-bg mix-blend-multiply rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none',
   secondary:
     'uppercase bg-accent rounded-md block text-center max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none',
   outline:
     'uppercase border border-text rounded-md inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none',
   minimal: 'block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+  textLink:
+    'uppercase text-text text-center inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap select-none hover:opacity-80',
   noCSS: '',
 });
 
@@ -58,8 +68,10 @@ export const AppAction: React.FC<AppActionProps> = ({
   link,
 }) => {
   const { showSuccess, showError } = useNotification();
-  const isDark = useIsDark();
-  const baseStyles = getBaseStyles(isDark);
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
+  const isOrange = resolvedTheme === 'orange';
+  const baseStyles = getBaseStyles(isDark, isOrange);
 
   // Use link router if link prop is provided, otherwise fall back to legacy behavior
   const linkResult = link
@@ -76,13 +88,13 @@ export const AppAction: React.FC<AppActionProps> = ({
     if (textToCopy) {
       try {
         await navigator.clipboard.writeText(textToCopy);
-        showSuccess('Kopierat!', {
+        showSuccess?.('Kopierat!', {
           duration: 5000,
         });
         onCopy?.();
       } catch (err) {
         console.error('Failed to copy:', err);
-        showError('Kunde inte kopiera texten');
+        showError?.('Kunde inte kopiera texten');
       }
     }
   };

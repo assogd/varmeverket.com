@@ -70,7 +70,6 @@ export default function RelatedArticles({
                   key={cardId}
                   item={item}
                   index={index}
-                  onClick={() => {}} // No-op since Link handles navigation
                 />
               );
             }
@@ -81,4 +80,3 @@ export default function RelatedArticles({
     </div>
   );
 }
-

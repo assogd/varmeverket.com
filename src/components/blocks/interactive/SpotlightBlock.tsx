@@ -101,7 +101,7 @@ const SpotlightBlock: React.FC<SpotlightBlockProps> = ({
             <div className="whitespace-pre-line">{description}</div>
           ) : (
             <RichText
-              data={description}
+              data={description as never}
               converters={defaultConverter}
               className="grid gap-3"
             />

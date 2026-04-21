@@ -1,4 +1,5 @@
 import { PayloadAPI } from './api';
+import { buildEventUrl } from '@/utils/eventUrl';
 
 export interface ContentByTagsOptions {
   tagIds: string[];
@@ -11,8 +12,19 @@ export interface ContentByTagsOptions {
 export interface ContentByTagsResult {
   articles: unknown[];
   showcases: unknown[];
+  events: unknown[];
   totalCount: number;
 }
+
+type CombinedItem = {
+  _contentType: 'article' | 'showcase' | 'event';
+  publishedDate?: string;
+  createdAt?: string;
+  startDateTime?: string;
+  title?: string;
+  year?: number;
+  [key: string]: unknown;
+};
 
 /**
  * Core logic for fetching and filtering content by tags
@@ -26,6 +38,7 @@ export async function getContentByTagsCore(
   const results: ContentByTagsResult = {
     articles: [],
     showcases: [],
+    events: [],
     totalCount: 0,
   };
 
@@ -193,16 +206,125 @@ export async function getContentByTagsCore(
     results.showcases = filteredShowcases.slice(0, limit);
   }
 
+  // Fetch events if requested
+  if (contentTypes.includes('events')) {
+    const MAX_FETCH_LIMIT = 500;
+    let allEvents: unknown[] = [];
+    let page = 1;
+    let hasMore = true;
+    const pageSize = tagIds.length > 0 ? 50 : 100;
+    const eventSort =
+      sort === '-publishedDate' || sort === 'publishedDate'
+        ? 'startDateTime'
+        : sort;
+
+    while (hasMore && allEvents.length < MAX_FETCH_LIMIT) {
+      const eventsResult = await PayloadAPI.find({
+        collection: 'events',
+        where: {
+          or: [{ status: { equals: status } }, { _status: { equals: status } }],
+        },
+        limit: pageSize,
+        page,
+        sort: eventSort,
+        depth: 2,
+      });
+
+      allEvents = [...allEvents, ...eventsResult.docs];
+      hasMore = eventsResult.hasNextPage || false;
+      page++;
+
+      if (tagIds.length > 0) {
+        const filteredSoFar = allEvents.filter((event: unknown) => {
+          const eventObj = event as {
+            tags?: Array<{ id?: string; _id?: string }>;
+          };
+          const eventTags = eventObj?.tags || [];
+          return eventTags.some(tag => {
+            const tagId = tag.id || tag._id;
+            return tagId && tagIds.includes(String(tagId));
+          });
+        });
+        if (filteredSoFar.length >= limit) {
+          hasMore = false;
+        }
+      } else if (allEvents.length >= limit) {
+        hasMore = false;
+      }
+    }
+
+    let filteredEvents = allEvents;
+    if (tagIds.length > 0) {
+      filteredEvents = allEvents.filter((event: unknown) => {
+        const eventObj = event as {
+          tags?: Array<{ id?: string; _id?: string }>;
+        };
+        const eventTags = eventObj?.tags || [];
+        return eventTags.some(tag => {
+          const tagId = tag.id || tag._id;
+          return tagId && tagIds.includes(String(tagId));
+        });
+      });
+    }
+
+    const childParentMap = new Map<string, string>();
+    const eventsWithChildren = filteredEvents.filter((event: unknown) => {
+      const eventObj = event as {
+        slug?: string;
+        children?: Array<{ id?: string }>;
+      };
+      return Boolean(eventObj.slug && Array.isArray(eventObj.children));
+    });
+
+    for (const parent of eventsWithChildren) {
+      const parentObj = parent as {
+        slug?: string;
+        children?: Array<{ id?: string }>;
+      };
+      const parentSlug = parentObj.slug;
+      if (!parentSlug || !Array.isArray(parentObj.children)) continue;
+      for (const child of parentObj.children) {
+        const childId = child?.id;
+        if (childId) childParentMap.set(String(childId), parentSlug);
+      }
+    }
+
+    results.events = filteredEvents.slice(0, limit).map((event: unknown) => {
+      const eventObj = event as {
+        id?: string;
+        slug?: string;
+        startDateTime?: string;
+        href?: string;
+      };
+      const id = String(eventObj.id || '');
+      const parentSlug = childParentMap.get(id);
+      return {
+        ...(event as Record<string, unknown>),
+        href: buildEventUrl({
+          slug: eventObj.slug ?? '',
+          startDateTime: eventObj.startDateTime,
+          parentSlug,
+          href: eventObj.href,
+        }),
+        parentSlug,
+      };
+    });
+  }
+
   // If both content types, combine and sort
   if (contentTypes.length > 1) {
-    const combined = [
+    const combined: CombinedItem[] = [
       ...results.articles.map((item: unknown) => ({
         ...(item as Record<string, unknown>),
-        _contentType: 'article',
+        _contentType: 'article' as const,
       })),
       ...results.showcases.map((item: unknown) => ({
         ...(item as Record<string, unknown>),
-        _contentType: 'showcase',
+        _contentType: 'showcase' as const,
+      })),
+      ...results.events.map((item: unknown) => ({
+        ...(item as Record<string, unknown>),
+        _contentType: 'event' as const,
       })),
     ];
 
@@ -210,23 +332,31 @@ export async function getContentByTagsCore(
     combined.sort((a, b) => {
       if (sort === '-publishedDate' || sort === '-createdAt') {
         const dateA =
-          (a.publishedDate as string) || (a.createdAt as string);
+          (a.publishedDate as string) ||
+          (a.createdAt as string) ||
+          (a.startDateTime as string);
         const dateB =
-          (b.publishedDate as string) || (b.createdAt as string);
+          (b.publishedDate as string) ||
+          (b.createdAt as string) ||
+          (b.startDateTime as string);
         return new Date(dateB).getTime() - new Date(dateA).getTime();
       } else if (sort === 'publishedDate' || sort === 'createdAt') {
         const dateA =
-          (a.publishedDate as string) || (a.createdAt as string);
+          (a.publishedDate as string) ||
+          (a.createdAt as string) ||
+          (a.startDateTime as string);
         const dateB =
-          (b.publishedDate as string) || (b.createdAt as string);
+          (b.publishedDate as string) ||
+          (b.createdAt as string) ||
+          (b.startDateTime as string);
         return new Date(dateA).getTime() - new Date(dateB).getTime();
       } else if (sort === 'title') {
-        return (a.title as string).localeCompare(b.title as string);
+        return (a.title || '').localeCompare(b.title || '');
       } else if (sort === '-title') {
-        return (b.title as string).localeCompare(a.title as string);
+        return (b.title || '').localeCompare(a.title || '');
       } else if (sort === 'year' || sort === '-year') {
-        const yearA = (a.year as number) || 0;
-        const yearB = (b.year as number) || 0;
+        const yearA = a.year || 0;
+        const yearB = b.year || 0;
         return sort === 'year' ? yearA - yearB : yearB - yearA;
       }
       return 0;
@@ -250,10 +380,17 @@ export async function getContentByTagsCore(
         const { _contentType, ...rest } = item;
         return rest;
       });
+    results.events = limited
+      .filter(item => item._contentType === 'event')
+      .map(item => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { _contentType, ...rest } = item;
+        return rest;
+      });
   }
 
-  results.totalCount = results.articles.length + results.showcases.length;
+  results.totalCount =
+    results.articles.length + results.showcases.length + results.events.length;
 
   return results;
 }
-

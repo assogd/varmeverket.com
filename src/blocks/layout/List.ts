@@ -4,6 +4,8 @@ import { InlineHeader } from '@/fields/InlineHeader';
 
 const List: Block = {
   slug: 'list',
+  imageURL: '/block-thumbnails/list.png',
+  imageAltText: 'List Block',
   labels: {
     singular: 'List',
     plural: 'Lists',

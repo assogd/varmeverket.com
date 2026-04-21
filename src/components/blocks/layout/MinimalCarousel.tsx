@@ -179,8 +179,8 @@ const MinimalCarousel: React.FC<MinimalCarouselProps> = ({
                 animate="center"
                 exit="exit"
                 transition={{
-                  x: { type: 'linear', stiffness: 300, damping: 30 },
-                  scale: { type: 'linear', stiffness: 300, damping: 30 },
+                  x: { type: 'tween', ease: 'linear', duration: 0.3 },
+                  scale: { type: 'tween', ease: 'linear', duration: 0.3 },
                   opacity: { duration: 0.15 },
                 }}
                 className="absolute inset-0 z-0"
@@ -220,4 +220,3 @@ const MinimalCarousel: React.FC<MinimalCarouselProps> = ({
 };
 
 export default MinimalCarousel;
-
